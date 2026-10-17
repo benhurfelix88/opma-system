@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARMS - Dashboard</title>
+    <link rel="stylesheet" href="../public/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="../public/images/arms-logo.png" alt="ARMS Logo">
+            </div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item active">
+                    <i class="icon-dashboard"></i>
+                    DashBoard
+                </a>
+                <a href="ticketing.html" class="nav-item">
+                    <i class="icon-ticket"></i>
+                    Ticketing
+                </a>
+                <a href="parts-inventory.html" class="nav-item">
+                    <i class="icon-inventory"></i>
+                    Parts Inventory
+                </a>
+                <a href="merch-monitoring.html" class="nav-item">
+                    <i class="icon-merch"></i>
+                    Merch. Monitoring Sheet
+                </a>
+                <a href="incident-report.html" class="nav-item">
+                    <i class="icon-report"></i>
+                    Incident Report
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="search-bar">
+                    <input type="search" placeholder="Search...">
+                </div>
+                <div class="header-right">
+                    <button class="notification-btn">
+                        <i class="icon-notification"></i>
+                    </button>
+                    <button class="messages-btn">
+                        <i class="icon-messages"></i>
+                    </button>
+                    <div class="user-profile">
+                        <span class="user-role">Admin</span>
+                        <button class="profile-dropdown">▼</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <div class="dashboard-grid">
+                    <!-- Ticketing Section -->
+                    <section class="dashboard-card">
+                        <div class="card-header">
+                            <h2>Ticketing</h2>
+                            <button class="expand-btn">□</button>
+                        </div>
+                        <div class="qr-code-section">
+                            <img src="../public/images/qr-placeholder.png" alt="QR Code">
+                            <div class="qr-info">
+                                <p>Date: <span id="current-date">-</span></p>
+                                <p>Time: <span id="current-time">-</span></p>
+                                <p>Restrictions: <span id="restrictions">-</span></p>
+                                <p>Rides Available: <span id="available-rides">-</span></p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Parts Inventory Section -->
+                    <section class="dashboard-card">
+                        <div class="card-header">
+                            <h2>Parts Inventory</h2>
+                            <button class="expand-btn">□</button>
+                        </div>
+                        <div class="inventory-table">
+                            <!-- Parts inventory content will be dynamically loaded -->
+                        </div>
+                    </section>
+
+                    <!-- Merchandise Monitoring Section -->
+                    <section class="dashboard-card">
+                        <div class="card-header">
+                            <h2>Merch. Monitoring Sheet</h2>
+                            <button class="expand-btn">□</button>
+                        </div>
+                        <div class="merch-monitoring">
+                            <!-- Merchandise monitoring content will be dynamically loaded -->
+                        </div>
+                    </section>
+
+                    <!-- Incident Report Section -->
+                    <section class="dashboard-card">
+                        <div class="card-header">
+                            <h2>Incident Report</h2>
+                            <button class="expand-btn">□</button>
+                        </div>
+                        <div class="incident-summary">
+                            <!-- Incident report content will be dynamically loaded -->
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../public/js/dashboard.js"></script>
+</body>
+</html> 

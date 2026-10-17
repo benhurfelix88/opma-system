@@ -1,0 +1,274 @@
+.inventory-content {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Rides Section */
+.rides-section {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+}
+
+.rides-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.rides-header h2 {
+    font-size: 1.2rem;
+    color: var(--text-color);
+}
+
+.rides-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ride-btn {
+    padding: 12px;
+    text-align: left;
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.ride-btn:hover {
+    background-color: var(--background-color);
+}
+
+.ride-btn.selected {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Parts Section */
+.parts-section {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+}
+
+.parts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.parts-header h2 {
+    font-size: 1.2rem;
+    color: var(--text-color);
+}
+
+.parts-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.add-part-btn {
+    padding: 8px 16px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.add-part-btn:hover {
+    background-color: #584b7a;
+}
+
+/* Table Styles */
+.parts-table {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+th {
+    background-color: var(--background-color);
+    font-weight: 600;
+}
+
+.status-good {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.status-bad {
+    color: var(--error-color);
+    font-weight: 600;
+}
+
+.edit-btn,
+.delete-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+    transition: background-color 0.3s;
+}
+
+.edit-btn {
+    background-color: #4a90e2;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #e25c5c;
+    color: white;
+}
+
+.edit-btn:hover {
+    background-color: #357abd;
+}
+
+.delete-btn:hover {
+    background-color: #c54545;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.cancel-btn,
+.save-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    background-color: #e0e0e0;
+}
+
+.save-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .inventory-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .rides-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .ride-btn {
+        flex: 1;
+        min-width: 150px;
+    }
+}
+
+@media (max-width: 768px) {
+    .parts-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .parts-actions {
+        width: 100%;
+    }
+    
+    .add-part-btn {
+        flex: 1;
+    }
+    
+    .edit-btn,
+    .delete-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+} 

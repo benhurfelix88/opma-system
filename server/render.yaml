@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: arms-system-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_HOST
+        fromDatabase:
+          name: arms-system-db
+          property: host
+      - key: DB_USER
+        fromDatabase:
+          name: arms-system-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: arms-system-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: arms-system-db
+          property: database
+      - key: DB_PORT
+        value: 5432
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://your-frontend-url.vercel.app
+      - key: GMAIL_EMAIL
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+
+databases:
+  - name: arms-system-db
+    databaseName: arms_system
+    user: arms_user
+    plan: free
+    postgresVersion: 14

@@ -1,0 +1,476 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Chip,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from '@mui/material';
+import { 
+  Search as SearchIcon,
+  PictureAsPdf as ReportIcon
+} from '@mui/icons-material';
+import DashboardLayout from '../layout/DashboardLayout';
+import ReportGenerator from '../common/ReportGenerator';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import { sparePartsAPI } from '../../services/api';
+
+const AdminPartsInventory = () => {
+  const [parts, setParts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [rideFilter, setRideFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [openReportDialog, setOpenReportDialog] = useState(false);
+  const [openPartsModal, setOpenPartsModal] = useState(false);
+
+  useEffect(() => {
+    loadParts();
+  }, []);
+
+  const loadParts = async () => {
+    try {
+      setLoading(true);
+      const allParts = await sparePartsAPI.getAll();
+      // Map database fields to component fields
+      const mappedParts = allParts.map(part => {
+        // Use approval_status from database directly, fallback to parsing notes if needed
+        let approvalStatus = part.approval_status || 'Pending';
+        let notes = part.notes || '';
+        
+        // Fallback: if approval_status doesn't exist, try parsing from notes (for backward compatibility)
+        if (!part.approval_status && part.notes) {
+          try {
+            const parsed = JSON.parse(part.notes);
+            if (parsed.approvalStatus) {
+              approvalStatus = parsed.approvalStatus;
+              notes = parsed.notes || '';
+            } else {
+              notes = part.notes;
+            }
+          } catch {
+            // If notes is not JSON, use it as is
+            notes = part.notes;
+          }
+        }
+        
+        return {
+          ...part,
+          id: part.id,
+          name: part.part_name || part.name,
+          quantity: part.quantity || 0,
+          unit: part.unit || '',
+          price: part.cost || part.price || 0,
+          status: part.status || 'Available',
+          location: part.location || '',
+          supplier: part.supplier || '',
+          ride: part.ride || '', // Use actual ride field from database
+          totalAmount: (part.cost || 0) * (part.quantity || 0),
+          approvalStatus: approvalStatus,
+          notes: notes,
+        };
+      });
+      setParts(mappedParts);
+    } catch (error) {
+      console.error('Error loading parts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const normalizedValue = (value) => {
+    if (value === undefined || value === null) return '';
+    if (typeof value === 'number') return value;
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) return date.getTime();
+    const num = Number(value);
+    if (!Number.isNaN(num)) return num;
+    return String(value).toLowerCase();
+  };
+
+  const filteredAndSortedParts = parts
+    .filter((part) => {
+      // Search filter
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return Object.values(part)
+        .map((v) => (v || '').toString().toLowerCase())
+        .some((v) => v.includes(q));
+    })
+    .filter((part) => {
+      // Status filter
+      if (statusFilter === 'all') return true;
+      return part.status === statusFilter;
+    })
+    .filter((part) => {
+      // Ride filter
+      if (rideFilter === 'all') return true;
+      return part.ride === rideFilter;
+    })
+    .sort((a, b) => {
+      // Sorting logic
+      const aVal = normalizedValue(
+        sortBy === 'price'
+          ? Number(a.price)
+          : sortBy === 'quantity'
+          ? Number(a.quantity)
+          : sortBy === 'lastUpdated'
+          ? a.lastUpdated
+          : a[sortBy]
+      );
+      const bVal = normalizedValue(
+        sortBy === 'price'
+          ? Number(b.price)
+          : sortBy === 'quantity'
+          ? Number(b.quantity)
+          : sortBy === 'lastUpdated'
+          ? b.lastUpdated
+          : b[sortBy]
+      );
+      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+  const getStatusColor = (status) => {
+    if (!status) return 'default';
+    const statusLower = status.toLowerCase();
+    if (statusLower.includes('in stock')) return 'success';
+    if (statusLower.includes('low stock')) return 'warning';
+    if (statusLower.includes('out of stock')) return 'error';
+    return 'default';
+  };
+
+  if (loading) {
+    return <Typography>Loading...</Typography>;
+  }
+
+  return (
+    <DashboardLayout title="Ride Parts Inventory">
+      <Box sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <TextField
+              placeholder="Search parts..."
+              variant="outlined"
+              size="small"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{
+                startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+              }}
+              sx={{ minWidth: 200 }}
+            />
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Order</InputLabel>
+              <Select
+                label="Order"
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      maxHeight: 300,
+                      overflowY: 'auto',
+                      '&::-webkit-scrollbar': {
+                        width: '8px',
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                        borderRadius: '4px',
+                      },
+                      '&::-webkit-scrollbar-track': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                      },
+                    },
+                  },
+                }}
+              >
+                <MenuItem value="asc">Ascending</MenuItem>
+                <MenuItem value="desc">Descending</MenuItem>
+              </Select>
+            </FormControl>
+                        <FormControl size="small" sx={{ minWidth: 140 }}>
+              <InputLabel>Status</InputLabel>
+              <Select
+                label="Status"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      maxHeight: 300,
+                      overflowY: 'auto',
+                      '&::-webkit-scrollbar': {
+                        width: '8px',
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                        borderRadius: '4px',
+                      },
+                      '&::-webkit-scrollbar-track': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                      },
+                    },
+                  },
+                }}
+              >
+                <MenuItem value="all">All Status</MenuItem>
+                <MenuItem value="In Stock">In Stock</MenuItem>
+                <MenuItem value="Low Stock">Low Stock</MenuItem>
+                <MenuItem value="Out of Stock">Out of Stock</MenuItem>
+              </Select>
+            </FormControl>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setOpenPartsModal(true)}
+              sx={{
+                minWidth: 140,
+                height: 40,
+                display: 'flex',
+                justifyContent: 'space-between',
+                px: 2,
+                textTransform: 'none',
+                borderColor: 'rgba(0, 0, 0, 0.23)',
+                '&:hover': {
+                  borderColor: 'rgba(0, 0, 0, 0.87)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                },
+              }}
+            >
+              <Typography variant="body2" sx={{ flexGrow: 1, textAlign: 'left' }}>
+                {rideFilter === 'all' ? 'All Parts' : rideFilter}
+              </Typography>
+              <Typography variant="body2">▼</Typography>
+            </Button>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<ReportIcon />}
+            onClick={() => setOpenReportDialog(true)}
+            sx={{ ml: 2 }}
+          >
+            Export
+          </Button>
+        </Box>
+
+        <Card>
+          <CardContent>
+            <Box sx={{ maxHeight: '70vh', overflow: 'auto' }}>
+              <TableContainer component={Paper} sx={{ maxHeight: '70vh' }}>
+                <Table stickyHeader>
+                  <TableHead>
+              <TableRow>
+                <TableCell align="center" sx={{ width: '12%' }}>Part Name</TableCell>
+                <TableCell align="center" sx={{ width: '10%' }}>Ride</TableCell>
+                <TableCell align="center" sx={{ width: '8%' }}>Quantity</TableCell>
+                <TableCell align="center" sx={{ width: '8%' }}>Unit</TableCell>
+                <TableCell align="center" sx={{ width: '10%' }}>Price</TableCell>
+                <TableCell align="center" sx={{ width: '10%' }}>Total Amount</TableCell>
+                <TableCell align="center" sx={{ width: '10%' }}>Status</TableCell>
+                <TableCell align="center" sx={{ width: '10%' }}>Location</TableCell>
+                <TableCell align="center" sx={{ width: '12%' }}>Supplier</TableCell>
+                <TableCell align="center" sx={{ width: '10%' }}>Approval Status</TableCell>
+                <TableCell align="center" sx={{ width: '10%' }}>Last Updated</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredAndSortedParts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={11} align="center">
+                    <Typography variant="body1" color="text.secondary">
+                      No parts found
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredAndSortedParts.map((part) => (
+                  <TableRow key={part.id}>
+                    <TableCell align="center" sx={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{part.name}</TableCell>
+                    <TableCell align="center">{part.ride || 'N/A'}</TableCell>
+                    <TableCell align="center">{part.quantity}</TableCell>
+                    <TableCell align="center">{part.unit || 'N/A'}</TableCell>
+                    <TableCell align="center">₱{Number(part.price || 0).toFixed(2)}</TableCell>
+                    <TableCell align="center">₱{Number(part.totalAmount || (Number(part.price || 0) * Number(part.quantity || 0))).toFixed(2)}</TableCell>
+                    <TableCell align="center">
+                        <Chip
+                          label={part.status || 'Unknown'}
+                          variant="outlined"
+                          size="small"
+                          sx={{ 
+                            color: getStatusColor(part.status) === 'success' ? 'green' : 
+                                   getStatusColor(part.status) === 'warning' ? 'orange' : 
+                                   getStatusColor(part.status) === 'error' ? 'red' : 
+                                   getStatusColor(part.status) === 'info' ? 'blue' : 'gray',
+                            borderColor: getStatusColor(part.status) === 'success' ? 'green' : 
+                                         getStatusColor(part.status) === 'warning' ? 'orange' : 
+                                         getStatusColor(part.status) === 'error' ? 'red' : 
+                                         getStatusColor(part.status) === 'info' ? 'blue' : 'gray',
+                            backgroundColor: 'transparent'
+                          }}
+                        />
+                    </TableCell>
+                    <TableCell align="center">{part.location || 'N/A'}</TableCell>
+                    <TableCell align="center">{part.supplier || 'N/A'}</TableCell>
+                    <TableCell align="center">
+                        <Chip
+                          label={part.approvalStatus || 'Pending'}
+                          variant="outlined"
+                          size="small"
+                          sx={{ 
+                            color: part.approvalStatus === 'Approved' ? 'green' : 
+                                   part.approvalStatus === 'Rejected' ? 'red' : 
+                                   part.approvalStatus === 'Pending' ? 'orange' : 'gray',
+                            borderColor: part.approvalStatus === 'Approved' ? 'green' : 
+                                         part.approvalStatus === 'Rejected' ? 'red' : 
+                                         part.approvalStatus === 'Pending' ? 'orange' : 'gray',
+                            backgroundColor: 'transparent'
+                          }}
+                        />
+                    </TableCell>
+                    <TableCell align="center">
+                      {part.updated_at ? new Date(part.updated_at).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      }).replace(',', '') : 'N/A'}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Parts Selection Modal */}
+        <Dialog 
+          open={openPartsModal} 
+          onClose={() => setOpenPartsModal(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Select Ride Parts</DialogTitle>
+          <DialogContent>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, pt: 1 }}>
+              <Box
+                onClick={() => {
+                  setRideFilter('all');
+                  setOpenPartsModal(false);
+                }}
+                sx={{
+                  p: 2,
+                  borderRadius: 1,
+                  border: rideFilter === 'all' ? '2px solid' : '1px solid',
+                  borderColor: rideFilter === 'all' ? 'primary.main' : 'divider',
+                  backgroundColor: rideFilter === 'all' ? 'primary.50' : 'background.paper',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    backgroundColor: rideFilter === 'all' ? 'primary.100' : 'action.hover',
+                  },
+                }}
+              >
+                <Typography variant="subtitle2" fontWeight="bold">
+                  All Parts
+                </Typography>
+              </Box>
+              <Box 
+                sx={{ 
+                  maxHeight: 300, 
+                  overflowY: 'auto',
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                    borderRadius: '4px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                  },
+                }}
+              >
+                {[...new Set(parts.map(part => part.ride).filter(Boolean))].sort().slice(0, 10).map(ride => (
+                  <Box
+                    key={ride}
+                    onClick={() => {
+                      setRideFilter(ride);
+                      setOpenPartsModal(false);
+                    }}
+                    sx={{
+                      p: 2,
+                      borderRadius: 1,
+                      border: rideFilter === ride ? '2px solid' : '1px solid',
+                      borderColor: rideFilter === ride ? 'primary.main' : 'divider',
+                      backgroundColor: rideFilter === ride ? 'primary.50' : 'background.paper',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        backgroundColor: rideFilter === ride ? 'primary.100' : 'action.hover',
+                      },
+                    }}
+                  >
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      {ride}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenPartsModal(false)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+
+        <ReportGenerator
+          open={openReportDialog}
+          onClose={() => setOpenReportDialog(false)}
+          data={filteredAndSortedParts}
+          title="Ride Parts Inventory Report"
+          reportType="parts"
+          columns={[
+            { header: 'Part Name', field: 'name' },
+            { header: 'Ride', field: 'ride' },
+            { header: 'Quantity', field: 'quantity' },
+            { header: 'Unit', field: 'unit' },
+            { header: 'Price', field: 'price' },
+            { header: 'Total Amount', field: 'totalAmount' },
+            { header: 'Status', field: 'status' },
+            { header: 'Location', field: 'location' },
+            { header: 'Supplier', field: 'supplier' },
+            { header: 'Approval Status', field: 'approvalStatus' },
+            { header: 'Last Updated', field: 'updated_at' }
+          ]}
+        />
+      </Box>
+    </DashboardLayout>
+  );
+};
+
+export default AdminPartsInventory; 

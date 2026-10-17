@@ -1,0 +1,150 @@
+.ticketing-content {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 20px;
+}
+
+/* QR Code Section */
+.qr-section {
+    grid-column: 1 / -1;
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+}
+
+.qr-header,
+.monitoring-header,
+.counters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.qr-header h2,
+.monitoring-header h2,
+.counters-header h2 {
+    font-size: 1.2rem;
+    color: var(--text-color);
+}
+
+.qr-details {
+    display: flex;
+    gap: 30px;
+}
+
+.qr-code {
+    flex: 0 0 200px;
+}
+
+.qr-code img {
+    width: 100%;
+    height: auto;
+}
+
+.qr-info {
+    flex: 1;
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.info-row label {
+    font-weight: 600;
+    min-width: 120px;
+}
+
+/* Monitoring Section */
+.monitoring-section {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+}
+
+.monitoring-table {
+    overflow-x: auto;
+}
+
+/* Counters Section */
+.counters-section {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+}
+
+.counters-table {
+    overflow-x: auto;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+th {
+    background-color: var(--background-color);
+    font-weight: 600;
+}
+
+.total {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Expand Button */
+.expand-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--text-color);
+    transition: transform 0.3s;
+}
+
+.expand-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .ticketing-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .qr-details {
+        flex-direction: column;
+    }
+    
+    .qr-code {
+        flex: 0 0 auto;
+        text-align: center;
+    }
+    
+    .qr-code img {
+        max-width: 200px;
+    }
+    
+    .info-row {
+        flex-direction: column;
+    }
+    
+    .info-row label {
+        margin-bottom: 5px;
+    }
+} 

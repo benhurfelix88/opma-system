@@ -1,0 +1,177 @@
+-- Delete all existing spare parts
+DELETE FROM spare_parts;
+
+-- BALLOON WHEEL Parts
+INSERT INTO spare_parts (part_name, category, quantity, unit, cost, supplier, location, status) VALUES
+('Beams', 'Balloon Wheel', 12, 'pcs', 1500.00, 'Mark Santos', 'Quezon City', 'In Stock'),
+('Gears', 'Balloon Wheel', 4, 'pcs', 2000.00, 'Leo Fernandez', 'Pasig City', 'In Stock'),
+('Seatbelts', 'Balloon Wheel', 8, 'pcs', 450.00, 'Anna Reyes', 'Cavite', 'In Stock'),
+('Sensors', 'Balloon Wheel', 2, 'pcs', 1200.00, 'Carlo Jimenez', 'Makati City', 'In Stock'),
+('Cars', 'Balloon Wheel', 8, 'pcs', 15000.00, 'Robert Castillo', 'Valenzuela City', 'In Stock'),
+('Columns', 'Balloon Wheel', 1, 'set', 25000.00, 'Edwin Ramos', 'Bulacan', 'In Stock'),
+('Toothed Wheels', 'Balloon Wheel', 2, 'pcs', 1800.00, 'Jeff Manalo', 'Laguna', 'In Stock'),
+('Control Panels', 'Balloon Wheel', 1, 'unit', 30000.00, 'Ivy Torres', 'Mandaluyong', 'In Stock'),
+('Rails', 'Balloon Wheel', 6, 'm', 500.00, 'Bryan Mendoza', 'Pampanga', 'In Stock'),
+('Bearings', 'Balloon Wheel', 6, 'pcs', 300.00, 'Jun Dela Cruz', 'Caloocan City', 'In Stock'),
+('Emergency Stoppers', 'Balloon Wheel', 1, 'unit', 5000.00, 'Patrick Morales', 'Batangas', 'In Stock'),
+('Logic Controller', 'Balloon Wheel', 1, 'unit', 18000.00, 'Helen Rivera', 'Baguio City', 'In Stock'),
+('Motors', 'Balloon Wheel', 1, 'unit', 40000.00, 'Vincent Uy', 'Cebu City', 'In Stock'),
+('Platforms', 'Balloon Wheel', 1, 'set', 12000.00, 'Katrina Gomez', 'Antipolo City', 'In Stock');
+
+-- CATERPILLAR Parts
+INSERT INTO spare_parts (part_name, category, quantity, unit, cost, supplier, location, status) VALUES
+('Beams', 'Caterpillar', 8, 'pcs', 1500.00, 'Mark Santos', 'Quezon City', 'In Stock'),
+('Gears', 'Caterpillar', 3, 'pcs', 2000.00, 'Leo Fernandez', 'Pasig City', 'In Stock'),
+('Seatbelts', 'Caterpillar', 12, 'pcs', 450.00, 'Anna Reyes', 'Cavite', 'In Stock'),
+('Sensors', 'Caterpillar', 2, 'pcs', 1200.00, 'Carlo Jimenez', 'Makati City', 'In Stock'),
+('Wagons', 'Caterpillar', 6, 'pcs', 10000.00, 'Robert Castillo', 'Valenzuela City', 'In Stock'),
+('Rails', 'Caterpillar', 10, 'm', 500.00, 'Bryan Mendoza', 'Pampanga', 'In Stock'),
+('Bearings', 'Caterpillar', 8, 'pcs', 300.00, 'Jun Dela Cruz', 'Caloocan City', 'In Stock'),
+('Emergency Stoppers', 'Caterpillar', 1, 'unit', 5000.00, 'Patrick Morales', 'Batangas', 'In Stock'),
+('Logic Controller', 'Caterpillar', 1, 'unit', 18000.00, 'Helen Rivera', 'Baguio City', 'In Stock'),
+('Motors', 'Caterpillar', 1, 'unit', 35000.00, 'Vincent Uy', 'Cebu City', 'In Stock'),
+('Platforms', 'Caterpillar', 1, 'set', 12000.00, 'Katrina Gomez', 'Antipolo City', 'In Stock');
+
+-- FERRIS WHEEL Parts
+INSERT INTO spare_parts (part_name, category, quantity, unit, cost, supplier, location, status) VALUES
+('Beams', 'Ferris Wheel', 20, 'pcs', 1500.00, 'Mark Santos', 'Quezon City', 'In Stock'),
+('Gears', 'Ferris Wheel', 6, 'pcs', 2000.00, 'Leo Fernandez', 'Pasig City', 'In Stock'),
+('Seatbelts', 'Ferris Wheel', 16, 'pcs', 450.00, 'Anna Reyes', 'Cavite', 'In Stock'),
+('Sensors', 'Ferris Wheel', 4, 'pcs', 1200.00, 'Carlo Jimenez', 'Makati City', 'In Stock'),
+('Cars', 'Ferris Wheel', 16, 'pcs', 18000.00, 'Robert Castillo', 'Valenzuela City', 'In Stock'),
+('Columns', 'Ferris Wheel', 1, 'set', 30000.00, 'Edwin Ramos', 'Bulacan', 'In Stock'),
+('Toothed Wheels', 'Ferris Wheel', 4, 'pcs', 1800.00, 'Jeff Manalo', 'Laguna', 'In Stock'),
+('Control Panels', 'Ferris Wheel', 1, 'unit', 35000.00, 'Ivy Torres', 'Mandaluyong', 'In Stock'),
+('Bearings', 'Ferris Wheel', 10, 'pcs', 300.00, 'Jun Dela Cruz', 'Caloocan City', 'In Stock'),
+('Motors', 'Ferris Wheel', 2, 'unit', 40000.00, 'Vincent Uy', 'Cebu City', 'In Stock'),
+('Platforms', 'Ferris Wheel', 1, 'set', 15000.00, 'Katrina Gomez', 'Antipolo City', 'In Stock');
+
+-- FREESBEE Parts
+INSERT INTO spare_parts (part_name, category, quantity, unit, cost, supplier, location, status) VALUES
+('Beams', 'Freesbee', 14, 'pcs', 1500.00, 'Mark Santos', 'Quezon City', 'In Stock'),
+('Gears', 'Freesbee', 4, 'pcs', 2000.00, 'Leo Fernandez', 'Pasig City', 'In Stock'),
+('Seatbelts', 'Freesbee', 20, 'pcs', 450.00, 'Anna Reyes', 'Cavite', 'In Stock'),
+('Sensors', 'Freesbee', 3, 'pcs', 1200.00, 'Carlo Jimenez', 'Makati City', 'In Stock'),
+('Center Pole', 'Freesbee', 1, 'unit', 25000.00, 'Edwin Ramos', 'Bulacan', 'In Stock'),
+('Control Panels', 'Freesbee', 1, 'unit', 35000.00, 'Ivy Torres', 'Mandaluyong', 'In Stock'),
+('Bearings', 'Freesbee', 10, 'pcs', 300.00, 'Jun Dela Cruz', 'Caloocan City', 'In Stock'),
+('Motors', 'Freesbee', 2, 'unit', 45000.00, 'Vincent Uy', 'Cebu City', 'In Stock'),
+('Rails', 'Freesbee', 4, 'm', 500.00, 'Bryan Mendoza', 'Pampanga', 'In Stock'),
+('Emergency Stoppers', 'Freesbee', 1, 'unit', 5000.00, 'Patrick Morales', 'Batangas', 'In Stock');
+
+-- FUN SLIDES Parts
+INSERT INTO spare_parts (part_name, category, quantity, unit, cost, supplier, location, status) VALUES
+('Beams', 'Fun Slides', 6, 'pcs', 1500.00, 'Mark Santos', 'Quezon City', 'In Stock'),
+('Columns', 'Fun Slides', 2, 'pcs', 12000.00, 'Edwin Ramos', 'Bulacan', 'In Stock'),
+('Platforms', 'Fun Slides', 2, 'pcs', 8000.00, 'Katrina Gomez', 'Antipolo City', 'In Stock'),
+('Rails', 'Fun Slides', 4, 'm', 500.00, 'Bryan Mendoza', 'Pampanga', 'In Stock'),
+('Sensors', 'Fun Slides', 1, 'pc', 1200.00, 'Carlo Jimenez', 'Makati City', 'In Stock'),
+('Nets', 'Fun Slides', 2, 'sets', 2000.00, 'Mariel Tan', 'Quezon Province', 'In Stock');
+
+-- HORROR CAB Parts
+INSERT INTO spare_parts (part_name, category, quantity, unit, cost, supplier, location, status) VALUES
+('Cars', 'Horror Cab', 6, 'pcs', 10000.00, 'Robert Castillo', 'Valenzuela City', 'In Stock'),
+('Rails', 'Horror Cab', 20, 'm', 500.00, 'Bryan Mendoza', 'Pampanga', 'In Stock'),
+('Sensors', 'Horror Cab', 4, 'pcs', 1200.00, 'Carlo Jimenez', 'Makati City', 'In Stock'),
+('Control Panel', 'Horror Cab', 1, 'unit', 30000.00, 'Ivy Torres', 'Mandaluyong', 'In Stock'),
+('Bearings', 'Horror Cab', 8, 'pcs', 300.00, 'Jun Dela Cruz', 'Caloocan City', 'In Stock'),
+('Emergency Stoppers', 'Horror Cab', 1, 'unit', 5000.00, 'Patrick Morales', 'Batangas', 'In Stock'),
+('Logic Controller', 'Horror Cab', 1, 'unit', 18000.00, 'Helen Rivera', 'Baguio City', 'In Stock'),
+('Motors', 'Horror Cab', 1, 'unit', 35000.00, 'Vincent Uy', 'Cebu City', 'In Stock');
+
+-- MOON ROCKET Parts
+INSERT INTO spare_parts (part_name, category, quantity, unit, cost, supplier, location, status) VALUES
+('Beams', 'Moon Rocket', 10, 'pcs', 1500.00, 'Mark Santos', 'Quezon City', 'In Stock'),
+('Gears', 'Moon Rocket', 6, 'pcs', 2000.00, 'Leo Fernandez', 'Pasig City', 'In Stock'),
+('Seatbelts', 'Moon Rocket', 18, 'pcs', 450.00, 'Anna Reyes', 'Cavite', 'In Stock'),
+('Center Pole', 'Moon Rocket', 1, 'unit', 30000.00, 'Edwin Ramos', 'Bulacan', 'In Stock'),
+('Sensors', 'Moon Rocket', 4, 'pcs', 1200.00, 'Carlo Jimenez', 'Makati City', 'In Stock'),
+('Control Panels', 'Moon Rocket', 1, 'unit', 35000.00, 'Ivy Torres', 'Mandaluyong', 'In Stock'),
+('Motors', 'Moon Rocket', 2, 'units', 45000.00, 'Vincent Uy', 'Cebu City', 'In Stock'),
+('Platforms', 'Moon Rocket', 1, 'set', 12000.00, 'Katrina Gomez', 'Antipolo City', 'In Stock');
+
+-- VIKINGS Parts
+INSERT INTO spare_parts (part_name, category, quantity, unit, cost, supplier, location, status) VALUES
+('Beams', 'Vikings', 12, 'pcs', 1500.00, 'Mark Santos', 'Quezon City', 'In Stock'),
+('Gears', 'Vikings', 4, 'pcs', 2000.00, 'Leo Fernandez', 'Pasig City', 'In Stock'),
+('Lap Bars', 'Vikings', 24, 'pcs', 500.00, 'Anna Reyes', 'Cavite', 'In Stock'),
+('Sensors', 'Vikings', 3, 'pcs', 1200.00, 'Carlo Jimenez', 'Makati City', 'In Stock'),
+('Boats', 'Vikings', 1, 'unit', 50000.00, 'Robert Castillo', 'Valenzuela City', 'In Stock'),
+('Bearings', 'Vikings', 10, 'pcs', 300.00, 'Jun Dela Cruz', 'Caloocan City', 'In Stock'),
+('Emergency Stoppers', 'Vikings', 1, 'unit', 5000.00, 'Patrick Morales', 'Batangas', 'In Stock'),
+('Control Panels', 'Vikings', 1, 'unit', 35000.00, 'Ivy Torres', 'Mandaluyong', 'In Stock'),
+('Motors', 'Vikings', 1, 'unit', 40000.00, 'Vincent Uy', 'Cebu City', 'In Stock');
+
+-- Delete all existing incident reports
+DELETE FROM incident_reports;
+
+-- BALLOON WHEEL Incidents
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, resolution, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-001', 'Balloon Wheel', 'Mechanical Failure', 'Medium', 'One of the balloon cars stopped rotating during operation, causing temporary ride shutdown.', 1, '2025-01-15', '14:30:00', 'Resolved', 'Motor replaced and system recalibrated. Ride resumed normal operation after 2 hours.', 'None', 'Minor motor replacement cost', '1. Immediately stopped ride operation\n2. Evacuated passengers safely\n3. Maintenance team inspected and replaced faulty motor\n4. Tested ride before reopening', 'Implement more frequent motor inspections and preventive maintenance schedule');
+
+-- CATERPILLAR Incidents
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, resolution, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-002', 'Caterpillar', 'Safety Hazard', 'Low', 'Loose safety bar discovered on one carriage during routine safety check.', 1, '2025-01-20', '10:15:00', 'Resolved', 'Safety bar tightened and all carriage safety bars inspected. Ride reopened after verification.', 'None', 'None', '1. Removed carriage from service\n2. Maintenance team tightened safety bar\n3. Full safety inspection of all carriages\n4. Ride reopened after passing safety checks', 'Add safety bar checks to daily pre-operation inspection checklist'),
+('IR-2025-003', 'Caterpillar', 'Weather Related', 'Medium', 'Ride operation suspended due to heavy rain and lightning in the area.', 1, '2025-02-10', '16:45:00', 'Resolved', 'Ride resumed operation after weather cleared and safety inspection completed.', 'None', 'None', '1. Suspended operation per weather protocol\n2. Secured ride equipment\n3. Resumed after weather clearance and inspection', 'Review weather monitoring protocols and improve communication systems');
+
+-- FERRIS WHEEL Incidents
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, resolution, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-004', 'Ferris Wheel', 'Power Outage', 'High', 'Brief power outage caused ride to stop with passengers stranded at top.', 1, '2025-01-25', '19:20:00', 'Resolved', 'Backup power system engaged. All passengers safely evacuated. Main power restored after 30 minutes.', 'None', 'None', '1. Activated backup power system\n2. Used manual evacuation procedures\n3. All passengers safely evacuated\n4. System tested before reopening', 'Upgrade backup power system and conduct regular emergency drills'),
+('IR-2025-005', 'Ferris Wheel', 'Structural Issue', 'Medium', 'Unusual vibration detected in one of the support structures during operation.', 1, '2025-02-15', '13:40:00', 'Resolved', 'Ride stopped for inspection. Loose bolts tightened and structure reinforced. Ride reopened after engineering approval.', 'None', 'Minor maintenance cost', '1. Immediate ride shutdown\n2. Engineering inspection completed\n3. Structural reinforcement implemented\n4. Load testing performed before reopening', 'Implement daily structural integrity checks and increase inspection frequency');
+
+-- FREESBEE Incidents
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, resolution, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-006', 'Freesbee', 'Mechanical Failure', 'Medium', 'Hydraulic system leak detected in main rotation mechanism.', 1, '2025-02-05', '11:25:00', 'Resolved', 'Hydraulic line replaced and system serviced. Ride reopened after testing.', 'None', 'Hydraulic fluid replacement cost', '1. Ride operation stopped\n2. Hydraulic system repaired\n3. Full system test performed\n4. Ride reopened', 'Implement hydraulic system monitoring and regular fluid level checks');
+
+-- FUN SLIDES Incidents
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, resolution, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-007', 'Fun Slides', 'Guest Injury', 'Medium', 'Guest reported minor abrasion on slide surface. First aid administered on site.', 1, '2025-02-20', '15:30:00', 'Resolved', 'Guest treated and released. Slide surface inspected and polished. Ride continued operation.', 'Minor abrasion to guest arm', 'None', '1. Provided immediate first aid\n2. Documented incident\n3. Slide surface inspected and polished\n4. Continued operation with enhanced monitoring', 'Review slide surface material and implement more frequent surface inspections'),
+('IR-2025-008', 'Fun Slides', 'Equipment Malfunction', 'Low', 'One slide section temporarily closed due to worn padding.', 1, '2025-03-01', '12:00:00', 'Resolved', 'Padding replaced and slide reopened. Other slides remained operational.', 'None', 'Padding replacement cost', '1. Closed affected slide section\n2. Replaced worn padding\n3. Safety inspection completed\n4. Reopened section', 'Implement weekly padding wear checks and preventive replacement schedule');
+
+-- HORROR CAB Incidents
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, resolution, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-009', 'Horror Cab', 'Electrical Issue', 'Medium', 'Lighting system malfunction in one of the cab scenes.', 1, '2025-02-12', '16:10:00', 'Resolved', 'Electrical wiring repaired and lighting system restored. Ride continued operation with scene temporarily bypassed.', 'None', 'Electrical repair cost', '1. Isolated electrical issue\n2. Repaired wiring system\n3. Tested lighting system\n4. Scene reopened', 'Implement regular electrical system inspections and backup lighting for critical scenes'),
+('IR-2025-010', 'Horror Cab', 'Guest Complaint', 'Low', 'Guest reported excessive wait time and crowded conditions in queue area.', 1, '2025-02-25', '18:45:00', 'Resolved', 'Queue management improved and additional staff deployed. Guest compensation provided.', 'None', 'None', '1. Reviewed queue management procedures\n2. Deployed additional staff\n3. Implemented crowd control measures\n4. Guest service recovery completed', 'Review capacity limits and improve queue management system');
+
+-- MOON ROCKET Incidents
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, resolution, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-011', 'Moon Rocket', 'Safety System Alert', 'High', 'Emergency brake system triggered unexpectedly during ride cycle.', 1, '2025-03-10', '14:55:00', 'Resolved', 'Safety system inspected and recalibrated. Ride reopened after extensive testing and safety certification.', 'None', 'System recalibration cost', '1. Emergency protocols activated\n2. Full safety system inspection\n3. System recalibration and testing\n4. Safety certification obtained\n5. Ride reopened', 'Implement quarterly safety system certification and enhanced monitoring'),
+('IR-2025-012', 'Moon Rocket', 'Weather Related', 'Medium', 'High winds detected exceeding operational safety limits.', 1, '2025-03-15', '13:20:00', 'Resolved', 'Ride secured and operation suspended. Resumed normal operation when wind speeds returned to safe levels.', 'None', 'None', '1. Activated weather safety protocols\n2. Secured ride equipment\n3. Monitored weather conditions\n4. Resumed operation when safe', 'Upgrade wind monitoring system and improve weather alert protocols');
+
+-- VIKINGS Incidents
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, resolution, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-013', 'Vikings', 'Water System Issue', 'Medium', 'Water pump malfunction affecting splash effect in one section.', 1, '2025-02-18', '11:40:00', 'Resolved', 'Water pump replaced and system tested. Ride continued operation with reduced effects temporarily.', 'None', 'Pump replacement cost', '1. Isated water system issue\n2. Replaced faulty pump\n3. Tested water system\n4. Restored full operation', 'Implement preventive maintenance schedule for water pumps and backup pump system'),
+('IR-2025-014', 'Vikings', 'Guest Incident', 'Low', 'Guest reported feeling unwell due to ride motion. Provided medical assistance.', 1, '2025-03-05', '16:30:00', 'Resolved', 'Guest received medical attention and was released. Ride operation continued normally.', 'Minor motion sickness', 'None', '1. Provided immediate medical assistance\n2. Documented incident\n3. Continued ride operation\n4. Reviewed guest safety guidelines', 'Enhance guest motion sickness warnings and improve staff medical response training');
+
+
+-- BALLOON WHEEL - Unresolved Incident
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-015', 'Balloon Wheel', 'Structural Concern', 'High', 'Cracks discovered in main support structure during routine inspection. Ride closed pending engineering assessment.', 1, '2025-03-20', '09:15:00', 'Not Resolved', 'None', 'Unknown - pending structural assessment', '1. Immediate ride shutdown\n2. Area secured with warning signs\n3. Structural engineer contacted\n4. Pending detailed inspection and repair plan', 'Awaiting engineering assessment. Temporary support structures may be required. Consider extended downtime for major repairs.');
+
+-- CATERPILLAR - Unresolved Incident
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-016', 'Caterpillar', 'Electrical Failure', 'Medium', 'Main control panel malfunction causing intermittent operation failures. Troubleshooting ongoing.', 1, '2025-03-22', '13:45:00', 'Not Resolved', 'None', 'Control panel replacement estimated', '1. Ride operation suspended\n2. Electrical diagnostics initiated\n3. Parts ordered for control panel\n4. Pending repair completion', 'Complete electrical system overhaul recommended. Consider backup control system installation.');
+
+-- FERRIS WHEEL - Unresolved Incident
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-017', 'Ferris Wheel', 'Mechanical Failure', 'High', 'Main bearing failure detected during operation. Ride closed indefinitely pending major repair.', 1, '2025-03-18', '16:30:00', 'Not Resolved', 'None', 'Major bearing replacement and associated parts', '1. Emergency shutdown completed\n2. All passengers safely evacuated\n3. Major repair parts ordered\n4. Pending specialized repair team', 'Requires complete bearing system replacement. Extended downtime expected. Consider upgrading to newer bearing technology.');
+
+-- FREESBEE - Unresolved Incident
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-018', 'Freesbee', 'Software Glitch', 'Medium', 'Ride control system experiencing random shutdowns. Software vendor investigating root cause.', 1, '2025-03-21', '11:20:00', 'Not Resolved', 'None', 'Potential software upgrade costs', '1. Intermittent operation suspended\n2. Software logs sent to vendor\n3. Pending software patch or update\n4. Manual operation protocols in development', 'Implement redundant control system. Consider complete system upgrade if issue persists.');
+
+-- FUN SLIDES - Unresolved Incident
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-019', 'Fun Slides', 'Structural Damage', 'Medium', 'Water damage to support structure from recent heavy rains. Structural integrity compromised.', 1, '2025-03-19', '14:10:00', 'Not Resolved', 'None', 'Structural repairs and water mitigation', '1. Affected sections closed\n2. Water damage assessment in progress\n3. Structural engineer evaluation pending\n4. Temporary supports installed', 'Install improved drainage system. Consider water-resistant materials for future repairs.');
+
+-- HORROR CAB - Unresolved Incident
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-020', 'Horror Cab', 'Fire Safety Issue', 'High', 'Fire suppression system malfunction detected during safety inspection. Ride closed until system repaired.', 1, '2025-03-23', '10:30:00', 'Not Resolved', 'None', 'Fire suppression system replacement', '1. Immediate ride closure\n2. Fire department notified\n3. Alternative safety measures implemented\n4. Pending system replacement', 'Complete fire suppression system upgrade required. Coordinate with fire safety officials for new system approval.');
+
+-- MOON ROCKET - Unresolved Incident
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-021', 'Moon Rocket', 'Regulatory Compliance', 'High', 'Failed annual safety inspection due to outdated safety features. Ride closed pending modifications.', 1, '2025-03-17', '15:45:00', 'Not Resolved', 'None', 'Safety feature upgrades and re-inspection costs', '1. Ride closure per regulatory order\n2. Modification plan submitted to regulators\n3. Safety upgrades in progress\n4. Pending re-inspection approval', 'Major safety system upgrades required. Budget approval needed for comprehensive modernization.');
+
+-- VIKINGS - Unresolved Incident
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, injuries, property_damage, actions_taken, recommendations) VALUES
+('IR-2025-022', 'Vikings', 'Environmental Hazard', 'Medium', 'Chemical leak detected in water treatment system. Water quality concerns raised.', 1, '2025-03-24', '12:15:00', 'Not Resolved', 'None', 'Water treatment system replacement', '1. Water system isolated\n2. Environmental testing initiated\n3. Alternative water source arranged\n4. Pending system replacement', 'Complete water treatment system overhaul required. Implement regular water quality monitoring protocols.');

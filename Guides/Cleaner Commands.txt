@@ -1,0 +1,5 @@
+Recommendations:
+Clear npm cache: npm cache clean --force
+Clean build folder: Remove build/ and dist/ folders
+Check for duplicates: Multiple node_modules in subdirectories
+Run fresh install: rm -rf node_modules && npm install

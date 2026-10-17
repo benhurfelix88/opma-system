@@ -1,0 +1,151 @@
+:root {
+    --primary-color: #6B5B95;
+    --secondary-color: #F7CAC9;
+    --background-color: #F0EEF6;
+    --text-color: #333;
+    --error-color: #FF6B6B;
+    --success-color: #4CAF50;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    background-color: var(--background-color);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+.login-container {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 15px;
+}
+
+.logo img {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="tel"],
+select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.btn-login:hover {
+    background-color: #584b7a;
+}
+
+.form-links {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.form-links a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 14px;
+    margin: 0 10px;
+}
+
+.form-links a:hover {
+    text-decoration: underline;
+}
+
+.terms {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.terms input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+}
+
+.terms label {
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+.department-group {
+    margin-bottom: 20px;
+}
+
+/* Error states */
+.error {
+    border-color: var(--error-color) !important;
+}
+
+.error-message {
+    color: var(--error-color);
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/* Success states */
+.success {
+    border-color: var(--success-color) !important;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .login-container {
+        padding: 20px;
+    }
+} 

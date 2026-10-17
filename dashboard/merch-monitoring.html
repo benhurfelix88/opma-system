@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARMS - Merchandise Monitoring</title>
+    <link rel="stylesheet" href="../public/css/dashboard.css">
+    <link rel="stylesheet" href="../public/css/merch-monitoring.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="../public/images/arms-logo.png" alt="ARMS Logo">
+            </div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item">
+                    <i class="icon-dashboard"></i>
+                    DashBoard
+                </a>
+                <a href="ticketing.html" class="nav-item">
+                    <i class="icon-ticket"></i>
+                    Ticketing
+                </a>
+                <a href="parts-inventory.html" class="nav-item">
+                    <i class="icon-inventory"></i>
+                    Parts Inventory
+                </a>
+                <a href="merch-monitoring.html" class="nav-item active">
+                    <i class="icon-merch"></i>
+                    Merch. Monitoring Sheet
+                </a>
+                <a href="incident-report.html" class="nav-item">
+                    <i class="icon-report"></i>
+                    Incident Report
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="search-bar">
+                    <input type="search" placeholder="Search...">
+                </div>
+                <div class="header-right">
+                    <button class="notification-btn">
+                        <i class="icon-notification"></i>
+                    </button>
+                    <button class="messages-btn">
+                        <i class="icon-messages"></i>
+                    </button>
+                    <div class="user-profile">
+                        <span class="user-role">Admin</span>
+                        <button class="profile-dropdown">▼</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Merchandise Monitoring Content -->
+            <div class="merch-content">
+                <!-- Game Selection -->
+                <section class="games-section">
+                    <div class="games-header">
+                        <h2>Games</h2>
+                        <button class="expand-btn">□</button>
+                    </div>
+                    <div class="games-list">
+                        <button class="game-btn">DropBall</button>
+                        <button class="game-btn">Color Game</button>
+                        <button class="game-btn selected">Shooting Gallery</button>
+                        <button class="game-btn">Dart</button>
+                        <button class="game-btn">Bingo</button>
+                    </div>
+                </section>
+
+                <!-- Merchandise Details -->
+                <section class="merch-section">
+                    <div class="merch-header">
+                        <h2>Merchandise Monitoring Sheet</h2>
+                        <div class="merch-actions">
+                            <button class="add-item-btn">Add New Item</button>
+                            <button class="expand-btn">□</button>
+                        </div>
+                    </div>
+                    <div class="merch-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">Item Descriptions</th>
+                                    <th colspan="2">In-stocks</th>
+                                    <th colspan="2">Out-stock</th>
+                                    <th rowspan="2">Actions</th>
+                                </tr>
+                                <tr>
+                                    <th>Qty.</th>
+                                    <th>Date</th>
+                                    <th>Qty.</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Guns</td>
+                                    <td>50</td>
+                                    <td>02/23/25</td>
+                                    <td>10</td>
+                                    <td>02/23/25</td>
+                                    <td>
+                                        <button class="edit-btn">Edit</button>
+                                        <button class="delete-btn">Delete</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Pellets</td>
+                                    <td>1000</td>
+                                    <td>02/23/25</td>
+                                    <td>200</td>
+                                    <td>02/23/25</td>
+                                    <td>
+                                        <button class="edit-btn">Edit</button>
+                                        <button class="delete-btn">Delete</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Balloons</td>
+                                    <td>500</td>
+                                    <td>02/23/25</td>
+                                    <td>100</td>
+                                    <td>02/23/25</td>
+                                    <td>
+                                        <button class="edit-btn">Edit</button>
+                                        <button class="delete-btn">Delete</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Toy Soldiers</td>
+                                    <td>200</td>
+                                    <td>02/23/25</td>
+                                    <td>50</td>
+                                    <td>02/23/25</td>
+                                    <td>
+                                        <button class="edit-btn">Edit</button>
+                                        <button class="delete-btn">Delete</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Add/Edit Item Modal -->
+            <div class="modal" id="itemModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Add New Item</h2>
+                        <button class="close-btn">×</button>
+                    </div>
+                    <form id="itemForm">
+                        <div class="form-group">
+                            <label for="itemName">Item Description</label>
+                            <input type="text" id="itemName" name="itemName" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="inStockQty">In-stock Quantity</label>
+                                <input type="number" id="inStockQty" name="inStockQty" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="inStockDate">In-stock Date</label>
+                                <input type="date" id="inStockDate" name="inStockDate" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="outStockQty">Out-stock Quantity</label>
+                                <input type="number" id="outStockQty" name="outStockQty" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="outStockDate">Out-stock Date</label>
+                                <input type="date" id="outStockDate" name="outStockDate" required>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="cancel-btn">Cancel</button>
+                            <button type="submit" class="save-btn">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../public/js/dashboard.js"></script>
+    <script src="../public/js/merch-monitoring.js"></script>
+</body>
+</html> 
