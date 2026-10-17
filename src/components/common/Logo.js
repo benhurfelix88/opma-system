@@ -11,7 +11,7 @@ const Logo = ({ size = 'medium' }) => {
   return (
     <Box
       component="img"
-      src="/images/logo.png"
+      src={process.env.PUBLIC_URL + "/images/logo.png"}
       alt="ARMS Logo"
       sx={{
         width: sizes[size],
