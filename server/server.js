@@ -607,7 +607,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
     const [userColumns] = await db.execute(`
       SELECT COLUMN_NAME 
       FROM INFORMATION_SCHEMA.COLUMNS 
-      WHERE TABLE_SCHEMA = DATABASE() 
+      WHERE TABLE_SCHEMA = current_database() 
       AND TABLE_NAME = 'users'
       AND COLUMN_NAME IN ('assigned_ride_id', 'assigned_ride')
     `);
@@ -1028,7 +1028,7 @@ app.post('/api/users', authenticateToken, async (req, res) => {
     const [userColumns] = await db.execute(`
       SELECT COLUMN_NAME 
       FROM INFORMATION_SCHEMA.COLUMNS 
-      WHERE TABLE_SCHEMA = DATABASE() 
+      WHERE TABLE_SCHEMA = current_database() 
       AND TABLE_NAME = 'users'
       AND COLUMN_NAME = 'assigned_ride_id'
     `);
@@ -1109,7 +1109,7 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
     const [userColumns] = await db.execute(`
       SELECT COLUMN_NAME 
       FROM INFORMATION_SCHEMA.COLUMNS 
-      WHERE TABLE_SCHEMA = DATABASE() 
+      WHERE TABLE_SCHEMA = current_database() 
       AND TABLE_NAME = 'users'
       AND COLUMN_NAME = 'assigned_ride_id'
     `);
@@ -1171,13 +1171,13 @@ app.delete('/api/users/:id', authenticateToken, async (req, res) => {
       try {
         const [checkTable] = await connection.execute(`
           SELECT TABLE_NAME FROM information_schema.TABLES 
-          WHERE TABLE_SCHEMA = DATABASE() 
+          WHERE TABLE_SCHEMA = current_database() 
           AND TABLE_NAME = 'maintenance_records'
         `);
         if (checkTable.length > 0) {
           const [checkCol] = await connection.execute(`
             SELECT COLUMN_NAME FROM information_schema.COLUMNS 
-            WHERE TABLE_SCHEMA = DATABASE() 
+            WHERE TABLE_SCHEMA = current_database() 
             AND TABLE_NAME = 'maintenance_records' 
             AND COLUMN_NAME = 'performed_by'
           `);
@@ -1194,7 +1194,7 @@ app.delete('/api/users/:id', authenticateToken, async (req, res) => {
       try {
         const [checkTable] = await connection.execute(`
           SELECT TABLE_NAME FROM information_schema.TABLES 
-          WHERE TABLE_SCHEMA = DATABASE() 
+          WHERE TABLE_SCHEMA = current_database() 
           AND TABLE_NAME = 'incident_reports'
         `);
         if (checkTable.length > 0) {
@@ -1236,13 +1236,13 @@ app.delete('/api/users/:id', authenticateToken, async (req, res) => {
       try {
         const [checkTable] = await connection.execute(`
           SELECT TABLE_NAME FROM information_schema.TABLES 
-          WHERE TABLE_SCHEMA = DATABASE() 
+          WHERE TABLE_SCHEMA = current_database() 
           AND TABLE_NAME = 'ride_scans'
         `);
         if (checkTable.length > 0) {
           const [checkCol] = await connection.execute(`
             SELECT COLUMN_NAME FROM information_schema.COLUMNS 
-            WHERE TABLE_SCHEMA = DATABASE() 
+            WHERE TABLE_SCHEMA = current_database() 
             AND TABLE_NAME = 'ride_scans' 
             AND COLUMN_NAME = 'scanned_by'
           `);
@@ -1258,13 +1258,13 @@ app.delete('/api/users/:id', authenticateToken, async (req, res) => {
       try {
         const [checkTable] = await connection.execute(`
           SELECT TABLE_NAME FROM information_schema.TABLES 
-          WHERE TABLE_SCHEMA = DATABASE() 
+          WHERE TABLE_SCHEMA = current_database() 
           AND TABLE_NAME = 'ride_repairs'
         `);
         if (checkTable.length > 0) {
           const [checkCol] = await connection.execute(`
             SELECT COLUMN_NAME FROM information_schema.COLUMNS 
-            WHERE TABLE_SCHEMA = DATABASE() 
+            WHERE TABLE_SCHEMA = current_database() 
             AND TABLE_NAME = 'ride_repairs' 
             AND COLUMN_NAME = 'created_by'
           `);
@@ -1280,13 +1280,13 @@ app.delete('/api/users/:id', authenticateToken, async (req, res) => {
       try {
         const [checkTable] = await connection.execute(`
           SELECT TABLE_NAME FROM information_schema.TABLES 
-          WHERE TABLE_SCHEMA = DATABASE() 
+          WHERE TABLE_SCHEMA = current_database() 
           AND TABLE_NAME = 'part_deployments'
         `);
         if (checkTable.length > 0) {
           const [checkCol] = await connection.execute(`
             SELECT COLUMN_NAME FROM information_schema.COLUMNS 
-            WHERE TABLE_SCHEMA = DATABASE() 
+            WHERE TABLE_SCHEMA = current_database() 
             AND TABLE_NAME = 'part_deployments' 
             AND COLUMN_NAME = 'created_by'
           `);
@@ -1302,13 +1302,13 @@ app.delete('/api/users/:id', authenticateToken, async (req, res) => {
       try {
         const [checkTable] = await connection.execute(`
           SELECT TABLE_NAME FROM information_schema.TABLES 
-          WHERE TABLE_SCHEMA = DATABASE() 
+          WHERE TABLE_SCHEMA = current_database() 
           AND TABLE_NAME = 'part_removals'
         `);
         if (checkTable.length > 0) {
           const [checkCol] = await connection.execute(`
             SELECT COLUMN_NAME FROM information_schema.COLUMNS 
-            WHERE TABLE_SCHEMA = DATABASE() 
+            WHERE TABLE_SCHEMA = current_database() 
             AND TABLE_NAME = 'part_removals' 
             AND COLUMN_NAME = 'created_by'
           `);
@@ -1324,7 +1324,7 @@ app.delete('/api/users/:id', authenticateToken, async (req, res) => {
       try {
         const [checkTable] = await connection.execute(`
           SELECT TABLE_NAME FROM information_schema.TABLES 
-          WHERE TABLE_SCHEMA = DATABASE() 
+          WHERE TABLE_SCHEMA = current_database() 
           AND TABLE_NAME = 'sessions'
         `);
         if (checkTable.length > 0) {
@@ -1762,7 +1762,7 @@ app.put('/api/incidents/:id', authenticateToken, upload.array('photos', 10), asy
     
     const [columns] = await db.execute(`
       SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
-      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'incident_reports'
+      WHERE TABLE_SCHEMA = current_database() AND TABLE_NAME = 'incident_reports'
     `);
     const hasReviewStatus = columns.map(c => c.COLUMN_NAME).includes('review_status');
 
@@ -1931,7 +1931,7 @@ app.put('/api/spare-parts/:id', authenticateToken, async (req, res) => {
     const [columns] = await db.execute(`
       SELECT COLUMN_NAME
       FROM INFORMATION_SCHEMA.COLUMNS
-      WHERE TABLE_SCHEMA = DATABASE()
+      WHERE TABLE_SCHEMA = current_database()
       AND TABLE_NAME = 'spare_parts'
     `);
 
