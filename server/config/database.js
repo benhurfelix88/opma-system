@@ -12,6 +12,9 @@ const dbConfig = {
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
+  ssl: {
+    rejectUnauthorized: false // Required for Render PostgreSQL
+  }
 };
 
 let pool;
