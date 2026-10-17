@@ -477,7 +477,135 @@ async function ensureSparePartsColumns() {
       console.log('✓ notes column added to spare_parts table');
     }
   } catch (e) {
-    console.error('Spare parts columns ensure failed:', e.message);
+    // Table might not exist yet, will be created by ensureSpareParts
+    console.log('Spare parts columns check skipped (table may not exist yet)');
+  }
+}
+
+// Ensure spare_parts table exists
+async function ensureSpareParts() {
+  try {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS spare_parts (
+        id SERIAL PRIMARY KEY,
+        part_name VARCHAR(255) NOT NULL,
+        part_number VARCHAR(100),
+        category VARCHAR(100),
+        quantity INTEGER DEFAULT 0,
+        unit VARCHAR(50),
+        location VARCHAR(255),
+        supplier VARCHAR(255),
+        cost DECIMAL(10, 2),
+        status VARCHAR(50),
+        ride VARCHAR(255),
+        approval_status VARCHAR(50) DEFAULT 'Pending',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✓ Spare parts table ensured');
+  } catch (e) {
+    console.error('Spare parts table ensure failed:', e.message);
+  }
+}
+
+// Ensure maintenance_records table exists
+async function ensureMaintenanceRecords() {
+  try {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS maintenance_records (
+        id SERIAL PRIMARY KEY,
+        ride_name VARCHAR(255) NOT NULL,
+        maintenance_type VARCHAR(100),
+        description TEXT,
+        performed_by VARCHAR(255),
+        date_performed DATE,
+        next_maintenance_date DATE,
+        status VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✓ Maintenance records table ensured');
+  } catch (e) {
+    console.error('Maintenance records table ensure failed:', e.message);
+  }
+}
+
+// Ensure ride_repairs table exists
+async function ensureRideRepairs() {
+  try {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS ride_repairs (
+        id SERIAL PRIMARY KEY,
+        ride VARCHAR(255) NOT NULL,
+        date DATE NOT NULL,
+        issue TEXT NOT NULL,
+        parts_replaced TEXT,
+        cost DECIMAL(10, 2) DEFAULT 0,
+        technician VARCHAR(255) NOT NULL,
+        status VARCHAR(50) DEFAULT 'In Progress',
+        notes TEXT,
+        created_by INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (created_by) REFERENCES users(id)
+      )
+    `);
+    console.log('✓ Ride repairs table ensured');
+  } catch (e) {
+    console.error('Ride repairs table ensure failed:', e.message);
+  }
+}
+
+// Ensure part_deployments table exists
+async function ensurePartDeployments() {
+  try {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS part_deployments (
+        id SERIAL PRIMARY KEY,
+        date DATE NOT NULL,
+        place VARCHAR(255) NOT NULL,
+        ride VARCHAR(255) NOT NULL,
+        parts VARCHAR(255) NOT NULL,
+        quantity INTEGER NOT NULL,
+        status VARCHAR(50) DEFAULT 'Complete',
+        encoded_by VARCHAR(255) NOT NULL,
+        created_by INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (created_by) REFERENCES users(id)
+      )
+    `);
+    console.log('✓ Part deployments table ensured');
+  } catch (e) {
+    console.error('Part deployments table ensure failed:', e.message);
+  }
+}
+
+// Ensure part_removals table exists
+async function ensurePartRemovals() {
+  try {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS part_removals (
+        id SERIAL PRIMARY KEY,
+        date DATE NOT NULL,
+        place VARCHAR(255) NOT NULL,
+        ride VARCHAR(255) NOT NULL,
+        parts VARCHAR(255) NOT NULL,
+        quantity INTEGER NOT NULL,
+        status VARCHAR(50) DEFAULT 'Complete',
+        encoded_by VARCHAR(255) NOT NULL,
+        created_by INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (created_by) REFERENCES users(id)
+      )
+    `);
+    console.log('✓ Part removals table ensured');
+  } catch (e) {
+    console.error('Part removals table ensure failed:', e.message);
   }
 }
 
@@ -497,8 +625,13 @@ ensureRideEntries();
 ensureDailyRideSummary();
 ensurePasswordResetTokens();
 ensureProfilePictureColumn();
+ensureSpareParts();
 ensureSparePartsColumns();
 ensureIncidentReviewStatus();
+ensureMaintenanceRecords();
+ensureRideRepairs();
+ensurePartDeployments();
+ensurePartRemovals();
 
 // Authentication middleware
 const authenticateToken = async (req, res, next) => {
