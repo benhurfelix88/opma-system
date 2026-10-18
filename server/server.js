@@ -427,6 +427,34 @@ async function ensurePasswordResetTokens() {
   }
 }
 
+// Ensure sessions table exists
+async function ensureSessions() {
+  try {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        token VARCHAR(255) UNIQUE NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Create indexes if they don't exist
+    try {
+      await db.execute(`CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token)`);
+      await db.execute(`CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)`);
+    } catch (e) {
+      // Indexes might already exist
+    }
+
+    console.log('✓ Sessions table ensured');
+  } catch (e) {
+    console.error('Sessions table ensure failed:', e.message);
+  }
+}
+
 async function ensureProfilePictureColumn() {
   try {
     const [cols] = await db.execute(`
@@ -624,6 +652,7 @@ ensureRides();
 ensureRideEntries();
 ensureDailyRideSummary();
 ensurePasswordResetTokens();
+ensureSessions();
 ensureProfilePictureColumn();
 ensureSpareParts();
 ensureSparePartsColumns();
@@ -644,8 +673,24 @@ const authenticateToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const [users] = await db.execute('SELECT * FROM users WHERE id = ?', [decoded.userId]);
-    
+
+    // Check if session exists in database
+    try {
+      const [sessions] = await db.execute(
+        'SELECT user_id FROM sessions WHERE token = $1 AND expires_at > NOW()',
+        [token]
+      );
+
+      if (sessions.length === 0) {
+        return res.status(401).json({ error: 'Session expired or invalid. Please login again.' });
+      }
+    } catch (sessionError) {
+      console.error('Session check error:', sessionError);
+      // Continue even if session check fails (for backwards compatibility)
+    }
+
+    const [users] = await db.execute('SELECT * FROM users WHERE id = $1', [decoded.userId]);
+
     if (users.length === 0) {
       return res.status(401).json({ error: 'Invalid token' });
     }
@@ -666,7 +711,7 @@ app.post('/api/auth/login', async (req, res) => {
     const inputUsername = (username || '').trim();
 
     const [users] = await db.execute(
-      'SELECT * FROM users WHERE username = ? OR email = ?',
+      'SELECT * FROM users WHERE username = $1 OR email = $2',
       [inputUsername, inputUsername]
     );
 
@@ -711,12 +756,45 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(403).json({ error: 'Your account is pending approval' });
     }
 
+    // Check if user already has an active session
+    try {
+      const [existingSessions] = await db.execute(
+        'SELECT id, created_at FROM sessions WHERE user_id = $1 AND expires_at > NOW()',
+        [user.id]
+      );
+
+      if (existingSessions.length > 0) {
+        // User is already logged in elsewhere
+        const sessionTime = new Date(existingSessions[0].created_at).toLocaleString();
+        return res.status(409).json({
+          error: 'This account is already in use by another user',
+          message: `This account was logged in at ${sessionTime}. Only one user can access this account at a time.`,
+          alreadyLoggedIn: true
+        });
+      }
+    } catch (sessionError) {
+      console.error('Error checking existing sessions:', sessionError);
+      // Continue with login even if session check fails
+    }
+
     // Create JWT token
     const token = jwt.sign(
       { userId: user.id, username: user.username, role: user.role },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
+
+    // Store session in database
+    try {
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+      await db.execute(
+        'INSERT INTO sessions (user_id, token, expires_at) VALUES ($1, $2, $3)',
+        [user.id, token, expiresAt]
+      );
+    } catch (sessionError) {
+      console.error('Error creating session:', sessionError);
+      // Continue with login even if session creation fails
+    }
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
@@ -895,8 +973,17 @@ app.delete('/api/auth/profile/picture', authenticateToken, async (req, res) => {
 
 // Logout
 app.post('/api/auth/logout', authenticateToken, async (req, res) => {
-  // For JWT, logout is handled client-side by removing token
-  res.json({ message: 'Logged out successfully' });
+  try {
+    // Remove session from database
+    const token = req.headers['authorization']?.split(' ')[1];
+    if (token) {
+      await db.execute('DELETE FROM sessions WHERE token = $1', [token]);
+    }
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.json({ message: 'Logged out successfully' });
+  }
 });
 
 // Forgot Password - Request password reset

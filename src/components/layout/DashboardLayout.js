@@ -106,10 +106,36 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
           setEditedUser(freshUser);
         } catch (error) {
           console.error('Failed to fetch current user:', error);
+          // If 401, session is invalid (someone else logged in)
+          if (error.response?.status === 401) {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            window.location.href = '/login';
+          }
         }
       }
     };
     loadCurrentUser();
+
+    // Periodically check if session is still valid (every 30 seconds)
+    const sessionCheckInterval = setInterval(async () => {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        try {
+          await authAPI.getCurrentUser();
+        } catch (error) {
+          console.error('Session check failed:', error);
+          // If 401, session is invalid (someone else logged in)
+          if (error.response?.status === 401) {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            window.location.href = '/login';
+          }
+        }
+      }
+    }, 30000);
+
+    return () => clearInterval(sessionCheckInterval);
   }, []);
 
   const getMenuItems = () => {
