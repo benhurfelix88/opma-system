@@ -84,13 +84,7 @@ const Login = () => {
     } catch (err) {
       console.error('Login error:', err);
       // Ensure error message is set and displayed
-      let errorMessage = err.response?.data?.error || err.message || 'Invalid username or password';
-
-      // If account is already logged in, show the detailed message
-      if (err.response?.data?.alreadyLoggedIn) {
-        errorMessage = err.response?.data?.message || errorMessage;
-      }
-
+      const errorMessage = err.response?.data?.error || err.message || 'Invalid username or password';
       setError(errorMessage);
       setLoading(false);
       // Don't navigate or refresh - keep user on login page with error message
