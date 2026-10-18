@@ -83,11 +83,12 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
   const fileInputRef = useRef(null);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const BACKEND_URL = API_BASE_URL.replace('/api', '');
 
   const getProfilePicUrl = (picPath) => {
     if (!picPath) return null;
     if (picPath.startsWith('http')) return picPath;
-    return `${API_BASE_URL}${picPath}`;
+    return `${BACKEND_URL}${picPath}`;
   };
 
   useEffect(() => {
