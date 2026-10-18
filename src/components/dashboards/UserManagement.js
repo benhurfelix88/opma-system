@@ -175,6 +175,12 @@ const UserManagement = () => {
   };
 
   const handleDeleteUser = (user) => {
+    // Prevent deletion of the admin account
+    if (user.username === 'admin') {
+      setSnackbar({ open: true, message: 'Cannot delete the admin account. This is required for system access.', severity: 'error' });
+      return;
+    }
+
     // Check if user is the current logged-in user
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
     if (currentUser && currentUser.id === user.id) {
@@ -727,22 +733,24 @@ const UserManagement = () => {
                                         <EditIcon fontSize="small" />
                                       </IconButton>
                                     </Tooltip>
-                                    <Tooltip title="Delete User">
-                                      <IconButton
-                                        size="small"
-                                        onClick={() => handleDeleteUser(user)}
-                                        sx={{
-                                          transition: 'all 0.2s ease',
-                                          '&:hover': {
-                                            backgroundColor: 'error.main',
-                                            color: 'white',
-                                            transform: 'scale(1.1)',
-                                          }
-                                        }}
-                                      >
-                                        <DeleteIcon fontSize="small" />
-                                      </IconButton>
-                                    </Tooltip>
+                                    {user.username !== 'admin' && (
+                                      <Tooltip title="Delete User">
+                                        <IconButton
+                                          size="small"
+                                          onClick={() => handleDeleteUser(user)}
+                                          sx={{
+                                            transition: 'all 0.2s ease',
+                                            '&:hover': {
+                                              backgroundColor: 'error.main',
+                                              color: 'white',
+                                              transform: 'scale(1.1)',
+                                            }
+                                          }}
+                                        >
+                                          <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                      </Tooltip>
+                                    )}
                                   </Box>
                                 </TableCell>
                               </TableRow>
