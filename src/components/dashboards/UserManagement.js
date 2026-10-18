@@ -175,9 +175,9 @@ const UserManagement = () => {
   };
 
   const handleDeleteUser = (user) => {
-    // Prevent deletion of the admin account
-    if (user.username === 'admin') {
-      setSnackbar({ open: true, message: 'Cannot delete the admin account. This is required for system access.', severity: 'error' });
+    // Prevent deletion of the original admin account (username 'admin')
+    if (user.username?.toLowerCase() === 'admin') {
+      setSnackbar({ open: true, message: 'Cannot delete the original admin account. This is required for system access.', severity: 'error' });
       return;
     }
 
@@ -202,11 +202,11 @@ const UserManagement = () => {
       return;
     }
 
-    // Check if user is IT Admin
+    // Check if user is IT Admin and ensure at least one admin remains
     if (user.role === 'IT Admin') {
       const otherITAdmins = users.filter(u => u.role === 'IT Admin' && u.id !== user.id && u.status === 'active');
       if (otherITAdmins.length === 0) {
-        setWarningMessage('Cannot delete the last active IT Admin account.');
+        setWarningMessage('Cannot delete the last active IT Admin account. At least one admin must remain.');
         setWarningAction(() => () => {
           setOpenWarningModal(false);
         });
@@ -733,7 +733,7 @@ const UserManagement = () => {
                                         <EditIcon fontSize="small" />
                                       </IconButton>
                                     </Tooltip>
-                                    {user.username?.toLowerCase() !== 'admin' && user.role !== 'IT Admin' && (
+                                    {user.username?.toLowerCase() !== 'admin' && (
                                       <Tooltip title="Delete User">
                                         <IconButton
                                           size="small"
