@@ -62,7 +62,6 @@ const UserManagement = () => {
   const [selectedRole, setSelectedRole] = useState('');
   const [activeTab, setActiveTab] = useState(0);
   const [userHistory, setUserHistory] = useState([]);
-  const [openClearHistoryModal, setOpenClearHistoryModal] = useState(false);
   const [availableRides, setAvailableRides] = useState([]);
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [viewUser, setViewUser] = useState(null);
@@ -500,31 +499,6 @@ const UserManagement = () => {
     }));
   };
 
-  const handleClearHistory = async () => {
-    try {
-      const allUsers = await usersAPI.getAll();
-      // Delete approved and rejected users (history)
-      let deletedCount = 0;
-      for (const user of allUsers) {
-        if (user.status === 'approved' || user.status === 'rejected') {
-          await usersAPI.delete(user.id);
-          deletedCount++;
-        }
-      }
-      await loadUsers();
-      setOpenClearHistoryModal(false);
-      setSnackbar({ 
-        open: true, 
-        message: `User history cleared successfully! ${deletedCount} record(s) removed.`, 
-        severity: 'success' 
-      });
-    } catch (error) {
-      console.error('Error clearing history:', error);
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to clear user history';
-      setSnackbar({ open: true, message: `Error: ${errorMessage}`, severity: 'error' });
-    }
-  };
-
   return (
     <DashboardLayout title="User Management">
       <Box sx={{ p: 3 }}>
@@ -777,26 +751,6 @@ const UserManagement = () => {
             )}
             {activeTab === 1 && (
               <FadeInContent>
-                <Grow in={true} timeout={{ enter: 600 }}>
-                  <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button
-                      variant="contained"
-                      color="error"
-                      onClick={() => setOpenClearHistoryModal(true)}
-                      startIcon={<DeleteIcon />}
-                      sx={{
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'translateY(-2px)',
-                          boxShadow: '0 4px 12px rgba(244,67,54,0.3)'
-                        }
-                      }}
-                    >
-                      Clear History
-                    </Button>
-                  </Box>
-                </Grow>
-                
                 <Grow in={true} timeout={{ enter: 700 }}>
                   <Box sx={{ maxHeight: '70vh', overflow: 'auto' }}>
                     <TableContainer component={Paper} sx={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)', maxHeight: '70vh' }}>
@@ -805,8 +759,8 @@ const UserManagement = () => {
                         <TableRow>
                           <TableCell align="center">Full Name</TableCell>
                           <TableCell align="center">Username</TableCell>
-                          <TableCell align="center">Email</TableCell>
-                          <TableCell align="center">Requested Role</TableCell>
+                          <TableCell align="center">Date & Time</TableCell>
+                          <TableCell align="center">Action</TableCell>
                           <TableCell align="center">Action By</TableCell>
                         </TableRow>
                       </TableHead>
@@ -814,18 +768,45 @@ const UserManagement = () => {
                         {userHistory.map((user, index) => {
                           const fullName = user.full_name || user.fullName;
                           const actionBy = user.action_by || user.actionBy;
-                          
+                          const lastUpdated = user.updated_at || user.lastUpdated || user.created_at || user.createdAt;
+                          const dateObj = new Date(lastUpdated);
+                          const formattedDate = dateObj.toLocaleDateString();
+                          const formattedTime = dateObj.toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                          });
+
+                          // Determine action based on status
+                          let action = 'Added';
+                          if (user.status === 'rejected') {
+                            action = 'Rejected';
+                          } else if (user.status === 'deleted') {
+                            action = 'Deleted';
+                          }
+
                           return (
-                            <Grow 
-                              key={user.id} 
-                              in={true} 
+                            <Grow
+                              key={user.id}
+                              in={true}
                               timeout={{ enter: 800 + index * 50 }}
                             >
                               <TableRow>
                                 <TableCell align="center">{fullName}</TableCell>
                                 <TableCell align="center">{user.username}</TableCell>
-                                <TableCell align="center">{user.email}</TableCell>
-                                <TableCell align="center">{user.role}</TableCell>
+                                <TableCell align="center">
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <Typography variant="body2">{formattedDate}</Typography>
+                                    <Typography variant="caption" color="text.secondary">{formattedTime}</Typography>
+                                  </Box>
+                                </TableCell>
+                                <TableCell align="center">
+                                  <Chip
+                                    label={action}
+                                    color={action === 'Deleted' ? 'error' : action === 'Rejected' ? 'warning' : 'success'}
+                                    size="small"
+                                  />
+                                </TableCell>
                                 <TableCell align="center">{actionBy || 'System'}</TableCell>
                               </TableRow>
                             </Grow>
@@ -1413,49 +1394,6 @@ const UserManagement = () => {
           <DialogActions>
             <Button onClick={() => setRideSelectionModal((prev) => ({ ...prev, open: false }))}>
               Cancel
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Clear History Modal */}
-        <Dialog open={openClearHistoryModal} onClose={() => setOpenClearHistoryModal(false)}>
-          <DialogTitle>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box sx={{
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <DeleteIcon sx={{ color: 'white', fontSize: 20 }} />
-              </Box>
-              <Box>
-                <Typography variant="h6" fontWeight="bold" color="warning.main">
-                  Clear User History
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Permanent data removal
-                </Typography>
-              </Box>
-            </Box>
-          </DialogTitle>
-          <DialogContent>
-            <Alert severity="warning" sx={{ mt: 2 }}>
-              Are you sure you want to clear all user history? This action cannot be undone.
-              This will remove all records of approved and rejected users while keeping active and pending users.
-            </Alert>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenClearHistoryModal(false)}>Cancel</Button>
-            <Button
-              onClick={handleClearHistory}
-              color="error"
-              variant="contained"
-            >
-              Clear History
             </Button>
           </DialogActions>
         </Dialog>
