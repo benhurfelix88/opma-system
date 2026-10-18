@@ -756,25 +756,16 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(403).json({ error: 'Your account is pending approval' });
     }
 
-    // Check if user already has an active session
+    // Check if user already has an active session and delete it
+    // This allows login after closing the browser tab
     try {
-      const [existingSessions] = await db.execute(
-        'SELECT id, created_at FROM sessions WHERE user_id = $1 AND expires_at > NOW()',
+      await db.execute(
+        'DELETE FROM sessions WHERE user_id = $1',
         [user.id]
       );
-
-      if (existingSessions.length > 0) {
-        // User is already logged in elsewhere
-        const sessionTime = new Date(existingSessions[0].created_at).toLocaleString();
-        return res.status(409).json({
-          error: 'This account is already in use by another user',
-          message: `This account was logged in at ${sessionTime}. Only one user can access this account at a time.`,
-          alreadyLoggedIn: true
-        });
-      }
     } catch (sessionError) {
-      console.error('Error checking existing sessions:', sessionError);
-      // Continue with login even if session check fails
+      console.error('Error deleting existing sessions:', sessionError);
+      // Continue with login even if session deletion fails
     }
 
     // Create JWT token
