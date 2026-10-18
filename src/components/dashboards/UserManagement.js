@@ -759,6 +759,7 @@ const UserManagement = () => {
                         <TableRow>
                           <TableCell align="center">Full Name</TableCell>
                           <TableCell align="center">Username</TableCell>
+                          <TableCell align="center">Role</TableCell>
                           <TableCell align="center">Date & Time</TableCell>
                           <TableCell align="center">Action</TableCell>
                           <TableCell align="center">Action By</TableCell>
@@ -794,6 +795,7 @@ const UserManagement = () => {
                               <TableRow>
                                 <TableCell align="center">{fullName}</TableCell>
                                 <TableCell align="center">{user.username}</TableCell>
+                                <TableCell align="center">{user.role}</TableCell>
                                 <TableCell align="center">
                                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <Typography variant="body2">{formattedDate}</Typography>
@@ -815,7 +817,7 @@ const UserManagement = () => {
                         {userHistory.length === 0 && (
                           <Fade in={true} timeout={{ enter: 1000 }}>
                             <TableRow>
-                              <TableCell colSpan={5} align="center">
+                              <TableCell colSpan={6} align="center">
                                 <Typography variant="body1" color="text.secondary" sx={{ py: 4 }}>
                                   No user history available
                                 </Typography>
