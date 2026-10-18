@@ -436,6 +436,7 @@ async function ensureSessions() {
         user_id INTEGER NOT NULL,
         token VARCHAR(255) UNIQUE NOT NULL,
         expires_at TIMESTAMP NOT NULL,
+        last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
@@ -447,6 +448,20 @@ async function ensureSessions() {
       await db.execute(`CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)`);
     } catch (e) {
       // Indexes might already exist
+    }
+
+    // Add last_activity column if it doesn't exist
+    try {
+      const [cols] = await db.execute(`
+        SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = current_database() AND TABLE_NAME = 'sessions' AND COLUMN_NAME = 'last_activity'
+      `);
+      if (cols.length === 0) {
+        await db.execute(`ALTER TABLE sessions ADD COLUMN last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP`);
+        console.log('✓ last_activity column added to sessions table');
+      }
+    } catch (e) {
+      console.log('Note: Could not add last_activity column:', e.message);
     }
 
     console.log('✓ Sessions table ensured');
@@ -756,16 +771,25 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(403).json({ error: 'Your account is pending approval' });
     }
 
-    // Check if user already has an active session and delete it
-    // This allows login after closing the browser tab
+    // Check if user already has an active session (activity in last 5 minutes)
     try {
-      await db.execute(
-        'DELETE FROM sessions WHERE user_id = $1',
+      const [existingSessions] = await db.execute(
+        'SELECT id, created_at, last_activity FROM sessions WHERE user_id = $1 AND expires_at > NOW() AND last_activity > NOW() - INTERVAL \'5 minutes\'',
         [user.id]
       );
+
+      if (existingSessions.length > 0) {
+        // User is already actively logged in elsewhere
+        const lastActivity = new Date(existingSessions[0].last_activity).toLocaleString();
+        return res.status(409).json({
+          error: 'This account is already in use by another user',
+          message: `This account is currently active (last activity: ${lastActivity}). Only one user can access this account at a time.`,
+          alreadyLoggedIn: true
+        });
+      }
     } catch (sessionError) {
-      console.error('Error deleting existing sessions:', sessionError);
-      // Continue with login even if session deletion fails
+      console.error('Error checking existing sessions:', sessionError);
+      // Continue with login even if session check fails
     }
 
     // Create JWT token
@@ -974,6 +998,23 @@ app.post('/api/auth/logout', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Logout error:', error);
     res.json({ message: 'Logged out successfully' });
+  }
+});
+
+// Update session activity (heartbeat)
+app.post('/api/auth/heartbeat', authenticateToken, async (req, res) => {
+  try {
+    const token = req.headers['authorization']?.split(' ')[1];
+    if (token) {
+      await db.execute(
+        'UPDATE sessions SET last_activity = NOW() WHERE token = $1',
+        [token]
+      );
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Heartbeat error:', error);
+    res.json({ success: false });
   }
 });
 

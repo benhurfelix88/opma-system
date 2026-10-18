@@ -120,6 +120,11 @@ export const authAPI = {
     const response = await api.delete('/auth/profile/picture');
     return response.data;
   },
+
+  heartbeat: async () => {
+    const response = await api.post('/auth/heartbeat');
+    return response.data;
+  },
 };
 
 // ==================== USERS API ====================

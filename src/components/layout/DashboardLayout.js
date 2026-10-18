@@ -117,14 +117,14 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
     };
     loadCurrentUser();
 
-    // Periodically check if session is still valid (every 30 seconds)
-    const sessionCheckInterval = setInterval(async () => {
+    // Send heartbeat every 60 seconds to update session activity
+    const heartbeatInterval = setInterval(async () => {
       const token = localStorage.getItem('authToken');
       if (token) {
         try {
-          await authAPI.getCurrentUser();
+          await authAPI.heartbeat();
         } catch (error) {
-          console.error('Session check failed:', error);
+          console.error('Heartbeat failed:', error);
           // If 401, session is invalid (someone else logged in)
           if (error.response?.status === 401) {
             localStorage.removeItem('authToken');
@@ -133,9 +133,23 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
           }
         }
       }
-    }, 30000);
+    }, 60000);
 
-    return () => clearInterval(sessionCheckInterval);
+    // Cleanup session when tab is closed
+    const handleBeforeUnload = () => {
+      // Use navigator.sendBeacon to ensure the request is sent even on page unload
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        navigator.sendBeacon(`${API_BASE_URL}/auth/logout`, JSON.stringify({ token }));
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      clearInterval(heartbeatInterval);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
 
   const getMenuItems = () => {
