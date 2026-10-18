@@ -803,7 +803,7 @@ app.post('/api/auth/login', async (req, res) => {
     try {
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
       await db.execute(
-        'INSERT INTO sessions (user_id, token, expires_at) VALUES ($1, $2, $3)',
+        'INSERT INTO sessions (user_id, token, expires_at, last_activity) VALUES ($1, $2, $3, NOW())',
         [user.id, token, expiresAt]
       );
     } catch (sessionError) {
