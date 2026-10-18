@@ -92,12 +92,24 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
   };
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      const userData = JSON.parse(storedUser);
-      setUser(userData);
-      setEditedUser(userData);
-    }
+    const loadCurrentUser = async () => {
+      const storedUser = localStorage.getItem('currentUser');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        setEditedUser(userData);
+
+        // Fetch fresh user data from server to get latest profile picture
+        try {
+          const freshUser = await authAPI.getCurrentUser();
+          setUser(freshUser);
+          setEditedUser(freshUser);
+        } catch (error) {
+          console.error('Failed to fetch current user:', error);
+        }
+      }
+    };
+    loadCurrentUser();
   }, []);
 
   const getMenuItems = () => {
@@ -222,10 +234,11 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
     setPhotoPreview(URL.createObjectURL(file));
     setPhotoUploading(true);
     try {
-      const result = await authAPI.uploadProfilePicture(file);
-      const updatedUser = { ...user, profile_picture: result.profile_picture };
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-      setUser(updatedUser);
+      await authAPI.uploadProfilePicture(file);
+      // Fetch fresh user data from server to get the updated profile picture
+      const freshUser = await authAPI.getCurrentUser();
+      setUser(freshUser);
+      setEditedUser(freshUser);
       setProfileSnackbar({ open: true, message: 'Profile picture updated', severity: 'success' });
     } catch (error) {
       const msg = error.response?.data?.error || 'Failed to upload picture';
@@ -241,9 +254,10 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
     setPhotoUploading(true);
     try {
       await authAPI.deleteProfilePicture();
-      const updatedUser = { ...user, profile_picture: null };
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-      setUser(updatedUser);
+      // Fetch fresh user data from server to get the updated profile picture
+      const freshUser = await authAPI.getCurrentUser();
+      setUser(freshUser);
+      setEditedUser(freshUser);
       setPhotoPreview(null);
       setProfileSnackbar({ open: true, message: 'Profile picture removed', severity: 'success' });
     } catch (error) {
