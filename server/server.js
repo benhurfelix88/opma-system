@@ -1019,6 +1019,30 @@ app.post('/api/auth/heartbeat', authenticateToken, async (req, res) => {
   }
 });
 
+// Check if user is logged in
+app.get('/api/users/:id/session-status', authenticateToken, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+
+    // Check if user has an active session
+    const [sessions] = await db.execute(
+      'SELECT last_activity FROM sessions WHERE user_id = $1 AND expires_at > NOW() AND last_activity > NOW() - INTERVAL \'1 minute\'',
+      [userId]
+    );
+
+    const isLoggedIn = sessions.length > 0;
+    const lastActivity = isLoggedIn ? sessions[0].last_activity : null;
+
+    res.json({
+      isLoggedIn,
+      lastActivity: lastActivity ? new Date(lastActivity).toISOString() : null
+    });
+  } catch (error) {
+    console.error('Session status check error:', error);
+    res.status(500).json({ error: 'Failed to check session status' });
+  }
+});
+
 // Forgot Password - Request password reset
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
