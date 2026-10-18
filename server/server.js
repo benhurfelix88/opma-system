@@ -771,10 +771,10 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(403).json({ error: 'Your account is pending approval' });
     }
 
-    // Check if user already has an active session (activity in last 5 minutes)
+    // Check if user already has an active session (activity in last 1 minute)
     try {
       const [existingSessions] = await db.execute(
-        'SELECT id, created_at, last_activity FROM sessions WHERE user_id = $1 AND expires_at > NOW() AND last_activity > NOW() - INTERVAL \'5 minutes\'',
+        'SELECT id, created_at, last_activity FROM sessions WHERE user_id = $1 AND expires_at > NOW() AND last_activity > NOW() - INTERVAL \'1 minute\'',
         [user.id]
       );
 
@@ -989,11 +989,12 @@ app.delete('/api/auth/profile/picture', authenticateToken, async (req, res) => {
 // Logout
 app.post('/api/auth/logout', authenticateToken, async (req, res) => {
   try {
-    // Remove session from database
-    const token = req.headers['authorization']?.split(' ')[1];
-    if (token) {
-      await db.execute('DELETE FROM sessions WHERE token = $1', [token]);
-    }
+    const userId = req.user.id;
+
+    // Remove ALL sessions for this user (not just the current token)
+    // This ensures immediate logout regardless of which session token was used
+    await db.execute('DELETE FROM sessions WHERE user_id = $1', [userId]);
+
     res.json({ message: 'Logged out successfully' });
   } catch (error) {
     console.error('Logout error:', error);
