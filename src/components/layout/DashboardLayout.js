@@ -135,22 +135,8 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
       }
     }, 60000);
 
-    // Cleanup session when tab is closed
-    const handleBeforeUnload = () => {
-      // Use navigator.sendBeacon to ensure the request is sent even on page unload
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        navigator.sendBeacon(`${API_BASE_URL}/auth/logout`, JSON.stringify({ token }));
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      clearInterval(heartbeatInterval);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, []);
+    return () => clearInterval(heartbeatInterval);
+  }, [API_BASE_URL]);
 
   const getMenuItems = () => {
     switch (user?.role) {
