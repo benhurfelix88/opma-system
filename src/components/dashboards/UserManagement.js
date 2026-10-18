@@ -733,7 +733,7 @@ const UserManagement = () => {
                                         <EditIcon fontSize="small" />
                                       </IconButton>
                                     </Tooltip>
-                                    {user.username !== 'admin' && (
+                                    {user.username?.toLowerCase() !== 'admin' && user.role !== 'IT Admin' && (
                                       <Tooltip title="Delete User">
                                         <IconButton
                                           size="small"
