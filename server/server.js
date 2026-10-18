@@ -1029,7 +1029,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     
     // Find user by email
     const [users] = await db.execute(
-      'SELECT id, username, email, full_name FROM users WHERE email = ?',
+      'SELECT id, username, email, full_name FROM users WHERE email = $1',
       [email.trim()]
     );
     
