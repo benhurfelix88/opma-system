@@ -1112,81 +1112,48 @@ app.get('/api/users/:id', authenticateToken, async (req, res) => {
 // Create user
 app.post('/api/users', authenticateToken, async (req, res) => {
   try {
-    const { username, password, email, full_name, mobile_number, role, assigned_ride, assigned_ride_id } = req.body;
+    const { username, password, email, full_name, mobile_number, role, assigned_ride } = req.body;
 
     // Hash password
     const hashedPassword = bcrypt.hashSync(password, 10);
 
-    // Validate and normalize assigned_ride - ensure it's a ride name from rides table
+    // Normalize assigned_ride - ensure it's a ride name from rides table
     let normalizedAssignedRide = assigned_ride || null;
-    let normalizedAssignedRideId = assigned_ride_id || null;
-    
-    if (normalizedAssignedRideId && role === 'Amusement Park Personnel') {
-      // If assigned_ride_id is provided, verify it exists and get the name
-      const [rides] = await db.execute('SELECT id, name FROM rides WHERE id = ?', [normalizedAssignedRideId]);
-      if (rides.length > 0) {
-        normalizedAssignedRide = rides[0].name;
-        normalizedAssignedRideId = rides[0].id;
-        console.log(`✅ Using ride ID ${normalizedAssignedRideId} with name: ${normalizedAssignedRide}`);
-      } else {
-        console.warn(`⚠️ Ride ID ${assigned_ride_id} not found in rides table`);
-        normalizedAssignedRideId = null;
+
+    if (normalizedAssignedRide && role === 'Amusement Park Personnel') {
+      // If assigned_ride is an object with name property, extract the name
+      if (typeof normalizedAssignedRide === 'object' && normalizedAssignedRide.name) {
+        normalizedAssignedRide = normalizedAssignedRide.name;
       }
-    } else if (normalizedAssignedRide && role === 'Amusement Park Personnel') {
-      // If assigned_ride is a number (ID), fetch the ride name
-      if (!isNaN(normalizedAssignedRide)) {
-        const [rides] = await db.execute('SELECT id, name FROM rides WHERE id = ?', [normalizedAssignedRide]);
+      // If it's a number (ID), fetch the ride name
+      else if (!isNaN(normalizedAssignedRide)) {
+        const [rides] = await db.execute('SELECT name FROM rides WHERE id = $1', [normalizedAssignedRide]);
         if (rides.length > 0) {
           normalizedAssignedRide = rides[0].name;
-          normalizedAssignedRideId = rides[0].id;
-          console.log(`✅ Converted ride ID ${assigned_ride} to ride name: ${normalizedAssignedRide}`);
         } else {
           console.warn(`⚠️ Ride ID ${assigned_ride} not found in rides table`);
           normalizedAssignedRide = null;
         }
-      } else {
-        // If it's a name, verify it exists in rides table and get the ID
-        const [rides] = await db.execute('SELECT id, name FROM rides WHERE name = ?', [normalizedAssignedRide]);
-        if (rides.length > 0) {
-          normalizedAssignedRide = rides[0].name;
-          normalizedAssignedRideId = rides[0].id;
-        } else {
+      }
+      // If it's a name, verify it exists in rides table
+      else {
+        const [rides] = await db.execute('SELECT name FROM rides WHERE name = $1', [normalizedAssignedRide]);
+        if (rides.length === 0) {
           console.warn(`⚠️ Ride name "${normalizedAssignedRide}" not found in rides table`);
           // Still allow it, but log warning
         }
       }
     }
 
-    // Check if assigned_ride_id column exists
-    const [userColumns] = await db.execute(`
-      SELECT COLUMN_NAME 
-      FROM INFORMATION_SCHEMA.COLUMNS 
-      WHERE TABLE_SCHEMA = current_database() 
-      AND TABLE_NAME = 'users'
-      AND COLUMN_NAME = 'assigned_ride_id'
-    `);
-    const hasAssignedRideId = userColumns.length > 0;
-
-    // Build INSERT statement dynamically
-    let insertColumns = ['username', 'password', 'email', 'full_name', 'mobile_number', 'role', 'assigned_ride', 'status'];
-    let insertValues = [username, hashedPassword, email, full_name, mobile_number, role, normalizedAssignedRide, 'pending'];
-    let placeholders = Array(insertColumns.length).fill('?');
-    
-    if (hasAssignedRideId && normalizedAssignedRideId) {
-      insertColumns.push('assigned_ride_id');
-      insertValues.push(normalizedAssignedRideId);
-      placeholders.push('?');
-    }
-
     const [result] = await db.execute(
-      `INSERT INTO users (${insertColumns.join(', ')}) VALUES (${placeholders.join(', ')})`,
-      insertValues
+      'INSERT INTO users (username, password, email, full_name, mobile_number, role, assigned_ride, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
+      [username, hashedPassword, email, full_name, mobile_number, role, normalizedAssignedRide, 'pending']
     );
 
-    res.json({ id: result.insertId, message: 'User created successfully' });
+    res.json({ id: result[0].id, message: 'User created successfully' });
   } catch (error) {
     console.error('Create user error:', error);
-    if (error.code === 'ER_DUP_ENTRY') {
+    if (error.code === '23505') {
       return res.status(400).json({ error: 'Username or email already exists' });
     }
     res.status(500).json({ error: 'Server error' });
@@ -1196,80 +1163,55 @@ app.post('/api/users', authenticateToken, async (req, res) => {
 // Update user
 app.put('/api/users/:id', authenticateToken, async (req, res) => {
   try {
-    const { username, email, full_name, mobile_number, role, assigned_ride, assigned_ride_id, status, password } = req.body;
-    
-    // Validate and normalize assigned_ride - ensure it's a ride name from rides table
+    const { username, email, full_name, mobile_number, role, assigned_ride, status, password } = req.body;
+
+    // Normalize assigned_ride - ensure it's a ride name from rides table
     let normalizedAssignedRide = assigned_ride || null;
-    let normalizedAssignedRideId = assigned_ride_id || null;
-    
-    if (normalizedAssignedRideId && role === 'Amusement Park Personnel') {
-      // If assigned_ride_id is provided, verify it exists and get the name
-      const [rides] = await db.execute('SELECT id, name FROM rides WHERE id = ?', [normalizedAssignedRideId]);
-      if (rides.length > 0) {
-        normalizedAssignedRide = rides[0].name;
-        normalizedAssignedRideId = rides[0].id;
-        console.log(`✅ Using ride ID ${normalizedAssignedRideId} with name: ${normalizedAssignedRide}`);
-      } else {
-        console.warn(`⚠️ Ride ID ${assigned_ride_id} not found in rides table`);
-        normalizedAssignedRideId = null;
+
+    if (normalizedAssignedRide && role === 'Amusement Park Personnel') {
+      // If assigned_ride is an object with name property, extract the name
+      if (typeof normalizedAssignedRide === 'object' && normalizedAssignedRide.name) {
+        normalizedAssignedRide = normalizedAssignedRide.name;
       }
-    } else if (normalizedAssignedRide && role === 'Amusement Park Personnel') {
-      // If assigned_ride is a number (ID), fetch the ride name
-      if (!isNaN(normalizedAssignedRide)) {
-        const [rides] = await db.execute('SELECT id, name FROM rides WHERE id = ?', [normalizedAssignedRide]);
+      // If it's a number (ID), fetch the ride name
+      else if (!isNaN(normalizedAssignedRide)) {
+        const [rides] = await db.execute('SELECT name FROM rides WHERE id = $1', [normalizedAssignedRide]);
         if (rides.length > 0) {
           normalizedAssignedRide = rides[0].name;
-          normalizedAssignedRideId = rides[0].id;
-          console.log(`✅ Converted ride ID ${assigned_ride} to ride name: ${normalizedAssignedRide}`);
         } else {
           console.warn(`⚠️ Ride ID ${assigned_ride} not found in rides table`);
           normalizedAssignedRide = null;
         }
-      } else {
-        // If it's a name, verify it exists in rides table and get the ID
-        const [rides] = await db.execute('SELECT id, name FROM rides WHERE name = ?', [normalizedAssignedRide]);
-        if (rides.length > 0) {
-          normalizedAssignedRide = rides[0].name;
-          normalizedAssignedRideId = rides[0].id;
-        } else {
+      }
+      // If it's a name, verify it exists in rides table
+      else {
+        const [rides] = await db.execute('SELECT name FROM rides WHERE name = $1', [normalizedAssignedRide]);
+        if (rides.length === 0) {
           console.warn(`⚠️ Ride name "${normalizedAssignedRide}" not found in rides table`);
           // Still allow it, but log warning
         }
       }
     }
-    
-    // Check if assigned_ride_id column exists
-    const [userColumns] = await db.execute(`
-      SELECT COLUMN_NAME 
-      FROM INFORMATION_SCHEMA.COLUMNS 
-      WHERE TABLE_SCHEMA = current_database() 
-      AND TABLE_NAME = 'users'
-      AND COLUMN_NAME = 'assigned_ride_id'
-    `);
-    const hasAssignedRideId = userColumns.length > 0;
-    
-    let updateQuery = 'UPDATE users SET username = ?, email = ?, full_name = ?, mobile_number = ?, role = ?, assigned_ride = ?, status = ?';
+
+    let updateQuery = 'UPDATE users SET username = $1, email = $2, full_name = $3, mobile_number = $4, role = $5, assigned_ride = $6, status = $7';
     let params = [username, email, full_name, mobile_number, role, normalizedAssignedRide, status];
-    
-    if (hasAssignedRideId) {
-      updateQuery += ', assigned_ride_id = ?';
-      params.push(normalizedAssignedRideId);
-    }
+    let paramIndex = 8;
 
     if (password) {
       const hashedPassword = bcrypt.hashSync(password, 10);
-      updateQuery += ', password = ?';
+      updateQuery += `, password = $${paramIndex}`;
       params.push(hashedPassword);
+      paramIndex++;
     }
 
-    updateQuery += ' WHERE id = ?';
+    updateQuery += ` WHERE id = $${paramIndex}`;
     params.push(req.params.id);
 
     await db.execute(updateQuery, params);
     res.json({ message: 'User updated successfully' });
   } catch (error) {
     console.error('Update user error:', error);
-    if (error.code === 'ER_DUP_ENTRY') {
+    if (error.code === '23505') {
       return res.status(400).json({ error: 'Username or email already exists' });
     }
     res.status(500).json({ error: 'Server error' });
