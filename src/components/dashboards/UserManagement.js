@@ -708,7 +708,7 @@ const UserManagement = () => {
                                 </TableCell>
                                 <TableCell align="center">
                                   <Chip
-                                    label={userSessionStatus[user.id]?.isLoggedIn ? 'Logged In' : 'Logged Out'}
+                                    label={userSessionStatus[user.id]?.isLoggedIn ? 'Active' : 'Inactive'}
                                     color={userSessionStatus[user.id]?.isLoggedIn ? 'success' : 'default'}
                                     size="small"
                                     variant={userSessionStatus[user.id]?.isLoggedIn ? 'filled' : 'outlined'}

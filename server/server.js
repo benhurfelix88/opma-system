@@ -1054,9 +1054,9 @@ app.get('/api/users/:id/session-status', authenticateToken, async (req, res) => 
   try {
     const userId = parseInt(req.params.id);
 
-    // Check if user has an active session
+    // Check if user has an active session (valid and not expired)
     const [sessions] = await db.execute(
-      'SELECT last_activity FROM sessions WHERE user_id = $1 AND expires_at > NOW() AND last_activity > NOW() - INTERVAL \'1 minute\'',
+      'SELECT last_activity FROM sessions WHERE user_id = $1 AND expires_at > NOW() ORDER BY last_activity DESC LIMIT 1',
       [userId]
     );
 
