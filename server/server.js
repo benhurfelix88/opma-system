@@ -1669,6 +1669,14 @@ app.post('/api/maintenance', authenticateToken, async (req, res) => {
 
     console.log('Creating maintenance record:', { ride_name, location, status });
 
+    // Ensure location column exists
+    try {
+      await db.execute('ALTER TABLE maintenance_records ADD COLUMN IF NOT EXISTS location VARCHAR(255)');
+      console.log('Location column ensured before insert');
+    } catch (alterError) {
+      console.log('Note: Column alteration:', alterError.message);
+    }
+
     const [result] = await db.execute(
       'INSERT INTO maintenance_records (ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
       [ride_name, maintenance_type, description, date_performed, next_maintenance_date, status || 'Completed', performedByValue, location || '']
@@ -1689,6 +1697,14 @@ app.put('/api/maintenance/:id', authenticateToken, async (req, res) => {
     const performedByValue = String(performed_by || '').trim();
 
     console.log('Updating maintenance record:', { id: req.params.id, location });
+
+    // Ensure location column exists
+    try {
+      await db.execute('ALTER TABLE maintenance_records ADD COLUMN IF NOT EXISTS location VARCHAR(255)');
+      console.log('Location column ensured before update');
+    } catch (alterError) {
+      console.log('Note: Column alteration:', alterError.message);
+    }
 
     await db.execute(
       'UPDATE maintenance_records SET ride_name = ?, maintenance_type = ?, description = ?, performed_by = ?, date_performed = ?, next_maintenance_date = ?, status = ?, location = ? WHERE id = ?',
@@ -2181,6 +2197,15 @@ app.put('/api/spare-parts/:id', authenticateToken, async (req, res) => {
     const { part_name, part_number, category, ride, quantity, unit, location, supplier, cost, status, notes, approval_status } = req.body;
 
     console.log('Updating spare part:', { id: req.params.id, approval_status, notes });
+
+    // Ensure columns exist before updating
+    try {
+      await db.execute('ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT \'Pending\'');
+      await db.execute('ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS notes TEXT');
+      console.log('Columns ensured before update');
+    } catch (alterError) {
+      console.log('Note: Column alteration:', alterError.message);
+    }
 
     await db.execute(
       'UPDATE spare_parts SET part_name = ?, part_number = ?, category = ?, quantity = ?, unit = ?, location = ?, supplier = ?, cost = ?, status = ?, ride = ?, approval_status = ?, notes = ? WHERE id = ?',
