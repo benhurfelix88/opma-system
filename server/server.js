@@ -1636,15 +1636,42 @@ app.post('/api/maintenance', authenticateToken, async (req, res) => {
     const { ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by, location } = req.body;
     const performedByValue = String(performed_by || '').trim();
 
-    const [result] = await db.execute(
-      'INSERT INTO maintenance_records (ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [ride_name, maintenance_type, description, date_performed, next_maintenance_date, status || 'Completed', performedByValue, location || '']
-    );
+    console.log('Creating maintenance record:', { ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by, location });
+
+    // Check if location column exists
+    const [columns] = await db.execute(`
+      SELECT COLUMN_NAME
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = current_database()
+      AND TABLE_NAME = 'maintenance_records'
+    `);
+
+    const columnNames = columns.map(col => col.COLUMN_NAME);
+    const hasLocation = columnNames.includes('location');
+
+    console.log('Available columns in maintenance_records:', columnNames);
+    console.log('hasLocation:', hasLocation);
+
+    let query, values;
+
+    if (hasLocation) {
+      query = 'INSERT INTO maintenance_records (ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+      values = [ride_name, maintenance_type, description, date_performed, next_maintenance_date, status || 'Completed', performedByValue, location || ''];
+    } else {
+      query = 'INSERT INTO maintenance_records (ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by) VALUES (?, ?, ?, ?, ?, ?, ?)';
+      values = [ride_name, maintenance_type, description, date_performed, next_maintenance_date, status || 'Completed', performedByValue];
+    }
+
+    console.log('Query:', query);
+    console.log('Values:', values);
+
+    const [result] = await db.execute(query, values);
 
     res.json({ id: result.insertId, message: 'Maintenance record created successfully' });
   } catch (error) {
-    console.error('Create maintenance error:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Create maintenance error:', error.message);
+    console.error('Error details:', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
@@ -1654,15 +1681,38 @@ app.put('/api/maintenance/:id', authenticateToken, async (req, res) => {
     const { ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by, location } = req.body;
     const performedByValue = String(performed_by || '').trim();
 
-    await db.execute(
-      'UPDATE maintenance_records SET ride_name = ?, maintenance_type = ?, description = ?, performed_by = ?, date_performed = ?, next_maintenance_date = ?, status = ?, location = ? WHERE id = ?',
-      [ride_name, maintenance_type, description, performedByValue, date_performed, next_maintenance_date, status, location || '', req.params.id]
-    );
+    console.log('Updating maintenance record:', { id: req.params.id, ride_name, location });
+
+    // Check if location column exists
+    const [columns] = await db.execute(`
+      SELECT COLUMN_NAME
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = current_database()
+      AND TABLE_NAME = 'maintenance_records'
+    `);
+
+    const columnNames = columns.map(col => col.COLUMN_NAME);
+    const hasLocation = columnNames.includes('location');
+
+    console.log('hasLocation:', hasLocation);
+
+    let query, values;
+
+    if (hasLocation) {
+      query = 'UPDATE maintenance_records SET ride_name = ?, maintenance_type = ?, description = ?, performed_by = ?, date_performed = ?, next_maintenance_date = ?, status = ?, location = ? WHERE id = ?';
+      values = [ride_name, maintenance_type, description, performedByValue, date_performed, next_maintenance_date, status, location || '', req.params.id];
+    } else {
+      query = 'UPDATE maintenance_records SET ride_name = ?, maintenance_type = ?, description = ?, performed_by = ?, date_performed = ?, next_maintenance_date = ?, status = ? WHERE id = ?';
+      values = [ride_name, maintenance_type, description, performedByValue, date_performed, next_maintenance_date, status, req.params.id];
+    }
+
+    await db.execute(query, values);
 
     res.json({ message: 'Maintenance record updated successfully' });
   } catch (error) {
-    console.error('Update maintenance error:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Update maintenance error:', error.message);
+    console.error('Error details:', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 

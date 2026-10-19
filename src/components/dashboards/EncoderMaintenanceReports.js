@@ -36,7 +36,6 @@ import DashboardLayout from '../layout/DashboardLayout';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import InfoIcon from '@mui/icons-material/Info';
 import { maintenanceAPI, ridesAPI } from '../../services/api';
 
 const VISIBLE_RIDE_LIMIT = 8;
@@ -443,6 +442,7 @@ const EncoderMaintenanceReports = () => {
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Maintenance Schedule</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Description</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Technician</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Location</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
               </TableRow>
@@ -450,7 +450,7 @@ const EncoderMaintenanceReports = () => {
             <TableBody>
               {filteredAndSortedRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
+                  <TableCell colSpan={8} align="center">
                     <Typography variant="body1" color="text.secondary">
                       No maintenance records found
                     </Typography>
@@ -467,9 +467,9 @@ const EncoderMaintenanceReports = () => {
                       : 'Not scheduled'}
                   </TableCell>
                   <TableCell align="center">
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
+                    <Typography
+                      variant="body2"
+                      sx={{
                         width: '100%',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -482,47 +482,40 @@ const EncoderMaintenanceReports = () => {
                     </Typography>
                   </TableCell>
                   <TableCell align="center">{record.technician}</TableCell>
+                  <TableCell align="center">{record.location || '-'}</TableCell>
                   <TableCell align="center">
                       <Chip
                         label={record.status}
                         variant="outlined"
                         size="small"
-                        sx={{ 
-                          color: getStatusColor(record.status) === 'success' ? 'green' : 
-                                getStatusColor(record.status) === 'warning' ? 'orange' : 
-                                getStatusColor(record.status) === 'error' ? 'red' : 
+                        sx={{
+                          color: getStatusColor(record.status) === 'success' ? 'green' :
+                                getStatusColor(record.status) === 'warning' ? 'orange' :
+                                getStatusColor(record.status) === 'error' ? 'red' :
                                 getStatusColor(record.status) === 'info' ? 'blue' : 'gray',
-                          borderColor: getStatusColor(record.status) === 'success' ? 'green' : 
-                                       getStatusColor(record.status) === 'warning' ? 'orange' : 
-                                       getStatusColor(record.status) === 'error' ? 'red' : 
+                          borderColor: getStatusColor(record.status) === 'success' ? 'green' :
+                                       getStatusColor(record.status) === 'warning' ? 'orange' :
+                                       getStatusColor(record.status) === 'error' ? 'red' :
                                        getStatusColor(record.status) === 'info' ? 'blue' : 'gray',
                           backgroundColor: 'transparent'
                         }}
                       />
                   </TableCell>
                   <TableCell align="center">
-                    <Tooltip title="View Details">
-                      <IconButton 
-                        size="small"
-                        onClick={() => handleOpenViewDialog(record)}
-                        sx={{
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
-                            backgroundColor: 'info.main',
-                            color: 'white',
-                            transform: 'scale(1.1)',
-                          },
-                        }}
-                      >
-                        <InfoIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => handleOpenViewDialog(record)}
+                      sx={{ mr: 0.5 }}
+                    >
+                      Maintenance Record Details
+                    </Button>
                     <Tooltip title={record.status === 'Completed' ? 'Cannot edit completed maintenance records' : 'Edit'}>
                       <IconButton
                         size="small"
                         onClick={() => handleOpenDialog(record)}
                         disabled={record.status === 'Completed'}
-                        sx={{ 
+                        sx={{
                           opacity: record.status === 'Completed' ? 0.5 : 1,
                           cursor: record.status === 'Completed' ? 'not-allowed' : 'pointer'
                         }}
@@ -754,33 +747,34 @@ const EncoderMaintenanceReports = () => {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
                 <Typography><strong>Ride:</strong> {viewRecord.ride}</Typography>
                 <Typography><strong>Date Recorded:</strong> {new Date(viewRecord.date).toLocaleString()}</Typography>
-                <Typography><strong>Status:</strong> 
+                <Typography><strong>Status:</strong>
                   <Chip
                     label={viewRecord.status}
                     variant="outlined"
                     size="small"
-                    sx={{ 
+                    sx={{
                       ml: 1,
-                      color: getStatusColor(viewRecord.status) === 'success' ? 'green' : 
-                            getStatusColor(viewRecord.status) === 'warning' ? 'orange' : 
-                            getStatusColor(viewRecord.status) === 'error' ? 'red' : 
+                      color: getStatusColor(viewRecord.status) === 'success' ? 'green' :
+                            getStatusColor(viewRecord.status) === 'warning' ? 'orange' :
+                            getStatusColor(viewRecord.status) === 'error' ? 'red' :
                             getStatusColor(viewRecord.status) === 'info' ? 'blue' : 'gray',
-                      borderColor: getStatusColor(viewRecord.status) === 'success' ? 'green' : 
-                                   getStatusColor(viewRecord.status) === 'warning' ? 'orange' : 
-                                   getStatusColor(viewRecord.status) === 'error' ? 'red' : 
+                      borderColor: getStatusColor(viewRecord.status) === 'success' ? 'green' :
+                                   getStatusColor(viewRecord.status) === 'warning' ? 'orange' :
+                                   getStatusColor(viewRecord.status) === 'error' ? 'red' :
                                    getStatusColor(viewRecord.status) === 'info' ? 'blue' : 'gray',
                       backgroundColor: 'transparent'
                     }}
                   />
                 </Typography>
                 <Typography><strong>Technician:</strong> {viewRecord.technician}</Typography>
+                <Typography><strong>Location:</strong> {viewRecord.location || 'Not specified'}</Typography>
                 <Typography><strong>Description:</strong></Typography>
                 <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
                   <Typography variant="body2">
                     {viewRecord.description || 'No description provided'}
                   </Typography>
                 </Paper>
-                <Typography><strong>Maintenance Schedule:</strong> 
+                <Typography><strong>Maintenance Schedule:</strong>
                   {viewRecord.nextMaintenance
                     ? new Date(viewRecord.nextMaintenance).toLocaleDateString()
                     : ' Not scheduled'}
