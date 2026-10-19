@@ -2282,6 +2282,8 @@ app.post('/api/part-deployments', authenticateToken, async (req, res) => {
     const { date, place, ride, status, encoded_by } = req.body;
     const userId = req.user?.id || null;
 
+    console.log('Creating deployment:', { date, place, ride, status, encoded_by, userId });
+
     const [result] = await db.execute(
       'INSERT INTO part_deployments (date, place, ride, status, encoded_by, created_by) VALUES (?, ?, ?, ?, ?, ?)',
       [date, place, ride, status || 'Complete', encoded_by, userId]
@@ -2289,8 +2291,9 @@ app.post('/api/part-deployments', authenticateToken, async (req, res) => {
 
     res.json({ id: result.insertId, message: 'Part deployment created successfully' });
   } catch (error) {
-    console.error('Create part deployment error:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Create part deployment error:', error.message);
+    console.error('Error details:', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
@@ -2341,6 +2344,8 @@ app.post('/api/part-removals', authenticateToken, async (req, res) => {
     const { date, place, ride, status, encoded_by } = req.body;
     const userId = req.user?.id || null;
 
+    console.log('Creating removal:', { date, place, ride, status, encoded_by, userId });
+
     const [result] = await db.execute(
       'INSERT INTO part_removals (date, place, ride, status, encoded_by, created_by) VALUES (?, ?, ?, ?, ?, ?)',
       [date, place, ride, status || 'Complete', encoded_by, userId]
@@ -2348,8 +2353,9 @@ app.post('/api/part-removals', authenticateToken, async (req, res) => {
 
     res.json({ id: result.insertId, message: 'Part removal created successfully' });
   } catch (error) {
-    console.error('Create part removal error:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Create part removal error:', error.message);
+    console.error('Error details:', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 

@@ -1803,7 +1803,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       value={deploymentData.status}
                       onChange={(e) => setDeploymentData({ ...deploymentData, status: e.target.value })}
                       label="Status"
-                      disabled={!selectedDeployment}
                     >
                       {DEPLOYMENT_REMOVAL_STATUS_OPTIONS.map((status) => (
                         <MenuItem key={status} value={status}>{status}</MenuItem>
@@ -1858,7 +1857,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       value={removalData.status}
                       onChange={(e) => setRemovalData({ ...removalData, status: e.target.value })}
                       label="Status"
-                      disabled={!selectedRemoval}
                     >
                       {DEPLOYMENT_REMOVAL_STATUS_OPTIONS.map((status) => (
                         <MenuItem key={status} value={status}>{status}</MenuItem>
