@@ -566,6 +566,7 @@ async function ensureMaintenanceRecords() {
         date_performed DATE,
         next_maintenance_date DATE,
         status VARCHAR(50),
+        location VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -1632,12 +1633,12 @@ app.get('/api/maintenance', authenticateToken, async (req, res) => {
 // Create maintenance record
 app.post('/api/maintenance', authenticateToken, async (req, res) => {
   try {
-    const { ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by } = req.body;
+    const { ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by, location } = req.body;
     const performedByValue = String(performed_by || '').trim();
-    
+
     const [result] = await db.execute(
-      'INSERT INTO maintenance_records (ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [ride_name, maintenance_type, description, date_performed, next_maintenance_date, status || 'Completed', performedByValue]
+      'INSERT INTO maintenance_records (ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [ride_name, maintenance_type, description, date_performed, next_maintenance_date, status || 'Completed', performedByValue, location || '']
     );
 
     res.json({ id: result.insertId, message: 'Maintenance record created successfully' });
@@ -1650,12 +1651,12 @@ app.post('/api/maintenance', authenticateToken, async (req, res) => {
 // Update maintenance record
 app.put('/api/maintenance/:id', authenticateToken, async (req, res) => {
   try {
-    const { ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by } = req.body;
+    const { ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by, location } = req.body;
     const performedByValue = String(performed_by || '').trim();
 
     await db.execute(
-      'UPDATE maintenance_records SET ride_name = ?, maintenance_type = ?, description = ?, performed_by = ?, date_performed = ?, next_maintenance_date = ?, status = ? WHERE id = ?',
-      [ride_name, maintenance_type, description, performedByValue, date_performed, next_maintenance_date, status, req.params.id]
+      'UPDATE maintenance_records SET ride_name = ?, maintenance_type = ?, description = ?, performed_by = ?, date_performed = ?, next_maintenance_date = ?, status = ?, location = ? WHERE id = ?',
+      [ride_name, maintenance_type, description, performedByValue, date_performed, next_maintenance_date, status, location || '', req.params.id]
     );
 
     res.json({ message: 'Maintenance record updated successfully' });
@@ -2142,6 +2143,8 @@ app.put('/api/spare-parts/:id', authenticateToken, async (req, res) => {
   try {
     const { part_name, part_number, category, ride, quantity, unit, location, supplier, cost, status, notes, approval_status } = req.body;
 
+    console.log('Updating spare part:', { id: req.params.id, approval_status, notes });
+
     // Check if notes and approval_status columns exist
     const [columns] = await db.execute(`
       SELECT COLUMN_NAME
@@ -2154,6 +2157,9 @@ app.put('/api/spare-parts/:id', authenticateToken, async (req, res) => {
     const hasNotes = columnNames.includes('notes');
     const hasApprovalStatus = columnNames.includes('approval_status');
     const hasRide = columnNames.includes('ride');
+
+    console.log('Available columns:', columnNames);
+    console.log('hasNotes:', hasNotes, 'hasApprovalStatus:', hasApprovalStatus, 'hasRide:', hasRide);
 
     // Build update query dynamically based on available columns
     let updateFields = ['part_name', 'part_number', 'category', 'quantity', 'unit', 'location', 'supplier', 'cost', 'status'];
@@ -2176,7 +2182,7 @@ app.put('/api/spare-parts/:id', authenticateToken, async (req, res) => {
     if (hasApprovalStatus && approval_status !== undefined && approval_status !== null) {
       updateFields.push('approval_status');
       updateValues.push(approval_status);
-      console.log(`Updating spare part ${req.params.id} with approval_status: ${approval_status}`);
+      console.log(`Adding approval_status to update: ${approval_status}`);
     } else if (!hasApprovalStatus && approval_status !== undefined && approval_status !== null && !hasNotes) {
       console.warn('approval_status column does not exist in spare_parts table');
     }
@@ -2184,12 +2190,16 @@ app.put('/api/spare-parts/:id', authenticateToken, async (req, res) => {
     updateValues.push(req.params.id);
 
     const updateQuery = `UPDATE spare_parts SET ${updateFields.map(f => `${f} = ?`).join(', ')} WHERE id = ?`;
+    console.log('Update query:', updateQuery);
+    console.log('Update values:', updateValues);
+
     await db.execute(updateQuery, updateValues);
 
     res.json({ message: 'Spare part updated successfully' });
   } catch (error) {
-    console.error('Update spare part error:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Update spare part error:', error.message);
+    console.error('Error details:', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 

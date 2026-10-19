@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS maintenance_records (
     date_performed DATE,
     next_maintenance_date DATE,
     status VARCHAR(50),
+    location VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

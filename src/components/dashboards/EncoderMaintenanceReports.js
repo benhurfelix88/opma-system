@@ -82,6 +82,7 @@ const EncoderMaintenanceReports = () => {
     status: '',
     description: '',
     technician: '',
+    location: '',
     nextMaintenance: null,
   });
 
@@ -140,6 +141,7 @@ const EncoderMaintenanceReports = () => {
           status: r.status || '',
           description: r.description || '',
           technician: r.performed_by || r.technician || '',
+          location: r.location || '',
           nextMaintenance: r.next_maintenance_date || r.nextMaintenance || null,
         }));
         setMaintenanceRecords(mapped);
@@ -164,6 +166,7 @@ const EncoderMaintenanceReports = () => {
         status: record.status,
         description: record.description,
         technician: record.technician,
+        location: record.location || '',
         nextMaintenance: record.nextMaintenance ? new Date(record.nextMaintenance) : null,
       });
     } else {
@@ -174,6 +177,7 @@ const EncoderMaintenanceReports = () => {
         status: '',
         description: '',
         technician: '',
+        location: '',
         nextMaintenance: null,
       });
     }
@@ -218,6 +222,7 @@ const EncoderMaintenanceReports = () => {
         next_maintenance_date: formData.nextMaintenance ? formData.nextMaintenance.toISOString().slice(0, 10) : null,
         status: formData.status,
         performed_by: String(formData.technician || '').trim(),
+        location: formData.location || '',
       };
 
       if (selectedRecord) {
@@ -245,6 +250,7 @@ const EncoderMaintenanceReports = () => {
         status: r.status || '',
         description: r.description || '',
         technician: r.performed_by || r.technician || '',
+        location: r.location || '',
         nextMaintenance: r.next_maintenance_date || r.nextMaintenance || null,
       }));
       setMaintenanceRecords(mapped);
@@ -700,6 +706,14 @@ const EncoderMaintenanceReports = () => {
                   onChange={(e) => setFormData({ ...formData, technician: e.target.value })}
                   error={!!errors.technician}
                   helperText={errors.technician}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Location"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 />
               </Grid>
               <Grid item xs={12}>
