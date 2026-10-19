@@ -56,6 +56,21 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS idx_token ON sessions(token);
 CREATE INDEX IF NOT EXISTS idx_user_id ON sessions(user_id);
 
+-- Password Reset Tokens table
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    token VARCHAR(255) UNIQUE NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_password_reset_token ON password_reset_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_password_reset_user_id ON password_reset_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_password_reset_expires_at ON password_reset_tokens(expires_at);
+
 -- Rides table
 CREATE TABLE IF NOT EXISTS rides (
     id SERIAL PRIMARY KEY,
@@ -105,6 +120,7 @@ CREATE TABLE IF NOT EXISTS incident_reports (
     date_reported DATE,
     time_reported TIME,
     status VARCHAR(50),
+    review_status VARCHAR(50) DEFAULT 'Pending',
     resolution TEXT,
     photos JSONB,
     involved_parties JSONB,
