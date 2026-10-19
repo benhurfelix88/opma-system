@@ -102,9 +102,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   const [rideSelectionModalOpen, setRideSelectionModalOpen] = useState(false);
   const [partsSelectionModalOpen, setPartsSelectionModalOpen] = useState(false);
   const [deploymentRideModalOpen, setDeploymentRideModalOpen] = useState(false);
-  const [deploymentPartsModalOpen, setDeploymentPartsModalOpen] = useState(false);
   const [removalRideModalOpen, setRemovalRideModalOpen] = useState(false);
-  const [removalPartsModalOpen, setRemovalPartsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     quantity: '',
@@ -135,8 +133,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     date: '',
     place: '',
     ride: '',
-    parts: '',
-    quantity: '',
     status: 'Complete',
     encodedBy: '',
   });
@@ -144,8 +140,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     date: '',
     place: '',
     ride: '',
-    parts: '',
-    quantity: '',
     status: 'Complete',
     encodedBy: '',
   });
@@ -204,13 +198,11 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           date: deployment.date,
           place: deployment.place,
           ride: deployment.ride,
-          parts: deployment.parts,
-          quantity: deployment.quantity,
           status: deployment.status,
           encodedBy: deployment.encoded_by,
         }));
         setDeployments(mappedDeployments);
-        
+
         // Load removals from API
         const removalsList = await partRemovalsAPI.getAll();
         const mappedRemovals = removalsList.map(removal => ({
@@ -218,8 +210,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           date: removal.date,
           place: removal.place,
           ride: removal.ride,
-          parts: removal.parts,
-          quantity: removal.quantity,
           status: removal.status,
           encodedBy: removal.encoded_by,
         }));
@@ -650,16 +640,12 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       date: deployment.date,
       place: deployment.place,
       ride: deployment.ride,
-      parts: deployment.parts,
-      quantity: deployment.quantity,
       status: deployment.status,
       encodedBy: deployment.encodedBy
     } : {
       date: new Date().toISOString().split('T')[0],
       place: '',
       ride: '',
-      parts: '',
-      quantity: '',
       status: 'Complete',
       encodedBy: ''
     });
@@ -672,8 +658,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       date: new Date().toISOString().split('T')[0],
       place: '',
       ride: '',
-      parts: '',
-      quantity: '',
       status: 'Complete',
       encodedBy: ''
     });
@@ -681,7 +665,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   };
 
   const handleSubmitDeployment = async () => {
-    if (!deploymentData.date || !deploymentData.place || !deploymentData.ride || !deploymentData.parts || !deploymentData.quantity || !deploymentData.status || !deploymentData.encodedBy) {
+    if (!deploymentData.date || !deploymentData.place || !deploymentData.ride || !deploymentData.status || !deploymentData.encodedBy) {
       setWarningMessage('Please fill in all fields');
       setWarningAction(() => () => setOpenWarningModal(false));
       setOpenWarningModal(true);
@@ -693,8 +677,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         date: deploymentData.date,
         place: deploymentData.place,
         ride: deploymentData.ride,
-        parts: deploymentData.parts,
-        quantity: Number(deploymentData.quantity),
         status: deploymentData.status,
         encoded_by: deploymentData.encodedBy,
       };
@@ -712,8 +694,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         date: deployment.date,
         place: deployment.place,
         ride: deployment.ride,
-        parts: deployment.parts,
-        quantity: deployment.quantity,
         status: deployment.status,
         encodedBy: deployment.encoded_by,
       }));
@@ -763,16 +743,12 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       date: removal.date,
       place: removal.place,
       ride: removal.ride,
-      parts: removal.parts,
-      quantity: removal.quantity,
       status: removal.status,
       encodedBy: removal.encoded_by
     } : {
       date: new Date().toISOString().split('T')[0],
       place: '',
       ride: '',
-      parts: '',
-      quantity: '',
       status: 'Complete',
       encodedBy: ''
     });
@@ -785,8 +761,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       date: new Date().toISOString().split('T')[0],
       place: '',
       ride: '',
-      parts: '',
-      quantity: '',
       status: 'Complete',
       encodedBy: ''
     });
@@ -794,7 +768,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   };
 
   const handleSubmitRemoval = async () => {
-    if (!removalData.date || !removalData.place || !removalData.ride || !removalData.parts || !removalData.quantity || !removalData.status || !removalData.encodedBy) {
+    if (!removalData.date || !removalData.place || !removalData.ride || !removalData.status || !removalData.encodedBy) {
       setWarningMessage('Please fill in all required fields');
       setWarningAction(() => () => setOpenWarningModal(false));
       setOpenWarningModal(true);
@@ -806,8 +780,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         date: removalData.date,
         place: removalData.place,
         ride: removalData.ride,
-        parts: removalData.parts,
-        quantity: Number(removalData.quantity),
         status: removalData.status,
         encoded_by: removalData.encodedBy,
       };
@@ -825,8 +797,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         date: removal.date,
         place: removal.place,
         ride: removal.ride,
-        parts: removal.parts,
-        quantity: removal.quantity,
         status: removal.status,
         encodedBy: removal.encoded_by,
       }));
@@ -1307,8 +1277,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date of Deployment</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Place of Installation</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Name of Ride</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Name of Parts</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Quantity</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
                         </TableRow>
@@ -1316,7 +1284,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableBody>
                         {deployments.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={7} align="center">
+                            <TableCell colSpan={5} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No deployment records found
                               </Typography>
@@ -1328,8 +1296,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               <TableCell align="center">{new Date(deployment.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{deployment.place}</TableCell>
                               <TableCell align="center">{deployment.ride}</TableCell>
-                              <TableCell align="center">{deployment.parts}</TableCell>
-                              <TableCell align="center">{deployment.quantity}</TableCell>
                               <TableCell align="center">
                                 <FormControl size="small" sx={{ minWidth: 130 }}>
                                   <Select
@@ -1366,8 +1332,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date of Removal</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Place</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Parts</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Quantity</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
                         </TableRow>
@@ -1375,7 +1339,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableBody>
                         {removals.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={7} align="center">
+                            <TableCell colSpan={5} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No removal records found
                               </Typography>
@@ -1387,8 +1351,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               <TableCell align="center">{new Date(removal.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{removal.place}</TableCell>
                               <TableCell align="center">{removal.ride}</TableCell>
-                              <TableCell align="center">{removal.parts}</TableCell>
-                              <TableCell align="center">{removal.quantity}</TableCell>
                               <TableCell align="center">
                                 <FormControl size="small" sx={{ minWidth: 130 }}>
                                   <Select
@@ -1835,32 +1797,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   </Button>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    onClick={() => {
-                      if (!deploymentData.ride) {
-                        setSnackbar({ open: true, message: 'Please select a ride first', severity: 'error' });
-                        return;
-                      }
-                      setDeploymentPartsModalOpen(true);
-                    }}
-                    sx={{ height: 56 }}
-                    disabled={!deploymentData.ride}
-                  >
-                    {deploymentData.parts || 'Select Parts'}
-                  </Button>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Quantity"
-                    type="number"
-                    value={deploymentData.quantity}
-                    onChange={(e) => setDeploymentData({ ...deploymentData, quantity: e.target.value })}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
                   <FormControl fullWidth>
                     <InputLabel>Status</InputLabel>
                     <Select
@@ -1914,32 +1850,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   >
                     {removalData.ride || 'Select Ride'}
                   </Button>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    onClick={() => {
-                      if (!removalData.ride) {
-                        setSnackbar({ open: true, message: 'Please select a ride first', severity: 'error' });
-                        return;
-                      }
-                      setRemovalPartsModalOpen(true);
-                    }}
-                    sx={{ height: 56 }}
-                    disabled={!removalData.ride}
-                  >
-                    {removalData.parts || 'Select Parts'}
-                  </Button>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Number of Parts"
-                    type="number"
-                    value={removalData.quantity}
-                    onChange={(e) => setRemovalData({ ...removalData, quantity: e.target.value })}
-                  />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <FormControl fullWidth>
@@ -2273,7 +2183,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   <Box
                     key={ride}
                     onClick={() => {
-                      setDeploymentData({ ...deploymentData, ride: ride, parts: '' });
+                      setDeploymentData({ ...deploymentData, ride: ride });
                       setDeploymentRideModalOpen(false);
                     }}
                     sx={{
@@ -2302,59 +2212,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           </DialogActions>
         </Dialog>
 
-        {/* Deployment Parts Selection Modal */}
-        <Dialog 
-          open={deploymentPartsModalOpen} 
-          onClose={() => setDeploymentPartsModalOpen(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>Select Parts for Deployment</DialogTitle>
-          <DialogContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, pt: 1 }}>
-              {getRepairPartsForRide(deploymentData.ride).length === 0 ? (
-                <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-                  No parts available for this ride
-                </Typography>
-              ) : (
-                getRepairPartsForRide(deploymentData.ride).map((part) => (
-                  <Box
-                    key={part.id}
-                    onClick={() => {
-                      setDeploymentData({ ...deploymentData, parts: part.name });
-                      setDeploymentPartsModalOpen(false);
-                    }}
-                    sx={{
-                      p: 2,
-                      borderRadius: 1,
-                      border: deploymentData.parts === part.name ? '2px solid' : '1px solid',
-                      borderColor: deploymentData.parts === part.name ? 'primary.main' : 'divider',
-                      backgroundColor: deploymentData.parts === part.name ? 'primary.50' : 'background.paper',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        backgroundColor: deploymentData.parts === part.name ? 'primary.100' : 'action.hover',
-                      },
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="subtitle2" fontWeight="bold">
-                        {part.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Qty: {part.quantity}
-                      </Typography>
-                    </Box>
-                  </Box>
-                ))
-              )}
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeploymentPartsModalOpen(false)}>Close</Button>
-          </DialogActions>
-        </Dialog>
-
         {/* Removal Ride Selection Modal */}
         <Dialog 
           open={removalRideModalOpen} 
@@ -2374,7 +2231,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   <Box
                     key={ride}
                     onClick={() => {
-                      setRemovalData({ ...removalData, ride: ride, parts: '' });
+                      setRemovalData({ ...removalData, ride: ride });
                       setRemovalRideModalOpen(false);
                     }}
                     sx={{
@@ -2400,59 +2257,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setRemovalRideModalOpen(false)}>Close</Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Removal Parts Selection Modal */}
-        <Dialog 
-          open={removalPartsModalOpen} 
-          onClose={() => setRemovalPartsModalOpen(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>Select Parts for Removal</DialogTitle>
-          <DialogContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, pt: 1 }}>
-              {getRepairPartsForRide(removalData.ride).length === 0 ? (
-                <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-                  No parts available for this ride
-                </Typography>
-              ) : (
-                getRepairPartsForRide(removalData.ride).map((part) => (
-                  <Box
-                    key={part.id}
-                    onClick={() => {
-                      setRemovalData({ ...removalData, parts: part.name });
-                      setRemovalPartsModalOpen(false);
-                    }}
-                    sx={{
-                      p: 2,
-                      borderRadius: 1,
-                      border: removalData.parts === part.name ? '2px solid' : '1px solid',
-                      borderColor: removalData.parts === part.name ? 'primary.main' : 'divider',
-                      backgroundColor: removalData.parts === part.name ? 'primary.50' : 'background.paper',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        backgroundColor: removalData.parts === part.name ? 'primary.100' : 'action.hover',
-                      },
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="subtitle2" fontWeight="bold">
-                        {part.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Qty: {part.quantity}
-                      </Typography>
-                    </Box>
-                  </Box>
-                ))
-              )}
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setRemovalPartsModalOpen(false)}>Close</Button>
           </DialogActions>
         </Dialog>
       </Box>

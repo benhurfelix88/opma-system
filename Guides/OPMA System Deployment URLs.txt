@@ -1,0 +1,13 @@
+Frontend: https://opma-system-t7ur.vercel.app/login
+	  https://opma-system-t7ur.vercel.app
+
+The backend URL:
+
+https://arms-system-backend.onrender.com
+
+The API endpoints:
+
+Login: https://arms-system-backend.onrender.com/api/auth/login
+Users: https://arms-system-backend.onrender.com/api/users
+Rides: https://arms-system-backend.onrender.com/api/rides
+Health check: https://arms-system-backend.onrender.com/api/health

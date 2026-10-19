@@ -611,8 +611,6 @@ async function ensurePartDeployments() {
         date DATE NOT NULL,
         place VARCHAR(255) NOT NULL,
         ride VARCHAR(255) NOT NULL,
-        parts VARCHAR(255) NOT NULL,
-        quantity INTEGER NOT NULL,
         status VARCHAR(50) DEFAULT 'Complete',
         encoded_by VARCHAR(255) NOT NULL,
         created_by INTEGER,
@@ -636,8 +634,6 @@ async function ensurePartRemovals() {
         date DATE NOT NULL,
         place VARCHAR(255) NOT NULL,
         ride VARCHAR(255) NOT NULL,
-        parts VARCHAR(255) NOT NULL,
-        quantity INTEGER NOT NULL,
         status VARCHAR(50) DEFAULT 'Complete',
         encoded_by VARCHAR(255) NOT NULL,
         created_by INTEGER,
@@ -2283,12 +2279,12 @@ app.get('/api/part-deployments', authenticateToken, async (req, res) => {
 // Create part deployment
 app.post('/api/part-deployments', authenticateToken, async (req, res) => {
   try {
-    const { date, place, ride, parts, quantity, status, encoded_by } = req.body;
+    const { date, place, ride, status, encoded_by } = req.body;
     const userId = req.user?.id || null;
-    
+
     const [result] = await db.execute(
-      'INSERT INTO part_deployments (date, place, ride, parts, quantity, status, encoded_by, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [date, place, ride, parts, quantity, status || 'Complete', encoded_by, userId]
+      'INSERT INTO part_deployments (date, place, ride, status, encoded_by, created_by) VALUES (?, ?, ?, ?, ?, ?)',
+      [date, place, ride, status || 'Complete', encoded_by, userId]
     );
 
     res.json({ id: result.insertId, message: 'Part deployment created successfully' });
@@ -2301,11 +2297,11 @@ app.post('/api/part-deployments', authenticateToken, async (req, res) => {
 // Update part deployment
 app.put('/api/part-deployments/:id', authenticateToken, async (req, res) => {
   try {
-    const { date, place, ride, parts, quantity, status, encoded_by } = req.body;
-    
+    const { date, place, ride, status, encoded_by } = req.body;
+
     await db.execute(
-      'UPDATE part_deployments SET date = ?, place = ?, ride = ?, parts = ?, quantity = ?, status = ?, encoded_by = ? WHERE id = ?',
-      [date, place, ride, parts, quantity, status, encoded_by, req.params.id]
+      'UPDATE part_deployments SET date = ?, place = ?, ride = ?, status = ?, encoded_by = ? WHERE id = ?',
+      [date, place, ride, status, encoded_by, req.params.id]
     );
 
     res.json({ message: 'Part deployment updated successfully' });
@@ -2342,12 +2338,12 @@ app.get('/api/part-removals', authenticateToken, async (req, res) => {
 // Create part removal
 app.post('/api/part-removals', authenticateToken, async (req, res) => {
   try {
-    const { date, place, ride, parts, quantity, status, encoded_by } = req.body;
+    const { date, place, ride, status, encoded_by } = req.body;
     const userId = req.user?.id || null;
-    
+
     const [result] = await db.execute(
-      'INSERT INTO part_removals (date, place, ride, parts, quantity, status, encoded_by, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [date, place, ride, parts, quantity, status || 'Complete', encoded_by, userId]
+      'INSERT INTO part_removals (date, place, ride, status, encoded_by, created_by) VALUES (?, ?, ?, ?, ?, ?)',
+      [date, place, ride, status || 'Complete', encoded_by, userId]
     );
 
     res.json({ id: result.insertId, message: 'Part removal created successfully' });
@@ -2360,11 +2356,11 @@ app.post('/api/part-removals', authenticateToken, async (req, res) => {
 // Update part removal
 app.put('/api/part-removals/:id', authenticateToken, async (req, res) => {
   try {
-    const { date, place, ride, parts, quantity, status, encoded_by } = req.body;
-    
+    const { date, place, ride, status, encoded_by } = req.body;
+
     await db.execute(
-      'UPDATE part_removals SET date = ?, place = ?, ride = ?, parts = ?, quantity = ?, status = ?, encoded_by = ? WHERE id = ?',
-      [date, place, ride, parts, quantity, status, encoded_by, req.params.id]
+      'UPDATE part_removals SET date = ?, place = ?, ride = ?, status = ?, encoded_by = ? WHERE id = ?',
+      [date, place, ride, status, encoded_by, req.params.id]
     );
 
     res.json({ message: 'Part removal updated successfully' });
