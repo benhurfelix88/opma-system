@@ -550,18 +550,14 @@ async function ensureSpareParts() {
 
     // Add approval_status and notes columns if they don't exist (for existing tables)
     try {
-      await db.execute(`
-        ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'Pending'
-      `);
+      await db.execute("ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'Pending'");
       console.log('✓ approval_status column ensured in spare_parts');
     } catch (alterError) {
       console.log('Note: Could not add approval_status column (may already exist):', alterError.message);
     }
 
     try {
-      await db.execute(`
-        ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS notes TEXT
-      `);
+      await db.execute('ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS notes TEXT');
       console.log('✓ notes column ensured in spare_parts');
     } catch (alterError) {
       console.log('Note: Could not add notes column (may already exist):', alterError.message);
@@ -2190,27 +2186,22 @@ app.put('/api/spare-parts/:id', authenticateToken, async (req, res) => {
 
     console.log('Updating spare part:', { id: req.params.id, approval_status, notes });
 
-    // Ensure columns exist before updating
-    try {
-      await db.execute('ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT \'Pending\'');
-      await db.execute('ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS notes TEXT');
-      console.log('Columns ensured before update');
-    } catch (alterError) {
-      console.log('Note: Column alteration:', alterError.message);
-    }
-
-    await db.execute(
+    const result = await db.execute(
       'UPDATE spare_parts SET part_name = ?, part_number = ?, category = ?, quantity = ?, unit = ?, location = ?, supplier = ?, cost = ?, status = ?, ride = ?, approval_status = ?, notes = ? WHERE id = ?',
       [part_name, part_number, category, quantity, unit, location, supplier, cost, status, ride || '', approval_status || 'Pending', notes || '']
     );
 
     console.log('Spare part updated successfully with approval_status:', approval_status);
+    console.log('Update result:', result);
 
     res.json({ message: 'Spare part updated successfully' });
   } catch (error) {
     console.error('Update spare part error:', error.message);
+    console.error('Error code:', error.code);
     console.error('Error details:', error);
-    res.status(500).json({ error: 'Server error', details: error.message });
+    console.error('SQL State:', error.sqlState);
+    console.error('SQL Message:', error.sqlMessage);
+    res.status(500).json({ error: 'Server error', details: error.message, code: error.code, sqlState: error.sqlState });
   }
 });
 
