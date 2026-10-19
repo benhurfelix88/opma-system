@@ -139,6 +139,8 @@ CREATE TABLE IF NOT EXISTS spare_parts (
     cost DECIMAL(10, 2),
     status VARCHAR(50),
     ride VARCHAR(255),
+    approval_status VARCHAR(50) DEFAULT 'Pending',
+    notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -547,6 +547,26 @@ async function ensureSpareParts() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Add approval_status and notes columns if they don't exist (for existing tables)
+    try {
+      await db.execute(`
+        ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'Pending'
+      `);
+      console.log('✓ approval_status column ensured in spare_parts');
+    } catch (alterError) {
+      console.log('Note: Could not add approval_status column (may already exist):', alterError.message);
+    }
+
+    try {
+      await db.execute(`
+        ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS notes TEXT
+      `);
+      console.log('✓ notes column ensured in spare_parts');
+    } catch (alterError) {
+      console.log('Note: Could not add notes column (may already exist):', alterError.message);
+    }
+
     console.log('✓ Spare parts table ensured');
   } catch (e) {
     console.error('Spare parts table ensure failed:', e.message);
@@ -571,6 +591,17 @@ async function ensureMaintenanceRecords() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Add location column if it doesn't exist (for existing tables)
+    try {
+      await db.execute(`
+        ALTER TABLE maintenance_records ADD COLUMN IF NOT EXISTS location VARCHAR(255)
+      `);
+      console.log('✓ Location column ensured in maintenance_records');
+    } catch (alterError) {
+      console.log('Note: Could not add location column (may already exist):', alterError.message);
+    }
+
     console.log('✓ Maintenance records table ensured');
   } catch (e) {
     console.error('Maintenance records table ensure failed:', e.message);
