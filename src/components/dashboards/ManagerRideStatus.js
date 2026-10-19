@@ -50,6 +50,7 @@ const ManagerRideStatus = () => {
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [newRideName, setNewRideName] = useState('');
+  const [newRideLocation, setNewRideLocation] = useState('');
   const [editingRide, setEditingRide] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [refreshing, setRefreshing] = useState(false);
@@ -129,9 +130,10 @@ const ManagerRideStatus = () => {
     }
 
     try {
-      await ridesAPI.create(newRideName.trim(), 'operational');
+      await ridesAPI.create(newRideName.trim(), 'operational', newRideLocation.trim());
       setSuccess('Ride added successfully');
       setNewRideName('');
+      setNewRideLocation('');
       setOpenAddDialog(false);
       await loadData();
     } catch (e) {
@@ -162,7 +164,7 @@ const ManagerRideStatus = () => {
 
     try {
       const currentStatus = rideStatusMap[editingRide.id] || 'operational';
-      await ridesAPI.update(editingRide.id, editingRide.name.trim(), currentStatus);
+      await ridesAPI.update(editingRide.id, editingRide.name.trim(), currentStatus, editingRide.location || '');
       setSuccess('Ride updated successfully');
       setEditingRide(null);
       setOpenEditDialog(false);
@@ -362,6 +364,7 @@ const ManagerRideStatus = () => {
             <TableHead>
               <TableRow>
                 <TableCell align="center"><Typography fontWeight="bold">Ride Name</Typography></TableCell>
+                <TableCell align="center"><Typography fontWeight="bold">Location</Typography></TableCell>
                 <TableCell align="center"><Typography fontWeight="bold">Status</Typography></TableCell>
                 <TableCell align="center"><Typography fontWeight="bold">Created</Typography></TableCell>
                 <TableCell align="center"><Typography fontWeight="bold">Actions</Typography></TableCell>
@@ -385,6 +388,9 @@ const ManagerRideStatus = () => {
                           {ride.name}
                         </Typography>
                       </Box>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Typography variant="body2">{ride.location || '-'}</Typography>
                     </TableCell>
                     <TableCell align="center">
                       <FormControl size="small" sx={{ minWidth: 150 }}>
@@ -494,6 +500,15 @@ const ManagerRideStatus = () => {
             variant="outlined"
             value={newRideName}
             onChange={(e) => setNewRideName(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            label="Location"
+            fullWidth
+            variant="outlined"
+            value={newRideLocation}
+            onChange={(e) => setNewRideLocation(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
@@ -514,6 +529,15 @@ const ManagerRideStatus = () => {
             variant="outlined"
             value={editingRide?.name || ''}
             onChange={(e) => setEditingRide({ ...editingRide, name: e.target.value })}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            label="Location"
+            fullWidth
+            variant="outlined"
+            value={editingRide?.location || ''}
+            onChange={(e) => setEditingRide({ ...editingRide, location: e.target.value })}
           />
         </DialogContent>
         <DialogActions>

@@ -118,10 +118,11 @@ const UserManagement = () => {
         return {
           id: r.name,
           name: r.name,
+          location: r.location || '',
           status: statusMap[r.name] || 'operational',
         };
       });
-      
+
       setAvailableRides(items);
     } catch (error) {
       console.error('Error loading rides:', error);
@@ -1406,6 +1407,11 @@ const UserManagement = () => {
                           {ride.name}
                         </Typography>
                       </Box>
+                      {ride.location && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                          Location: {ride.location}
+                        </Typography>
+                      )}
                       <Chip
                         label={ride.status}
                         size="small"

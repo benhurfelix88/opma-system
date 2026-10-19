@@ -232,6 +232,7 @@ async function ensureRides() {
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) UNIQUE NOT NULL,
         status VARCHAR(50) DEFAULT 'operational',
+        location VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -241,6 +242,11 @@ async function ensureRides() {
     const hasStatus = cols.some(c => c.COLUMN_NAME === 'status');
     if (!hasStatus) {
       await db.execute(`ALTER TABLE rides ADD COLUMN status VARCHAR(50) DEFAULT 'operational'`);
+    }
+    // add location column if missing
+    const hasLocation = cols.some(c => c.COLUMN_NAME === 'location');
+    if (!hasLocation) {
+      await db.execute('ALTER TABLE rides ADD COLUMN location VARCHAR(255)');
     }
     // No default rides seeding - all rides must be added through the UI
     // This ensures rides are only added by IT Admin/IT Encoder through the system
@@ -2428,8 +2434,8 @@ app.get('/api/rides', authenticateToken, async (req, res) => {
 // Create ride
 app.post('/api/rides', authenticateToken, async (req, res) => {
   try {
-    const { name, status } = req.body;
-    await db.execute('INSERT INTO rides (name, status) VALUES (?, ?)', [name, status || 'operational']);
+    const { name, status, location } = req.body;
+    await db.execute('INSERT INTO rides (name, status, location) VALUES (?, ?, ?)', [name, status || 'operational', location || '']);
     res.json({ message: 'Ride created successfully' });
   } catch (error) {
     console.error('Create ride error:', error);
@@ -2443,8 +2449,8 @@ app.post('/api/rides', authenticateToken, async (req, res) => {
 // Alias: some clients may call singular path
 app.post('/api/ride', authenticateToken, async (req, res) => {
   try {
-    const { name, status } = req.body;
-    await db.execute('INSERT INTO rides (name, status) VALUES (?, ?)', [name, status || 'operational']);
+    const { name, status, location } = req.body;
+    await db.execute('INSERT INTO rides (name, status, location) VALUES (?, ?, ?)', [name, status || 'operational', location || '']);
     res.json({ message: 'Ride created successfully' });
   } catch (error) {
     console.error('Create ride (alias) error:', error);
@@ -2458,8 +2464,8 @@ app.post('/api/ride', authenticateToken, async (req, res) => {
 // Update ride
 app.put('/api/rides/:id', authenticateToken, async (req, res) => {
   try {
-    const { name, status } = req.body;
-    await db.execute('UPDATE rides SET name = ?, status = ? WHERE id = ?', [name, status || 'operational', req.params.id]);
+    const { name, status, location } = req.body;
+    await db.execute('UPDATE rides SET name = ?, status = ?, location = ? WHERE id = ?', [name, status || 'operational', location || '', req.params.id]);
     res.json({ message: 'Ride updated successfully' });
   } catch (error) {
     console.error('Update ride error:', error);

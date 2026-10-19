@@ -454,9 +454,9 @@ const PersonnelRideCounters = () => {
       {/* Single Ride Counter */}
       {rides.length > 0 && (
         <Fade in={true} style={{ transitionDelay: '400ms' }}>
-          <Card 
+          <Card
             elevation={6}
-            sx={{ 
+            sx={{
               mb: 4,
               transition: 'transform 0.2s, box-shadow 0.2s',
               '&:hover': {
@@ -467,14 +467,22 @@ const PersonnelRideCounters = () => {
           >
             <CardContent sx={{ p: 4 }}>
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                <Typography variant="h5" fontWeight="bold">
-                  {rides[0].name}
-                </Typography>
+                <Box>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Location
+                  </Typography>
+                  <Typography variant="h5" fontWeight="bold">
+                    {rides[0].location || 'Not specified'}
+                  </Typography>
+                  <Typography variant="h5" fontWeight="bold" sx={{ mt: 1 }}>
+                    {rides[0].name}
+                  </Typography>
+                </Box>
                 <Box display="flex" alignItems="center" gap={2}>
                   <Typography variant="body2" color="text.secondary">
                     Status
                   </Typography>
-                  <Chip 
+                  <Chip
                     label={getStatusLabel(counters[rides[0].name]?.status || 'operational')}
                     color={getStatusColor(counters[rides[0].name]?.status || 'operational')}
                     size="medium"
