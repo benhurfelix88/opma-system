@@ -415,6 +415,20 @@ const PersonnelRideCounters = () => {
         </Box>
       </Box>
 
+      {/* Ride Location Display */}
+      {rides.length > 0 && (
+        <Fade in={true} style={{ transitionDelay: '100ms' }}>
+          <Paper elevation={2} sx={{ p: 2, mb: 3, bgcolor: 'background.default' }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Location
+            </Typography>
+            <Typography variant="h5" fontWeight="bold">
+              {rides[0].location || 'Not specified'}
+            </Typography>
+          </Paper>
+        </Fade>
+      )}
+
       {/* Summary Card */}
       <Zoom in={true} style={{ transitionDelay: '200ms' }}>
         <Paper elevation={3} sx={{ p: 3, mb:4 }}>
@@ -468,13 +482,7 @@ const PersonnelRideCounters = () => {
             <CardContent sx={{ p: 4 }}>
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
                 <Box>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Location
-                  </Typography>
                   <Typography variant="h5" fontWeight="bold">
-                    {rides[0].location || 'Not specified'}
-                  </Typography>
-                  <Typography variant="h5" fontWeight="bold" sx={{ mt: 1 }}>
                     {rides[0].name}
                   </Typography>
                 </Box>
