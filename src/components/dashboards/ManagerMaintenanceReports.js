@@ -28,6 +28,7 @@ import {
   PictureAsPdf as ReportIcon,
   ArrowRight as ArrowRightIcon,
   Close as CloseIcon,
+  Info as InfoIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -44,6 +45,8 @@ const ManagerMaintenanceReports = () => {
   const [descriptionDialogOpen, setDescriptionDialogOpen] = useState(false);
   const [openRideModal, setOpenRideModal] = useState(false);
   const [selectedDescription, setSelectedDescription] = useState('');
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [viewRecord, setViewRecord] = useState(null);
 
   const truncateText = (text, wordLimit = 5) => {
     if (!text) return 'No description';
@@ -60,6 +63,7 @@ const ManagerMaintenanceReports = () => {
           ...r,
           id: r.id,
           ride: r.ride_name || r.ride || '',
+          location: r.location || '',
           date: r.date_performed || r.date || new Date().toISOString(),
           status: r.status || '',
           description: r.description || '',
@@ -223,17 +227,19 @@ const ManagerMaintenanceReports = () => {
             <TableHead>
               <TableRow>
                 <TableCell align="center">Ride</TableCell>
+                <TableCell align="center">Location</TableCell>
                 <TableCell align="center">Date</TableCell>
                 <TableCell align="center">Status</TableCell>
                 <TableCell align="center">Description</TableCell>
                 <TableCell align="center">Technician</TableCell>
                 <TableCell align="center">Next Maintenance</TableCell>
+                <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredAndSortedRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
+                  <TableCell colSpan={8} align="center">
                     <Typography variant="body1" color="text.secondary">
                       No maintenance records found
                     </Typography>
@@ -243,6 +249,7 @@ const ManagerMaintenanceReports = () => {
                 filteredAndSortedRecords.map((record) => (
                   <TableRow key={record.id}>
                     <TableCell align="center">{record.ride}</TableCell>
+                    <TableCell align="center">{record.location || '-'}</TableCell>
                     <TableCell align="center">
                       {new Date(record.date).toLocaleDateString()}
                     </TableCell>
@@ -288,10 +295,26 @@ const ManagerMaintenanceReports = () => {
                     </TableCell>
                     <TableCell align="center">{record.technician}</TableCell>
                     <TableCell align="center">
-                      {record.nextMaintenance 
+                      {record.nextMaintenance
                         ? new Date(record.nextMaintenance).toLocaleDateString()
                         : 'N/A'
                       }
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          setViewRecord(record);
+                          setOpenViewDialog(true);
+                        }}
+                        sx={{
+                          '&:hover': {
+                            backgroundColor: 'action.hover',
+                          },
+                        }}
+                      >
+                        <InfoIcon fontSize="small" color="primary" />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))
@@ -375,6 +398,7 @@ const ManagerMaintenanceReports = () => {
           reportType="maintenance"
           columns={[
             { header: 'Ride Name', field: 'ride' },
+            { header: 'Location', field: 'location' },
             { header: 'Date', field: 'date', render: (item) => new Date(item.date).toLocaleDateString() },
             { header: 'Status', field: 'status' },
             { header: 'Technician', field: 'technician' },
@@ -382,6 +406,66 @@ const ManagerMaintenanceReports = () => {
             { header: 'Next Maintenance', field: 'nextMaintenance', render: (item) => item.nextMaintenance ? new Date(item.nextMaintenance).toLocaleDateString() : 'Not scheduled' }
           ]}
         />
+
+        {/* View Details Dialog */}
+        <Dialog
+          open={openViewDialog}
+          onClose={() => {
+            setOpenViewDialog(false);
+            setViewRecord(null);
+          }}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <InfoIcon sx={{ color: 'primary.main' }} />
+            Maintenance Record Details
+          </DialogTitle>
+          <DialogContent>
+            {viewRecord && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                <Typography><strong>Ride:</strong> {viewRecord.ride || 'N/A'}</Typography>
+                <Typography><strong>Location:</strong> {viewRecord.location || 'N/A'}</Typography>
+                <Typography><strong>Date:</strong> {new Date(viewRecord.date).toLocaleString()}</Typography>
+                <Typography><strong>Status:</strong>
+                  <Chip
+                    label={viewRecord.status}
+                    variant="outlined"
+                    size="small"
+                    sx={{
+                      ml: 1,
+                      color: getStatusColor(viewRecord.status) === 'success' ? 'green' :
+                            getStatusColor(viewRecord.status) === 'warning' ? 'orange' :
+                            getStatusColor(viewRecord.status) === 'error' ? 'red' : 'blue',
+                      borderColor: getStatusColor(viewRecord.status) === 'success' ? 'green' :
+                                   getStatusColor(viewRecord.status) === 'warning' ? 'orange' :
+                                   getStatusColor(viewRecord.status) === 'error' ? 'red' : 'blue',
+                      backgroundColor: 'transparent',
+                    }}
+                  />
+                </Typography>
+                <Typography><strong>Technician:</strong> {viewRecord.technician || 'N/A'}</Typography>
+                <Typography><strong>Description:</strong></Typography>
+                <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                    {viewRecord.description || 'No description provided'}
+                  </Typography>
+                </Paper>
+                <Typography><strong>Next Maintenance:</strong>
+                  {viewRecord.nextMaintenance
+                    ? ` ${new Date(viewRecord.nextMaintenance).toLocaleString()}`
+                    : ' Not scheduled'}
+                </Typography>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => {
+              setOpenViewDialog(false);
+              setViewRecord(null);
+            }}>Close</Button>
+          </DialogActions>
+        </Dialog>
 
       {/* Description Dialog */}
       <Dialog 

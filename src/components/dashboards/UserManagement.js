@@ -66,7 +66,6 @@ const UserManagement = () => {
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [viewUser, setViewUser] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [userSessionStatus, setUserSessionStatus] = useState({});
   const [deleteConfirmModal, setDeleteConfirmModal] = useState({
     open: false,
     userToDelete: null,
@@ -155,23 +154,6 @@ const UserManagement = () => {
       // Set approved users for Manage Users tab
       const approvedUsers = sortedUsers.filter(user => user.status === 'approved');
       setUsers(approvedUsers);
-
-      // Check session status for each user
-      const sessionStatusPromises = approvedUsers.map(async (user) => {
-        try {
-          const status = await usersAPI.checkUserSessionStatus(user.id);
-          return { userId: user.id, ...status };
-        } catch (error) {
-          return { userId: user.id, isLoggedIn: false, lastActivity: null };
-        }
-      });
-
-      const sessionStatuses = await Promise.all(sessionStatusPromises);
-      const statusMap = {};
-      sessionStatuses.forEach(status => {
-        statusMap[status.userId] = status;
-      });
-      setUserSessionStatus(statusMap);
 
       // Set user history for both approved and rejected users
       const historyUsers = sortedUsers.filter(user => 
@@ -663,20 +645,6 @@ const UserManagement = () => {
                             }}
                           >
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                              <SettingsIcon sx={{ fontSize: 20, color: '#1976d2' }} />
-                              Session Status
-                            </Box>
-                          </TableCell>
-                          <TableCell
-                            align="center"
-                            sx={{
-                              fontWeight: 'bold',
-                              fontSize: '0.875rem',
-                              py: 2,
-                              borderBottom: '2px solid #e0e0e0'
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                               <BadgeIcon sx={{ fontSize: 20, color: '#1976d2' }} />
                               Actions
                             </Box>
@@ -705,14 +673,6 @@ const UserManagement = () => {
                                 </TableCell>
                                 <TableCell align="center">
                                   {lastUpdated ? new Date(lastUpdated).toLocaleDateString() : 'N/A'}
-                                </TableCell>
-                                <TableCell align="center">
-                                  <Chip
-                                    label={userSessionStatus[user.id]?.isLoggedIn ? 'Active' : 'Inactive'}
-                                    color={userSessionStatus[user.id]?.isLoggedIn ? 'success' : 'default'}
-                                    size="small"
-                                    variant={userSessionStatus[user.id]?.isLoggedIn ? 'filled' : 'outlined'}
-                                  />
                                 </TableCell>
                                 <TableCell align="center">
                                   <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>

@@ -71,6 +71,7 @@ const AdminMaintenanceReports = () => {
           ...r,
           id: r.id,
           ride: r.ride_name || r.ride || '',
+          location: r.location || '',
           date: r.date_performed || r.date || new Date().toISOString(),
           status: r.status || '',
           description: r.description || '',
@@ -433,6 +434,7 @@ const AdminMaintenanceReports = () => {
               <TableRow sx={{ backgroundColor: '#f3f0f7' }}>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date Recorded</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Location</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Maintenance Schedule</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Description</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Technician</TableCell>
@@ -454,6 +456,7 @@ const AdminMaintenanceReports = () => {
                       <TableRow key={report.id}>
                         <TableCell align="center">{formatDate(report.date)}</TableCell>
                         <TableCell align="center">{report.ride || 'N/A'}</TableCell>
+                        <TableCell align="center">{report.location || '-'}</TableCell>
                         <TableCell align="center">
                           {report.nextMaintenance ? formatDate(report.nextMaintenance) : 'Not scheduled'}
                         </TableCell>
