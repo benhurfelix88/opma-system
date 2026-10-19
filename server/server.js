@@ -1669,14 +1669,6 @@ app.post('/api/maintenance', authenticateToken, async (req, res) => {
 
     console.log('Creating maintenance record:', { ride_name, location, status });
 
-    // Ensure location column exists
-    try {
-      await db.execute('ALTER TABLE maintenance_records ADD COLUMN IF NOT EXISTS location VARCHAR(255)');
-      console.log('Location column ensured before insert');
-    } catch (alterError) {
-      console.log('Note: Column alteration:', alterError.message);
-    }
-
     const [result] = await db.execute(
       'INSERT INTO maintenance_records (ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
       [ride_name, maintenance_type, description, date_performed, next_maintenance_date, status || 'Completed', performedByValue, location || '']

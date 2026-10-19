@@ -129,14 +129,18 @@ const ManagerPartsInventory = () => {
       setSnackbar({ open: true, message: 'Please select an approval status', severity: 'warning' });
       return;
     }
-    
+
     try {
       // Get the original part data from database to preserve all fields
       const allParts = await sparePartsAPI.getAll();
       const originalPart = allParts.find(p => String(p.id) === String(selectedPart.id));
-      
+
+      console.log('Original part:', originalPart);
+      console.log('Selected part:', selectedPart);
+      console.log('Form data:', formData);
+
       // Update approval status in database - use approval_status column directly
-      await sparePartsAPI.update(selectedPart.id, {
+      const updatePayload = {
         part_name: originalPart?.part_name || selectedPart.part_name || selectedPart.name,
         part_number: originalPart?.part_number || selectedPart.part_number || '',
         category: originalPart?.category || selectedPart.category || '',
@@ -146,9 +150,14 @@ const ManagerPartsInventory = () => {
         status: originalPart?.status || selectedPart.status || 'Available',
         location: originalPart?.location || selectedPart.location || '',
         supplier: originalPart?.supplier || selectedPart.supplier || '',
+        ride: originalPart?.ride || selectedPart.ride || '',
         approval_status: formData.approvalStatus, // Store approval status directly in database column
         notes: formData.notes || '', // Store notes separately
-      });
+      };
+
+      console.log('Update payload:', updatePayload);
+
+      await sparePartsAPI.update(selectedPart.id, updatePayload);
 
       // Optimistic UI update so the table reflects the change immediately
       setParts((prev) =>
@@ -158,16 +167,17 @@ const ManagerPartsInventory = () => {
             : p
         )
       );
-      
+
       handleCloseDialog();
-      
+
       setSnackbar({ open: true, message: `Part "${selectedPart.name}" has been ${formData.approvalStatus.toLowerCase()} successfully!`, severity: 'success' });
-      
+
       // Reload from database to ensure sync
       await loadParts();
     } catch (error) {
       console.error('Error updating part:', error);
-      setSnackbar({ open: true, message: 'Failed to update approval status', severity: 'error' });
+      console.error('Error response:', error.response);
+      setSnackbar({ open: true, message: `Failed to update approval status: ${error.response?.data?.details || error.message}`, severity: 'error' });
     }
   };
 
