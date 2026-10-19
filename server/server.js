@@ -2435,11 +2435,11 @@ app.get('/api/rides', authenticateToken, async (req, res) => {
 app.post('/api/rides', authenticateToken, async (req, res) => {
   try {
     const { name, status, location } = req.body;
-    await db.execute('INSERT INTO rides (name, status, location) VALUES (?, ?, ?)', [name, status || 'operational', location || '']);
+    await db.execute('INSERT INTO rides (name, status, location) VALUES ($1, $2, $3)', [name, status || 'operational', location || '']);
     res.json({ message: 'Ride created successfully' });
   } catch (error) {
     console.error('Create ride error:', error);
-    if (error.code === 'ER_DUP_ENTRY') {
+    if (error.code === '23505') {
       return res.status(400).json({ error: 'Ride name already exists' });
     }
     res.status(500).json({ error: 'Server error' });
@@ -2450,11 +2450,11 @@ app.post('/api/rides', authenticateToken, async (req, res) => {
 app.post('/api/ride', authenticateToken, async (req, res) => {
   try {
     const { name, status, location } = req.body;
-    await db.execute('INSERT INTO rides (name, status, location) VALUES (?, ?, ?)', [name, status || 'operational', location || '']);
+    await db.execute('INSERT INTO rides (name, status, location) VALUES ($1, $2, $3)', [name, status || 'operational', location || '']);
     res.json({ message: 'Ride created successfully' });
   } catch (error) {
     console.error('Create ride (alias) error:', error);
-    if (error.code === 'ER_DUP_ENTRY') {
+    if (error.code === '23505') {
       return res.status(400).json({ error: 'Ride name already exists' });
     }
     res.status(500).json({ error: 'Server error' });
@@ -2465,7 +2465,7 @@ app.post('/api/ride', authenticateToken, async (req, res) => {
 app.put('/api/rides/:id', authenticateToken, async (req, res) => {
   try {
     const { name, status, location } = req.body;
-    await db.execute('UPDATE rides SET name = ?, status = ?, location = ? WHERE id = ?', [name, status || 'operational', location || '', req.params.id]);
+    await db.execute('UPDATE rides SET name = $1, status = $2, location = $3 WHERE id = $4', [name, status || 'operational', location || '', req.params.id]);
     res.json({ message: 'Ride updated successfully' });
   } catch (error) {
     console.error('Update ride error:', error);
