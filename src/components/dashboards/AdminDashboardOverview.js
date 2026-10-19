@@ -492,29 +492,30 @@ const AdminDashboardOverview = () => {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
         <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
           <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            Current Park Location
+            Ride Parts Inventory
           </Typography>
-          <Typography variant="body1">
-            {module.currentLocation}
-          </Typography>
+          <Box sx={{ maxHeight: 80, overflow: 'hidden' }}>
+            {module.categories && module.categories.slice(0, 3).map((cat, idx) => (
+              <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5, borderBottom: idx < 2 ? 1 : 0, borderColor: 'divider' }}>
+                <Typography variant="caption">{cat.name}</Typography>
+                <Typography variant="caption" color="primary">{cat.value}</Typography>
+              </Box>
+            ))}
+          </Box>
         </Paper>
 
         <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
           <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            Assembly/Installation Date
+            Ride Repairs
           </Typography>
-          <Typography variant="body1">
-            {module.assemblyDate}
-          </Typography>
-        </Paper>
-
-        <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            Disassembly/Uninstallation Date
-          </Typography>
-          <Typography variant="body1">
-            {module.disassemblyDate}
-          </Typography>
+          <Box sx={{ maxHeight: 80, overflow: 'hidden' }}>
+            {module.byDate && module.byDate.slice(0, 3).map((item, idx) => (
+              <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5, borderBottom: idx < 2 ? 1 : 0, borderColor: 'divider' }}>
+                <Typography variant="caption">{item.date}</Typography>
+                <Typography variant="caption" color="success.main">{item.count}</Typography>
+              </Box>
+            ))}
+          </Box>
         </Paper>
       </Box>
     </>
