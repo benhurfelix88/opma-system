@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     user_id INTEGER NOT NULL,
     token VARCHAR(255) UNIQUE NOT NULL,
     expires_at TIMESTAMP NOT NULL,
+    last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -178,8 +179,6 @@ CREATE TABLE IF NOT EXISTS part_deployments (
     date DATE NOT NULL,
     place VARCHAR(255) NOT NULL,
     ride VARCHAR(255) NOT NULL,
-    parts VARCHAR(255) NOT NULL,
-    quantity INTEGER NOT NULL,
     status VARCHAR(50) DEFAULT 'Complete',
     encoded_by VARCHAR(255) NOT NULL,
     created_by INTEGER,
@@ -201,8 +200,6 @@ CREATE TABLE IF NOT EXISTS part_removals (
     date DATE NOT NULL,
     place VARCHAR(255) NOT NULL,
     ride VARCHAR(255) NOT NULL,
-    parts VARCHAR(255) NOT NULL,
-    quantity INTEGER NOT NULL,
     status VARCHAR(50) DEFAULT 'Complete',
     encoded_by VARCHAR(255) NOT NULL,
     created_by INTEGER,
