@@ -28,6 +28,7 @@ import {
   maintenanceAPI,
   partDeploymentsAPI,
   partRemovalsAPI,
+  rideRepairsAPI,
 } from '../../services/api';
 import rideEntriesAPI from '../../services/rideEntriesAPI';
 import RideEntryCountsList from './RideEntryCountsList';
@@ -90,14 +91,15 @@ const AdminDashboardOverview = () => {
   const loadData = async () => {
     try {
       // Fetch data from APIs
-      const [sparePartsData, ridesData, incidentsData, maintenanceData, deploymentsData, removalsData, rideEntriesData] = await Promise.allSettled([
+      const [sparePartsData, ridesData, incidentsData, maintenanceData, deploymentsData, removalsData, rideEntriesData, rideRepairsData] = await Promise.allSettled([
         sparePartsAPI.getAll().catch(() => []),
         ridesAPI.getAll().catch(() => []),
         incidentsAPI.getAll().catch(() => []),
         maintenanceAPI.getAll().catch(() => []),
         partDeploymentsAPI.getAll().catch(() => []),
         partRemovalsAPI.getAll().catch(() => []),
-        rideEntriesAPI.getAll().catch(() => [])
+        rideEntriesAPI.getAll().catch(() => []),
+        rideRepairsAPI.getAll().catch(() => [])
       ]);
 
       // Extract data from Promise.allSettled results
@@ -110,18 +112,30 @@ const AdminDashboardOverview = () => {
       const rideEntriesRaw = normalizeRideEntriesResponse(
         rideEntriesData.status === 'fulfilled' ? rideEntriesData.value : []
       );
+      const rideRepairsRaw = rideRepairsData.status === 'fulfilled' ? rideRepairsData.value : [];
 
       // Map spare parts from database
       const spareParts = sparePartsRaw.map(part => ({
         ...part,
         id: part.id,
         name: part.part_name || part.name,
+        ride: part.ride || '',
         quantity: part.quantity || 0,
         price: part.cost || part.price || 0,
         status: part.status || 'In Stock',
         category: part.category || '',
         lastUpdated: part.updated_at || part.created_at || new Date().toISOString(),
         threshold: 10, // Default threshold
+      }));
+
+      // Map ride repairs from database
+      const rideRepairs = rideRepairsRaw.map(repair => ({
+        ...repair,
+        id: repair.id,
+        ride: repair.ride || '',
+        date: repair.date || repair.created_at,
+        issue: repair.issue || '',
+        status: repair.status || 'In Progress',
       }));
 
 
@@ -173,8 +187,9 @@ const AdminDashboardOverview = () => {
       const getLast7Days = getLast7DayStrings;
 
       // Process Ride Parts Inventory Data
-      const partsByCategory = spareParts.reduce((acc, part) => {
-        acc[part.category] = (acc[part.category] || 0) + 1;
+      const partsByRide = spareParts.reduce((acc, part) => {
+        const key = part.ride || 'Unassigned';
+        acc[key] = (acc[key] || 0) + 1;
         return acc;
       }, {});
       
@@ -276,6 +291,16 @@ const AdminDashboardOverview = () => {
         }).length
       }));
 
+      // Process Ride Repairs Data
+      const rideRepairsByDate = rideRepairs
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 3)
+        .map(repair => ({
+          date: new Date(repair.date).toLocaleDateString(),
+          ride: repair.ride,
+          issue: repair.issue,
+        }));
+
       // Get next scheduled maintenance (match maintenance reports: next_maintenance_date)
       const nextScheduledMaintenance = maintenanceRecords
         .filter(record => {
@@ -342,7 +367,7 @@ const AdminDashboardOverview = () => {
             quantity: part.quantity,
             threshold: part.threshold || 10,
           })),
-          byCategory: Object.entries(partsByCategory).map(([name, value]) => ({ name, value })),
+          byRide: Object.entries(partsByRide).map(([name, value]) => ({ name, value })),
           byStockStatus: Object.entries(partsByStockStatus).map(([name, value]) => ({ name, value })),
           byDate: partsByDate,
           totalItems: spareParts.length,
@@ -378,6 +403,9 @@ const AdminDashboardOverview = () => {
           scheduledMaintenance,
           inProgressMaintenance,
         },
+        rideRepairs: {
+          recentRepairs: rideRepairsByDate,
+        },
       });
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -404,8 +432,9 @@ const AdminDashboardOverview = () => {
       assemblyDate: overviewData.partsInventory?.assemblyDate || '',
       disassemblyDate: overviewData.partsInventory?.disassemblyDate || '',
       lowStockItems: overviewData.partsInventory?.stockLevels || [],
-      categories: overviewData.partsInventory?.byCategory || [],
+      byRide: overviewData.partsInventory?.byRide || [],
       byDate: overviewData.partsInventory?.byDate || [],
+      recentRepairs: overviewData.rideRepairs?.recentRepairs || [],
     },
     {
       title: "Customers' Count (per ride)",
@@ -495,12 +524,15 @@ const AdminDashboardOverview = () => {
             Ride Parts Inventory
           </Typography>
           <Box sx={{ maxHeight: 80, overflow: 'hidden' }}>
-            {module.categories && module.categories.slice(0, 3).map((cat, idx) => (
+            {module.byRide && module.byRide.slice(0, 3).map((item, idx) => (
               <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5, borderBottom: idx < 2 ? 1 : 0, borderColor: 'divider' }}>
-                <Typography variant="caption">{cat.name}</Typography>
-                <Typography variant="caption" color="primary">{cat.value}</Typography>
+                <Typography variant="caption">{item.name}</Typography>
+                <Typography variant="caption" color="primary">{item.value}</Typography>
               </Box>
             ))}
+            {(!module.byRide || module.byRide.length === 0) && (
+              <Typography variant="caption" color="text.secondary">No parts found</Typography>
+            )}
           </Box>
         </Paper>
 
@@ -509,13 +541,26 @@ const AdminDashboardOverview = () => {
             Ride Repairs
           </Typography>
           <Box sx={{ maxHeight: 80, overflow: 'hidden' }}>
-            {module.byDate && module.byDate.slice(0, 3).map((item, idx) => (
-              <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5, borderBottom: idx < 2 ? 1 : 0, borderColor: 'divider' }}>
-                <Typography variant="caption">{item.date}</Typography>
-                <Typography variant="caption" color="success.main">{item.count}</Typography>
-              </Box>
-            ))}
+            {module.recentRepairs && module.recentRepairs.length > 0 ? (
+              module.recentRepairs.slice(0, 3).map((item, idx) => (
+                <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5, borderBottom: idx < 2 ? 1 : 0, borderColor: 'divider' }}>
+                  <Typography variant="caption">{item.ride}</Typography>
+                  <Typography variant="caption" color="success.main">{item.date}</Typography>
+                </Box>
+              ))
+            ) : (
+              <Typography variant="caption" color="text.secondary">No repairs recorded</Typography>
+            )}
           </Box>
+        </Paper>
+
+        <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
+          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+            Disassembly/Uninstallation Date
+          </Typography>
+          <Typography variant="body1">
+            {module.disassemblyDate}
+          </Typography>
         </Paper>
       </Box>
     </>

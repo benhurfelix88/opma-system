@@ -28,6 +28,7 @@ import {
   partDeploymentsAPI,
   partRemovalsAPI,
   incidentsAPI,
+  rideRepairsAPI,
 } from '../../services/api';
 import rideEntriesAPI from '../../services/rideEntriesAPI';
 import RideEntryCountsList from './RideEntryCountsList';
@@ -49,7 +50,7 @@ const EncoderDashboardOverview = () => {
   const [overviewData, setOverviewData] = useState({
     partsInventory: {
       stockLevels: [],
-      byCategory: [],
+      byRide: [],
       byStockStatus: [],
       byDate: [],
       totalItems: 0,
@@ -93,14 +94,15 @@ const EncoderDashboardOverview = () => {
   const loadData = async () => {
     try {
       // Fetch data from APIs
-      const [sparePartsData, ridesData, maintenanceData, rideEntriesData, deploymentsData, removalsData, incidentsData] = await Promise.allSettled([
+      const [sparePartsData, ridesData, maintenanceData, rideEntriesData, deploymentsData, removalsData, incidentsData, rideRepairsData] = await Promise.allSettled([
         sparePartsAPI.getAll().catch(() => []),
         ridesAPI.getAll().catch(() => []),
         maintenanceAPI.getAll().catch(() => []),
         rideEntriesAPI.getAll().catch(() => []),
         partDeploymentsAPI.getAll().catch(() => []),
         partRemovalsAPI.getAll().catch(() => []),
-        incidentsAPI.getAll().catch(() => [])
+        incidentsAPI.getAll().catch(() => []),
+        rideRepairsAPI.getAll().catch(() => [])
       ]);
 
       // Extract data from Promise.allSettled results
@@ -113,18 +115,30 @@ const EncoderDashboardOverview = () => {
       const deployments = deploymentsData.status === 'fulfilled' ? deploymentsData.value : [];
       const removals = removalsData.status === 'fulfilled' ? removalsData.value : [];
       const incidents = incidentsData.status === 'fulfilled' ? incidentsData.value : [];
+      const rideRepairs = rideRepairsData.status === 'fulfilled' ? rideRepairsData.value : [];
 
       // Map spare parts from database
       const mappedSpareParts = spareParts.map(part => ({
         ...part,
         id: part.id,
         name: part.part_name || part.name,
+        ride: part.ride || '',
         quantity: part.quantity || 0,
         price: part.cost || part.price || 0,
         status: part.status || 'In Stock',
         category: part.category || '',
         lastUpdated: part.updated_at || part.created_at || new Date().toISOString(),
         threshold: 10, // Default threshold
+      }));
+
+      // Map ride repairs from database
+      const mappedRideRepairs = rideRepairs.map(repair => ({
+        ...repair,
+        id: repair.id,
+        ride: repair.ride || '',
+        date: repair.date || repair.created_at,
+        issue: repair.issue || '',
+        status: repair.status || 'In Progress',
       }));
 
       // Map maintenance records from database
@@ -141,8 +155,9 @@ const EncoderDashboardOverview = () => {
       const getLast7Days = getLast7DayStrings;
 
       // Process Parts Inventory Data
-      const partsByCategory = mappedSpareParts.reduce((acc, part) => {
-        acc[part.category] = (acc[part.category] || 0) + 1;
+      const partsByRide = mappedSpareParts.reduce((acc, part) => {
+        const key = part.ride || 'Unassigned';
+        acc[key] = (acc[key] || 0) + 1;
         return acc;
       }, {});
       
@@ -229,6 +244,16 @@ const EncoderDashboardOverview = () => {
         date,
         count: mappedMaintenance.filter(record => record.datePerformed?.split('T')[0] === date).length
       }));
+
+      // Process Ride Repairs Data
+      const rideRepairsByDate = mappedRideRepairs
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 3)
+        .map(repair => ({
+          date: new Date(repair.date).toLocaleDateString(),
+          ride: repair.ride,
+          issue: repair.issue,
+        }));
 
       // Get next scheduled maintenance (match maintenance reports: next_maintenance_date)
       const nextScheduledMaintenance = mappedMaintenance
@@ -327,7 +352,7 @@ const EncoderDashboardOverview = () => {
             quantity: part.quantity,
             threshold: part.threshold || 10,
           })),
-          byCategory: Object.entries(partsByCategory).map(([name, value]) => ({ name, value })),
+          byRide: Object.entries(partsByRide).map(([name, value]) => ({ name, value })),
           byStockStatus: Object.entries(partsByStockStatus).map(([name, value]) => ({ name, value })),
           byDate: partsByDate,
           totalItems: mappedSpareParts.length,
@@ -354,6 +379,9 @@ const EncoderDashboardOverview = () => {
           byStatus: Object.entries(maintenanceByStatus).map(([name, value]) => ({ name, value })),
           byDate: maintenanceByDate,
           nextScheduledMaintenance: nextScheduledMaintenance,
+        },
+        rideRepairs: {
+          recentRepairs: rideRepairsByDate,
         },
         incidents: {
           byStatus: Object.entries(incidentsByStatus).map(([name, value]) => ({ name, value })),
@@ -388,8 +416,9 @@ const EncoderDashboardOverview = () => {
       assemblyDate: overviewData.partsInventory.assemblyDate,
       disassemblyDate: overviewData.partsInventory.disassemblyDate,
       lowStockItems: overviewData.partsInventory.stockLevels,
-      categories: overviewData.partsInventory.byCategory,
+      byRide: overviewData.partsInventory.byRide,
       byDate: overviewData.partsInventory.byDate,
+      recentRepairs: overviewData.rideRepairs?.recentRepairs || [],
     },
     {
       title: "Customers' Count (per ride)",
@@ -479,12 +508,15 @@ const EncoderDashboardOverview = () => {
             Ride Parts Inventory
           </Typography>
           <Box sx={{ maxHeight: 80, overflow: 'hidden' }}>
-            {module.categories && module.categories.slice(0, 3).map((cat, idx) => (
+            {module.byRide && module.byRide.slice(0, 3).map((item, idx) => (
               <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5, borderBottom: idx < 2 ? 1 : 0, borderColor: 'divider' }}>
-                <Typography variant="caption">{cat.name}</Typography>
-                <Typography variant="caption" color="primary">{cat.value}</Typography>
+                <Typography variant="caption">{item.name}</Typography>
+                <Typography variant="caption" color="primary">{item.value}</Typography>
               </Box>
             ))}
+            {(!module.byRide || module.byRide.length === 0) && (
+              <Typography variant="caption" color="text.secondary">No parts found</Typography>
+            )}
           </Box>
         </Paper>
 
@@ -493,13 +525,26 @@ const EncoderDashboardOverview = () => {
             Ride Repairs
           </Typography>
           <Box sx={{ maxHeight: 80, overflow: 'hidden' }}>
-            {module.byDate && module.byDate.slice(0, 3).map((item, idx) => (
-              <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5, borderBottom: idx < 2 ? 1 : 0, borderColor: 'divider' }}>
-                <Typography variant="caption">{item.date}</Typography>
-                <Typography variant="caption" color="success.main">{item.count}</Typography>
-              </Box>
-            ))}
+            {module.recentRepairs && module.recentRepairs.length > 0 ? (
+              module.recentRepairs.slice(0, 3).map((item, idx) => (
+                <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5, borderBottom: idx < 2 ? 1 : 0, borderColor: 'divider' }}>
+                  <Typography variant="caption">{item.ride}</Typography>
+                  <Typography variant="caption" color="success.main">{item.date}</Typography>
+                </Box>
+              ))
+            ) : (
+              <Typography variant="caption" color="text.secondary">No repairs recorded</Typography>
+            )}
           </Box>
+        </Paper>
+
+        <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
+          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+            Disassembly/Uninstallation Date
+          </Typography>
+          <Typography variant="body1">
+            {module.disassemblyDate}
+          </Typography>
         </Paper>
       </Box>
     </>
