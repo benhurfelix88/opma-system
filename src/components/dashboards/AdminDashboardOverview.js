@@ -188,7 +188,7 @@ const AdminDashboardOverview = () => {
 
       // Process Ride Parts Inventory Data
       const partsByRide = spareParts.reduce((acc, part) => {
-        const key = part.ride || 'Unassigned';
+        const key = part.ride || part.category || 'Unassigned';
         acc[key] = (acc[key] || 0) + 1;
         return acc;
       }, {});

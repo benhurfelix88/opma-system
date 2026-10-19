@@ -156,7 +156,7 @@ const EncoderDashboardOverview = () => {
 
       // Process Parts Inventory Data
       const partsByRide = mappedSpareParts.reduce((acc, part) => {
-        const key = part.ride || 'Unassigned';
+        const key = part.ride || part.category || 'Unassigned';
         acc[key] = (acc[key] || 0) + 1;
         return acc;
       }, {});
