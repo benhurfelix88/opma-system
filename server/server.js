@@ -2188,7 +2188,7 @@ app.put('/api/spare-parts/:id', authenticateToken, async (req, res) => {
 
     const result = await db.execute(
       'UPDATE spare_parts SET part_name = ?, part_number = ?, category = ?, quantity = ?, unit = ?, location = ?, supplier = ?, cost = ?, status = ?, ride = ?, approval_status = ?, notes = ? WHERE id = ?',
-      [part_name, part_number, category, quantity, unit, location, supplier, cost, status, ride || '', approval_status || 'Pending', notes || '']
+      [part_name, part_number, category, quantity, unit, location, supplier, cost, status, ride || '', approval_status || 'Pending', notes || '', req.params.id]
     );
 
     console.log('Spare part updated successfully with approval_status:', approval_status);
