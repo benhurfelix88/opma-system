@@ -502,14 +502,22 @@ const EncoderMaintenanceReports = () => {
                       />
                   </TableCell>
                   <TableCell align="center">
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() => handleOpenViewDialog(record)}
-                      sx={{ mr: 0.5 }}
-                    >
-                      Maintenance Record Details
-                    </Button>
+                    <Tooltip title="View Details">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleOpenViewDialog(record)}
+                        sx={{
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            backgroundColor: 'info.main',
+                            color: 'white',
+                            transform: 'scale(1.1)',
+                          },
+                        }}
+                      >
+                        <InfoIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title={record.status === 'Completed' ? 'Cannot edit completed maintenance records' : 'Edit'}>
                       <IconButton
                         size="small"
