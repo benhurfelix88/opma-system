@@ -36,6 +36,7 @@ import DashboardLayout from '../layout/DashboardLayout';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import InfoIcon from '@mui/icons-material/Info';
 import { maintenanceAPI, ridesAPI } from '../../services/api';
 
 const VISIBLE_RIDE_LIMIT = 8;
