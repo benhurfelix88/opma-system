@@ -33,9 +33,9 @@ services:
       - key: FRONTEND_URL
         value: https://opma-system-t7ur.vercel.app
       - key: GMAIL_EMAIL
-        sync: false
+        value: benhurfelix1248@gmail.com
       - key: GMAIL_APP_PASSWORD
-        sync: false
+        value: eqvjvnbeqbdhsbwy
 
 databases:
   - name: opma-system-db
