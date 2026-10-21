@@ -37,10 +37,8 @@ const AdminPartsInventory = () => {
   const [sortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [rideFilter, setRideFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [openReportDialog, setOpenReportDialog] = useState(false);
-  const [openPartsModal, setOpenPartsModal] = useState(false);
 
   useEffect(() => {
     loadParts();
@@ -119,11 +117,6 @@ const AdminPartsInventory = () => {
       // Status filter
       if (statusFilter === 'all') return true;
       return part.status === statusFilter;
-    })
-    .filter((part) => {
-      // Ride filter
-      if (rideFilter === 'all') return true;
-      return part.ride === rideFilter;
     })
     .sort((a, b) => {
       // Sorting logic
@@ -239,29 +232,6 @@ const AdminPartsInventory = () => {
                 <MenuItem value="Out of Stock">Out of Stock</MenuItem>
               </Select>
             </FormControl>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => setOpenPartsModal(true)}
-              sx={{
-                minWidth: 140,
-                height: 40,
-                display: 'flex',
-                justifyContent: 'space-between',
-                px: 2,
-                textTransform: 'none',
-                borderColor: 'rgba(0, 0, 0, 0.23)',
-                '&:hover': {
-                  borderColor: 'rgba(0, 0, 0, 0.87)',
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                },
-              }}
-            >
-              <Typography variant="body2" sx={{ flexGrow: 1, textAlign: 'left' }}>
-                {rideFilter === 'all' ? 'All Parts' : rideFilter}
-              </Typography>
-              <Typography variant="body2">▼</Typography>
-            </Button>
           </Box>
           <Button
             variant="contained"
@@ -366,87 +336,6 @@ const AdminPartsInventory = () => {
             </Box>
           </CardContent>
         </Card>
-
-        {/* Parts Selection Modal */}
-        <Dialog 
-          open={openPartsModal} 
-          onClose={() => setOpenPartsModal(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>Select Ride Parts</DialogTitle>
-          <DialogContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, pt: 1 }}>
-              <Box
-                onClick={() => {
-                  setRideFilter('all');
-                  setOpenPartsModal(false);
-                }}
-                sx={{
-                  p: 2,
-                  borderRadius: 1,
-                  border: rideFilter === 'all' ? '2px solid' : '1px solid',
-                  borderColor: rideFilter === 'all' ? 'primary.main' : 'divider',
-                  backgroundColor: rideFilter === 'all' ? 'primary.50' : 'background.paper',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    backgroundColor: rideFilter === 'all' ? 'primary.100' : 'action.hover',
-                  },
-                }}
-              >
-                <Typography variant="subtitle2" fontWeight="bold">
-                  All Parts
-                </Typography>
-              </Box>
-              <Box 
-                sx={{ 
-                  maxHeight: 300, 
-                  overflowY: 'auto',
-                  '&::-webkit-scrollbar': {
-                    width: '8px',
-                  },
-                  '&::-webkit-scrollbar-thumb': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                    borderRadius: '4px',
-                  },
-                  '&::-webkit-scrollbar-track': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                  },
-                }}
-              >
-                {[...new Set(parts.map(part => part.ride).filter(Boolean))].sort().slice(0, 10).map(ride => (
-                  <Box
-                    key={ride}
-                    onClick={() => {
-                      setRideFilter(ride);
-                      setOpenPartsModal(false);
-                    }}
-                    sx={{
-                      p: 2,
-                      borderRadius: 1,
-                      border: rideFilter === ride ? '2px solid' : '1px solid',
-                      borderColor: rideFilter === ride ? 'primary.main' : 'divider',
-                      backgroundColor: rideFilter === ride ? 'primary.50' : 'background.paper',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        backgroundColor: rideFilter === ride ? 'primary.100' : 'action.hover',
-                      },
-                    }}
-                  >
-                    <Typography variant="subtitle2" fontWeight="bold">
-                      {ride}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenPartsModal(false)}>Close</Button>
-          </DialogActions>
-        </Dialog>
 
         <ReportGenerator
           open={openReportDialog}

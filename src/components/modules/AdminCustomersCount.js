@@ -404,7 +404,7 @@ const AdminCustomersCount = () => {
                           />
                         </TableCell>
                         <TableCell align="center">
-                          {entry.entry_time || '--:--'}
+                          {entry.entry_time ? new Date(`1970-01-01T${entry.entry_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '--:--'}
                         </TableCell>
                       </TableRow>
                     ))}
