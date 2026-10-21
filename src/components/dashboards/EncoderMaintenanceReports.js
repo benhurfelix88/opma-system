@@ -105,12 +105,16 @@ const EncoderMaintenanceReports = () => {
         id: r.id,
         name: r.name,
         status: r.status || 'operational',
+        location: r.location || '',
       }));
       setAvailableRides(list);
       setFormData((prev) => {
         if (!prev.ride) return prev;
         const stillExists = list.some((r) => r.name === prev.ride);
-        return stillExists ? prev : { ...prev, ride: '' };
+        if (!stillExists) return { ...prev, ride: '', location: '' };
+        // Update location based on selected ride
+        const selectedRide = list.find((r) => r.name === prev.ride);
+        return { ...prev, location: selectedRide?.location || '' };
       });
       setRideFilter((prev) => {
         if (prev === 'all') return prev;
@@ -182,6 +186,15 @@ const EncoderMaintenanceReports = () => {
       });
     }
     setOpenDialog(true);
+  };
+
+  const handleRideChange = (rideName) => {
+    const selectedRide = availableRides.find((r) => r.name === rideName);
+    setFormData({
+      ...formData,
+      ride: rideName,
+      location: selectedRide?.location || '',
+    });
   };
 
   const handleOpenViewDialog = (record) => {
@@ -629,7 +642,7 @@ const EncoderMaintenanceReports = () => {
                               button
                               selected={formData.ride === ride.name}
                               onClick={() => {
-                                setFormData({ ...formData, ride: ride.name });
+                                handleRideChange(ride.name);
                                 if (errors.ride) {
                                   setErrors((prev) => ({ ...prev, ride: undefined }));
                                 }
@@ -715,7 +728,8 @@ const EncoderMaintenanceReports = () => {
                   fullWidth
                   label="Location"
                   value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  disabled
+                  helperText="Location is automatically set based on the selected ride"
                 />
               </Grid>
               <Grid item xs={12}>

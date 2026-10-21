@@ -230,7 +230,7 @@ async function ensureRides() {
     await db.execute(`
       CREATE TABLE IF NOT EXISTS rides (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(255) UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
         status VARCHAR(50) DEFAULT 'operational',
         location VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -247,6 +247,21 @@ async function ensureRides() {
     const hasLocation = cols.some(c => c.COLUMN_NAME === 'location');
     if (!hasLocation) {
       await db.execute('ALTER TABLE rides ADD COLUMN location VARCHAR(255)');
+    }
+    // Remove UNIQUE constraint from name column if it exists (to allow duplicate names with different locations)
+    try {
+      const [constraints] = await db.execute(`
+        SELECT conname
+        FROM pg_constraint
+        WHERE conrelid = 'rides'::regclass
+        AND conname = 'rides_name_key'
+      `);
+      if (constraints.length > 0) {
+        await db.execute(`ALTER TABLE rides DROP CONSTRAINT rides_name_key`);
+        console.log('✓ Removed UNIQUE constraint from rides.name');
+      }
+    } catch (e) {
+      // Constraint might not exist, that's fine
     }
     // No default rides seeding - all rides must be added through the UI
     // This ensures rides are only added by IT Admin/IT Encoder through the system
@@ -2439,9 +2454,6 @@ app.post('/api/rides', authenticateToken, async (req, res) => {
     res.json({ message: 'Ride created successfully' });
   } catch (error) {
     console.error('Create ride error:', error);
-    if (error.code === '23505') {
-      return res.status(400).json({ error: 'Ride name already exists' });
-    }
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -2454,9 +2466,6 @@ app.post('/api/ride', authenticateToken, async (req, res) => {
     res.json({ message: 'Ride created successfully' });
   } catch (error) {
     console.error('Create ride (alias) error:', error);
-    if (error.code === '23505') {
-      return res.status(400).json({ error: 'Ride name already exists' });
-    }
     res.status(500).json({ error: 'Server error' });
   }
 });

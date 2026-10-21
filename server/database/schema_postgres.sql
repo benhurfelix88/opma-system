@@ -74,7 +74,7 @@ CREATE INDEX IF NOT EXISTS idx_password_reset_expires_at ON password_reset_token
 -- Rides table
 CREATE TABLE IF NOT EXISTS rides (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
     status VARCHAR(50) DEFAULT 'operational',
     location VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
