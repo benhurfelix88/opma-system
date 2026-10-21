@@ -729,7 +729,6 @@ const EncoderMaintenanceReports = () => {
                   label="Location"
                   value={formData.location}
                   disabled
-                  helperText="Location is automatically set based on the selected ride"
                 />
               </Grid>
               <Grid item xs={12}>

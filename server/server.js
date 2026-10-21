@@ -1131,7 +1131,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       try {
         const frontendBaseUrl = (process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
         const resetUrl = `${frontendBaseUrl}/forgot-password?token=${resetToken}`;
-        
+
         const mailOptions = {
           from: `"OPMA System" <${process.env.GMAIL_EMAIL}>`,
           to: user.email,
@@ -1143,33 +1143,33 @@ app.post('/api/auth/forgot-password', async (req, res) => {
                   <h1 style="color: #6b5b95; margin: 0;">OPMA System</h1>
                   <p style="color: #666; margin: 5px 0 0 0;">Operations And Maintenance Management System</p>
                 </div>
-                
+
                 <h2 style="color: #333; margin-bottom: 20px;">Password Reset Request</h2>
-                
+
                 <p style="color: #666; line-height: 1.6; margin-bottom: 25px;">
                   Hello ${user.full_name || user.username},<br><br>
                   You requested to reset your password for your OPMA System account. Click the button below to reset your password:
                 </p>
-                
+
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${resetUrl}" 
+                  <a href="${resetUrl}"
                      style="background-color: #6b5b95; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
                     Reset Password
                   </a>
                 </div>
-                
+
                 <p style="color: #999; font-size: 14px; line-height: 1.5; margin-top: 30px;">
                   Or copy and paste this link into your browser:<br>
                   <a href="${resetUrl}" style="color: #6b5b95;">${resetUrl}</a>
                 </p>
-                
+
                 <p style="color: #999; font-size: 14px; margin-top: 25px;">
                   <strong>Important:</strong><br>
                   • This link will expire in 1 hour for security reasons<br>
                   • If you didn't request this password reset, please ignore this email<br>
                   • Your password will remain unchanged if you don't click the link
                 </p>
-                
+
                 <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 20px; text-align: center; color: #999; font-size: 12px;">
                   <p>This is an automated message from OPMA System. Please do not reply to this email.</p>
                 </div>
@@ -1177,23 +1177,31 @@ app.post('/api/auth/forgot-password', async (req, res) => {
             </div>
           `
         };
-        
+
         await transporter.sendMail(mailOptions);
         console.log(`✓ Password reset email sent to ${user.email}`);
-        
+
+        const frontendBaseUrl = (process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
+        res.json({
+          message: 'If an account with that email exists, a password reset link has been sent.',
+          // For development only - helps test reset without email
+          devToken: process.env.NODE_ENV === 'development' ? resetToken : undefined,
+          devResetUrl: process.env.NODE_ENV === 'development' ? `${frontendBaseUrl}/forgot-password?token=${resetToken}` : undefined,
+        });
+
       } catch (emailError) {
         console.error('Failed to send email:', emailError);
-        // Continue with the response even if email fails
+        return res.status(500).json({
+          error: 'Failed to send password reset email. Please contact the administrator.',
+          details: emailError.message
+        });
       }
+    } else {
+      // Email not configured
+      return res.status(500).json({
+        error: 'Email service is not configured. Please contact the administrator to set up password reset emails.'
+      });
     }
-    
-    const frontendBaseUrl = (process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
-    res.json({ 
-      message: 'If an account with that email exists, a password reset link has been sent.',
-      // For development only - helps test reset without email
-      devToken: process.env.NODE_ENV === 'development' ? resetToken : undefined,
-      devResetUrl: process.env.NODE_ENV === 'development' ? `${frontendBaseUrl}/forgot-password?token=${resetToken}` : undefined,
-    });
     
   } catch (error) {
     console.error('Forgot password error:', error);
