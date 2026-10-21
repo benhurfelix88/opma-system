@@ -918,6 +918,16 @@ const UserManagement = () => {
                           {viewUser.assigned_ride || viewUser.assignedRide?.name || viewUser.assignedRide || 'N/A'}
                         </Typography>
                       </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>Ride Location</Typography>
+                        <Typography variant="body1" fontWeight={500}>
+                          {(() => {
+                            const rideName = viewUser.assigned_ride || viewUser.assignedRide?.name || viewUser.assignedRide;
+                            const ride = availableRides.find(r => r.name === rideName);
+                            return ride ? (ride.location || '-') : '-';
+                          })()}
+                        </Typography>
+                      </Box>
                     </Box>
                     <Box sx={{ display: 'flex', gap: 2 }}>
                       <Box sx={{ flex: 1 }}>

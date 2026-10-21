@@ -161,6 +161,11 @@ const AdminCustomersCount = () => {
     return ride ? ride.name : 'Unknown Ride';
   };
 
+  const getRideLocation = (rideId) => {
+    const ride = rides.find(r => r.id === rideId);
+    return ride ? (ride.location || '-') : '-';
+  };
+
   const getTotalCustomers = () => {
     return filteredEntries.reduce((sum, entry) => sum + (entry.customer_count || 0), 0);
   };
@@ -321,6 +326,17 @@ const AdminCustomersCount = () => {
                           borderBottom: '2px solid #e0e0e0'
                         }}
                       >
+                        Location
+                      </TableCell>
+                      <TableCell 
+                        align="center"
+                        sx={{ 
+                          fontWeight: 'bold',
+                          fontSize: '0.875rem',
+                          py: 2,
+                          borderBottom: '2px solid #e0e0e0'
+                        }}
+                      >
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                           <PersonIcon sx={{ fontSize: 20, color: '#1976d2' }} />
                           Personnel
@@ -368,6 +384,9 @@ const AdminCustomersCount = () => {
                               {getRideName(entry.ride_id)}
                             </Typography>
                           </Box>
+                        </TableCell>
+                        <TableCell align="center">
+                          {getRideLocation(entry.ride_id)}
                         </TableCell>
                         <TableCell align="center">
                           <Chip 
@@ -577,6 +596,10 @@ const AdminCustomersCount = () => {
           columns={[
             { header: 'Date', field: 'entry_date', render: (item) => new Date(item.entry_date).toLocaleDateString() },
             { header: 'Ride Name', field: 'ride_name' },
+            { header: 'Location', field: 'ride_id', render: (item) => {
+              const ride = rides.find(r => r.id === item.ride_id);
+              return ride ? (ride.location || '-') : '-';
+            }},
             { header: 'Customer Count', field: 'customer_count' },
             { header: 'Entry Time', field: 'entry_timestamp', render: (item) => new Date(item.entry_timestamp).toLocaleTimeString() }
           ]}
