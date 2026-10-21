@@ -1130,9 +1130,13 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     const resetUrl = `${frontendBaseUrl}/forgot-password?token=${resetToken}`;
 
     console.log(`[Forgot Password] Token generated for ${user.email}, reset URL: ${resetUrl}`);
+    console.log(`[Forgot Password] Transporter configured: ${!!transporter}`);
+    console.log(`[Forgot Password] GMAIL_EMAIL set: ${!!process.env.GMAIL_EMAIL}`);
+    console.log(`[Forgot Password] GMAIL_APP_PASSWORD set: ${!!process.env.GMAIL_APP_PASSWORD}`);
 
     // Send email in background - don't wait for it
     if (transporter) {
+      console.log(`[Forgot Password] Attempting to send email...`);
       // Send email asynchronously
       setImmediate(async () => {
         try {
@@ -1196,6 +1200,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       });
     } else {
       console.warn('⚠️ Email transporter not configured. Password reset email will not be sent.');
+      console.warn('⚠️ Check GMAIL_EMAIL and GMAIL_APP_PASSWORD environment variables');
     }
 
     // Return success immediately (email sent in background)
