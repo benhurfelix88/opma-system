@@ -40,21 +40,7 @@ if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
     }
   });
 
-  console.log('Email transporter created, verifying...');
-
-  // Verify email configuration
-  transporter.verify((error, success) => {
-    if (error) {
-      console.error('Email configuration error:', error);
-      console.error('Email verification failed. Common issues:');
-      console.error('1. GMAIL_APP_PASSWORD must be a Gmail App Password (not regular password)');
-      console.error('2. Enable 2-Step Verification on your Google Account');
-      console.error('3. Generate App Password at: https://myaccount.google.com/apppasswords');
-      // Don't disable transporter - let it try to send and show actual error
-    } else {
-      console.log('✓ Email server is ready to send messages');
-    }
-  });
+  console.log('✓ Email transporter created successfully');
 } else {
   console.log('⚠️ Email credentials not configured. Password reset emails will not be sent.');
   console.log('Set GMAIL_EMAIL and GMAIL_APP_PASSWORD environment variables');
