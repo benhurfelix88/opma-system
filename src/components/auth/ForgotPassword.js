@@ -75,20 +75,13 @@ const ForgotPassword = () => {
       const response = await authAPI.forgotPassword(formData.email);
       setMessage(response.message);
       setMessageSeverity('success');
-
-      // Build reset URL using current origin (frontend URL)
-      const resetUrl = response.resetToken
-        ? `${window.location.origin}/forgot-password?token=${response.resetToken}`
-        : response.resetUrl;
-
-      // Show the reset link as fallback
-      if (resetUrl) {
-        setMessage(`${response.message}\n\nReset Link: ${resetUrl}`);
-      }
-
       setOpenDialog(true);
     } catch (error) {
-      setMessage(error.response?.data?.error || 'Failed to send reset email');
+      const errorMessage = error.response?.data?.error || 'Failed to send reset email';
+      const errorDetails = error.response?.data?.details || '';
+      const errorCode = error.response?.data?.code || '';
+      
+      setMessage(`${errorMessage}${errorDetails ? `\n\nDetails: ${errorDetails}` : ''}${errorCode ? `\n\nError Code: ${errorCode}` : ''}`);
       setMessageSeverity('error');
       setOpenDialog(true);
     } finally {

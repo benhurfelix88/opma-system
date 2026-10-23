@@ -1213,16 +1213,17 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       console.error('[Forgot Password] Email send failed:', emailError);
       console.error('[Forgot Password] Error code:', emailError.code);
       console.error('[Forgot Password] Error message:', emailError.message);
+      console.error('[Forgot Password] Full error:', emailError);
       return res.status(500).json({
         error: 'Failed to send email',
-        details: emailError.message
+        details: emailError.message,
+        code: emailError.code,
+        command: emailError.command
       });
     }
 
     res.json({
-      message: 'Password reset link has been sent to your email.',
-      resetUrl: resetUrl,
-      resetToken: resetToken
+      message: 'Password reset link has been sent to your email.'
     });
 
   } catch (error) {
