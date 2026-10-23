@@ -19,7 +19,7 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
-import { 
+import {
   Search as SearchIcon,
   PictureAsPdf as ReportIcon
 } from '@mui/icons-material';
@@ -446,8 +446,9 @@ const AdminPartsInventory = () => {
                 <Typography variant="h6">Ride Repairs</Typography>
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                   <TextField
-                    size="small"
                     placeholder="Search repairs..."
+                    variant="outlined"
+                    size="small"
                     value={repairsSearchQuery}
                     onChange={(e) => setRepairsSearchQuery(e.target.value)}
                     InputProps={{
@@ -461,6 +462,24 @@ const AdminPartsInventory = () => {
                       label="Order"
                       value={repairsSortOrder}
                       onChange={(e) => setRepairsSortOrder(e.target.value)}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            overflowY: 'auto',
+                            '&::-webkit-scrollbar': {
+                              width: '8px',
+                            },
+                            '&::-webkit-scrollbar-thumb': {
+                              backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                              borderRadius: '4px',
+                            },
+                            '&::-webkit-scrollbar-track': {
+                              backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                            },
+                          },
+                        },
+                      }}
                     >
                       <MenuItem value="asc">Ascending</MenuItem>
                       <MenuItem value="desc">Descending</MenuItem>
@@ -509,8 +528,9 @@ const AdminPartsInventory = () => {
                 <Typography variant="h6">Part Deployments</Typography>
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                   <TextField
-                    size="small"
                     placeholder="Search deployments..."
+                    variant="outlined"
+                    size="small"
                     value={deploymentsSearchQuery}
                     onChange={(e) => setDeploymentsSearchQuery(e.target.value)}
                     InputProps={{
@@ -524,6 +544,24 @@ const AdminPartsInventory = () => {
                       label="Order"
                       value={deploymentsSortOrder}
                       onChange={(e) => setDeploymentsSortOrder(e.target.value)}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            overflowY: 'auto',
+                            '&::-webkit-scrollbar': {
+                              width: '8px',
+                            },
+                            '&::-webkit-scrollbar-thumb': {
+                              backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                              borderRadius: '4px',
+                            },
+                            '&::-webkit-scrollbar-track': {
+                              backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                            },
+                          },
+                        },
+                      }}
                     >
                       <MenuItem value="asc">Ascending</MenuItem>
                       <MenuItem value="desc">Descending</MenuItem>
@@ -572,8 +610,9 @@ const AdminPartsInventory = () => {
                 <Typography variant="h6">Part Removals</Typography>
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                   <TextField
-                    size="small"
                     placeholder="Search removals..."
+                    variant="outlined"
+                    size="small"
                     value={removalsSearchQuery}
                     onChange={(e) => setRemovalsSearchQuery(e.target.value)}
                     InputProps={{
@@ -587,6 +626,24 @@ const AdminPartsInventory = () => {
                       label="Order"
                       value={removalsSortOrder}
                       onChange={(e) => setRemovalsSortOrder(e.target.value)}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            overflowY: 'auto',
+                            '&::-webkit-scrollbar': {
+                              width: '8px',
+                            },
+                            '&::-webkit-scrollbar-thumb': {
+                              backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                              borderRadius: '4px',
+                            },
+                            '&::-webkit-scrollbar-track': {
+                              backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                            },
+                          },
+                        },
+                      }}
                     >
                       <MenuItem value="asc">Ascending</MenuItem>
                       <MenuItem value="desc">Descending</MenuItem>
