@@ -22,6 +22,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'arms_system_secret_key_change_in_p
 let transporter = null;
 
 // Initialize email transporter if Gmail credentials are available
+console.log('Checking email credentials...');
+console.log('GMAIL_EMAIL exists:', !!process.env.GMAIL_EMAIL);
+console.log('GMAIL_APP_PASSWORD exists:', !!process.env.GMAIL_APP_PASSWORD);
+console.log('GMAIL_EMAIL value:', process.env.GMAIL_EMAIL ? process.env.GMAIL_EMAIL.substring(0, 3) + '***' : 'not set');
+console.log('GMAIL_APP_PASSWORD length:', process.env.GMAIL_APP_PASSWORD ? process.env.GMAIL_APP_PASSWORD.length : 0);
+
 if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
   transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -34,6 +40,8 @@ if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
     }
   });
 
+  console.log('Email transporter created, verifying...');
+
   // Verify email configuration
   transporter.verify((error, success) => {
     if (error) {
@@ -42,7 +50,7 @@ if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
       console.error('1. GMAIL_APP_PASSWORD must be a Gmail App Password (not regular password)');
       console.error('2. Enable 2-Step Verification on your Google Account');
       console.error('3. Generate App Password at: https://myaccount.google.com/apppasswords');
-      transporter = null; // Disable transporter if verification fails
+      // Don't disable transporter - let it try to send and show actual error
     } else {
       console.log('✓ Email server is ready to send messages');
     }
