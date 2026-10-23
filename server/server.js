@@ -28,15 +28,10 @@ if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
   console.log('📧 GMAIL_APP_PASSWORD configured:', !!process.env.GMAIL_APP_PASSWORD);
 
   transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    service: 'gmail',
     auth: {
       user: process.env.GMAIL_EMAIL,
       pass: process.env.GMAIL_APP_PASSWORD
-    },
-    tls: {
-      rejectUnauthorized: false
     }
   });
 
