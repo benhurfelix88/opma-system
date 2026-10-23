@@ -82,12 +82,16 @@ const ForgotPassword = () => {
         : response.resetUrl;
 
       // Show the reset link as fallback
+      let messageText = response.message;
       if (resetUrl) {
-        setMessage(
-          `${response.message}\n\nReset Link: ${resetUrl}`
-        );
+        messageText += `\n\nReset Link: ${resetUrl}`;
+      }
+      if (response.emailError) {
+        messageText += `\n\nEmail Error: ${response.emailError}`;
+        setMessageSeverity('warning'); // Change to warning if email failed
       }
 
+      setMessage(messageText);
       setOpenDialog(true);
     } catch (error) {
       setMessage(error.response?.data?.error || 'Failed to send reset email');
