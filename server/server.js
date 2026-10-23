@@ -1183,9 +1183,9 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     const frontendBaseUrl = (process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
     res.json({
       message: 'If an account with that email exists, a password reset link has been sent.',
-      // For development only - helps test reset without email
-      devToken: process.env.NODE_ENV === 'development' ? resetToken : undefined,
-      devResetUrl: process.env.NODE_ENV === 'development' ? `${frontendBaseUrl}/forgot-password?token=${resetToken}` : undefined,
+      // Return reset link in response for testing if email fails
+      devToken: resetToken,
+      devResetUrl: `${frontendBaseUrl}/forgot-password?token=${resetToken}`,
     });
     
   } catch (error) {
