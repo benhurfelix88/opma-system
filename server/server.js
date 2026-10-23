@@ -28,13 +28,7 @@ if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
     auth: {
       user: process.env.GMAIL_EMAIL,
       pass: process.env.GMAIL_APP_PASSWORD
-    },
-    pool: true,
-    maxConnections: 1,
-    maxMessages: 5,
-    connectionTimeout: 60000,
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
+    }
   });
 
   // Verify email configuration
@@ -1192,13 +1186,9 @@ app.post('/api/auth/forgot-password', async (req, res) => {
             `
           };
 
-          // Add timeout to sendMail
-          const emailPromise = transporter.sendMail(mailOptions);
-          const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Email send timeout')), 30000)
-          );
-
-          await Promise.race([emailPromise, timeoutPromise]);
+          console.log(`[Forgot Password] About to call transporter.sendMail...`);
+          const result = await transporter.sendMail(mailOptions);
+          console.log(`[Forgot Password] sendMail completed, result:`, result);
           console.log(`✓ Password reset email sent to ${user.email}`);
         } catch (emailError) {
           console.error('Failed to send email:', emailError);
