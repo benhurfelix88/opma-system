@@ -23,10 +23,6 @@ let transporter = null;
 
 // Initialize email transporter if Gmail credentials are available
 if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
-  console.log('📧 Initializing email transporter...');
-  console.log('📧 GMAIL_EMAIL:', process.env.GMAIL_EMAIL);
-  console.log('📧 GMAIL_APP_PASSWORD configured:', !!process.env.GMAIL_APP_PASSWORD);
-
   transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -34,18 +30,13 @@ if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
       pass: process.env.GMAIL_APP_PASSWORD
     }
   });
-
-  // Verify email configuration on startup
+  
+  // Verify email configuration
   transporter.verify((error, success) => {
     if (error) {
-      console.error('❌ Email configuration error:', error);
-      console.error('❌ Error details:', {
-        code: error.code,
-        command: error.command,
-        message: error.message
-      });
+      console.error('Email configuration error:', error);
     } else {
-      console.log('✅ Email server is ready to send messages');
+      console.log('✓ Email server is ready to send messages');
     }
   });
 } else {
@@ -1101,27 +1092,24 @@ app.get('/api/users/:id/session-status', authenticateToken, async (req, res) => 
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
-
+    
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
     }
-
-    console.log(`[Forgot Password] Processing request for: ${email}`);
-
+    
     // Find user by email
     const [users] = await db.execute(
       'SELECT id, username, email, full_name FROM users WHERE email = $1',
       [email.trim()]
     );
-
+    
     if (users.length === 0) {
-      console.log(`[Forgot Password] No user found with email: ${email}`);
+      // Don't reveal if email exists or not for security
       return res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
     }
-
+    
     const user = users[0];
-    console.log(`[Forgot Password] User found: ${user.username}`);
-
+    
     // Clean up any existing tokens for this user
     await db.execute(
       'DELETE FROM password_reset_tokens WHERE user_id = $1 OR expires_at < NOW()',
@@ -1137,92 +1125,87 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       'INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)',
       [user.id, resetToken, expiresAt]
     );
+    
+    // Send email if transporter is configured
+    if (transporter) {
+      try {
+        const frontendBaseUrl = (process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
+        const resetUrl = `${frontendBaseUrl}/forgot-password?token=${resetToken}`;
+        
+        const mailOptions = {
+          from: `"OPMA System" <${process.env.GMAIL_EMAIL}>`,
+          to: user.email,
+          subject: 'Password Reset Request - OPMA System',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
+              <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <h1 style="color: #6b5b95; margin: 0;">OPMA System</h1>
+                  <p style="color: #666; margin: 5px 0 0 0;">Operations And Maintenance Management System</p>
+                </div>
+                
+                <h2 style="color: #333; margin-bottom: 20px;">Password Reset Request</h2>
+                
+                <p style="color: #666; line-height: 1.6; margin-bottom: 25px;">
+                  Hello ${user.full_name || user.username},<br><br>
+                  You requested to reset your password for your OPMA System account. Click the button below to reset your password:
+                </p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${resetUrl}" 
+                     style="background-color: #6b5b95; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                    Reset Password
+                  </a>
+                </div>
+                
+                <p style="color: #999; font-size: 14px; line-height: 1.5; margin-top: 30px;">
+                  Or copy and paste this link into your browser:<br>
+                  <a href="${resetUrl}" style="color: #6b5b95;">${resetUrl}</a>
+                </p>
+                
+                <p style="color: #999; font-size: 14px; margin-top: 25px;">
+                  <strong>Important:</strong><br>
+                  • This link will expire in 1 hour for security reasons<br>
+                  • If you didn't request this password reset, please ignore this email<br>
+                  • Your password will remain unchanged if you don't click the link
+                </p>
+                
+                <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 20px; text-align: center; color: #999; font-size: 12px;">
+                  <p>This is an automated message from OPMA System. Please do not reply to this email.</p>
+                </div>
+              </div>
+            </div>
+          `
+        };
+        
+        await transporter.sendMail(mailOptions);
+        console.log(`✓ Password reset email sent to ${user.email}`);
 
-    console.log(`[Forgot Password] Token saved to database`);
-
-    // Send email
-    if (!transporter) {
-      console.error('[Forgot Password] Email transporter not configured');
-      return res.status(500).json({
-        error: 'Email service is not configured. Please contact the administrator.'
-      });
+      } catch (emailError) {
+        console.error('Failed to send email:', emailError);
+        console.error('Email error details:', {
+          message: emailError.message,
+          code: emailError.code,
+          response: emailError.response
+        });
+        // Return error to frontend if email fails
+        return res.status(500).json({ error: 'Failed to send password reset email. Please try again later.' });
+      }
+    } else {
+      console.warn('Email transporter not configured. Check GMAIL_EMAIL and GMAIL_APP_PASSWORD environment variables.');
+      return res.status(500).json({ error: 'Email service not configured. Please contact system administrator.' });
     }
 
-    const frontendBaseUrl = process.env.FRONTEND_URL || 'https://opma-system-t7ur.vercel.app';
-    const resetUrl = `${frontendBaseUrl}/forgot-password?token=${resetToken}`;
-
-    console.log(`[Forgot Password] Sending email to ${user.email}`);
-    console.log(`[Forgot Password] Reset URL: ${resetUrl}`);
-
-    const mailOptions = {
-      from: process.env.GMAIL_EMAIL,
-      to: user.email,
-      subject: 'Password Reset Request - OPMA System',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
-          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #6b5b95; margin: 0;">OPMA System</h1>
-              <p style="color: #666; margin: 5px 0 0 0;">Operations And Maintenance Management System</p>
-            </div>
-
-            <h2 style="color: #333; margin-bottom: 20px;">Password Reset Request</h2>
-
-            <p style="color: #666; line-height: 1.6; margin-bottom: 25px;">
-              Hello ${user.full_name || user.username},<br><br>
-              You requested to reset your password for your OPMA System account. Click the button below to reset your password:
-            </p>
-
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${resetUrl}"
-                 style="background-color: #6b5b95; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
-                Reset Password
-              </a>
-            </div>
-
-            <p style="color: #999; font-size: 14px; line-height: 1.5; margin-top: 30px;">
-              Or copy and paste this link into your browser:<br>
-              <a href="${resetUrl}" style="color: #6b5b95;">${resetUrl}</a>
-            </p>
-
-            <p style="color: #999; font-size: 14px; margin-top: 25px;">
-              <strong>Important:</strong><br>
-              • This link will expire in 1 hour for security reasons<br>
-              • If you didn't request this password reset, please ignore this email<br>
-              • Your password will remain unchanged if you don't click the link
-            </p>
-
-            <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 20px; text-align: center; color: #999; font-size: 12px;">
-              <p>This is an automated message from OPMA System. Please do not reply to this email.</p>
-            </div>
-          </div>
-        </div>
-      `
-    };
-
-    try {
-      const info = await transporter.sendMail(mailOptions);
-      console.log(`[Forgot Password] Email sent successfully:`, info);
-      console.log(`[Forgot Password] Message ID: ${info.messageId}`);
-    } catch (emailError) {
-      console.error('[Forgot Password] Email send failed:', emailError);
-      console.error('[Forgot Password] Error code:', emailError.code);
-      console.error('[Forgot Password] Error message:', emailError.message);
-      console.error('[Forgot Password] Full error:', emailError);
-      return res.status(500).json({
-        error: 'Failed to send email',
-        details: emailError.message,
-        code: emailError.code,
-        command: emailError.command
-      });
-    }
-
+    const frontendBaseUrl = (process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
     res.json({
-      message: 'Password reset link has been sent to your email.'
+      message: 'If an account with that email exists, a password reset link has been sent.',
+      // For development only - helps test reset without email
+      devToken: process.env.NODE_ENV === 'development' ? resetToken : undefined,
+      devResetUrl: process.env.NODE_ENV === 'development' ? `${frontendBaseUrl}/forgot-password?token=${resetToken}` : undefined,
     });
-
+    
   } catch (error) {
-    console.error('[Forgot Password] Server error:', error);
+    console.error('Forgot password error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1242,7 +1225,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
     
     // Find valid token
     const [tokens] = await db.execute(
-      'SELECT user_id, used FROM password_reset_tokens WHERE token = ? AND expires_at > NOW()',
+      'SELECT user_id, used FROM password_reset_tokens WHERE token = $1 AND expires_at > NOW()',
       [token]
     );
     
@@ -1258,33 +1241,20 @@ app.post('/api/auth/reset-password', async (req, res) => {
     
     // Hash new password
     const hashedPassword = bcrypt.hashSync(newPassword, 10);
-    
-    // Start transaction
-    const connection = await db.getConnection();
-    try {
-      await connection.beginTransaction();
-      
-      // Update user password
-      await connection.execute(
-        'UPDATE users SET password = ? WHERE id = ?',
-        [hashedPassword, resetToken.user_id]
-      );
-      
-      // Mark token as used
-      await connection.execute(
-        'UPDATE password_reset_tokens SET used = TRUE WHERE token = ?',
-        [token]
-      );
-      
-      await connection.commit();
-      res.json({ message: 'Password reset successfully. You can now login with your new password.' });
-      
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
-    }
+
+    // Update user password
+    await db.execute(
+      'UPDATE users SET password = $1 WHERE id = $2',
+      [hashedPassword, resetToken.user_id]
+    );
+
+    // Mark token as used
+    await db.execute(
+      'UPDATE password_reset_tokens SET used = TRUE WHERE token = $1',
+      [token]
+    );
+
+    res.json({ message: 'Password reset successfully. You can now login with your new password.' });
     
   } catch (error) {
     console.error('Reset password error:', error);
