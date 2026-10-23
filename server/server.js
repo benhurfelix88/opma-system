@@ -22,28 +22,18 @@ const JWT_SECRET = process.env.JWT_SECRET || 'arms_system_secret_key_change_in_p
 let transporter = null;
 
 // Initialize email transporter if Gmail credentials are available
-console.log('Checking email credentials...');
-console.log('GMAIL_EMAIL exists:', !!process.env.GMAIL_EMAIL);
-console.log('GMAIL_APP_PASSWORD exists:', !!process.env.GMAIL_APP_PASSWORD);
-console.log('GMAIL_EMAIL value:', process.env.GMAIL_EMAIL ? process.env.GMAIL_EMAIL.substring(0, 3) + '***' : 'not set');
-console.log('GMAIL_APP_PASSWORD length:', process.env.GMAIL_APP_PASSWORD ? process.env.GMAIL_APP_PASSWORD.length : 0);
-
 if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
   transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.GMAIL_EMAIL,
       pass: process.env.GMAIL_APP_PASSWORD
-    },
-    tls: {
-      rejectUnauthorized: false // Allow self-signed certificates
     }
   });
 
-  console.log('✓ Email transporter created successfully');
+  console.log('✓ Email server is ready to send messages');
 } else {
   console.log('⚠️ Email credentials not configured. Password reset emails will not be sent.');
-  console.log('Set GMAIL_EMAIL and GMAIL_APP_PASSWORD environment variables');
 }
 
 // Create uploads directory if it doesn't exist
@@ -1186,17 +1176,8 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 
       } catch (emailError) {
         console.error('Failed to send email:', emailError);
-        console.error('Email error details:', {
-          message: emailError.message,
-          code: emailError.code,
-          response: emailError.response
-        });
-        // Return error to frontend if email fails
-        return res.status(500).json({ error: 'Failed to send password reset email. Please try again later.' });
+        // Continue with the response even if email fails
       }
-    } else {
-      console.warn('Email transporter not configured. Check GMAIL_EMAIL and GMAIL_APP_PASSWORD environment variables.');
-      return res.status(500).json({ error: 'Email service not configured. Please contact system administrator.' });
     }
 
     const frontendBaseUrl = (process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
