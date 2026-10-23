@@ -1130,14 +1130,9 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     const resetUrl = `${frontendBaseUrl}/forgot-password?token=${resetToken}`;
 
     console.log(`[Forgot Password] Token generated for ${user.email}, reset URL: ${resetUrl}`);
-    console.log(`[Forgot Password] Transporter configured: ${!!transporter}`);
-    console.log(`[Forgot Password] GMAIL_EMAIL set: ${!!process.env.GMAIL_EMAIL}`);
-    console.log(`[Forgot Password] GMAIL_APP_PASSWORD set: ${!!process.env.GMAIL_APP_PASSWORD}`);
 
     // Send email in background - don't wait for it
     if (transporter) {
-      console.log(`[Forgot Password] Attempting to send email...`);
-      // Send email asynchronously
       setImmediate(async () => {
         try {
           const mailOptions = {
@@ -1186,31 +1181,19 @@ app.post('/api/auth/forgot-password', async (req, res) => {
             `
           };
 
-          console.log(`[Forgot Password] About to call transporter.sendMail...`);
-          const result = await transporter.sendMail(mailOptions);
-          console.log(`[Forgot Password] sendMail completed, result:`, result);
+          await transporter.sendMail(mailOptions);
           console.log(`✓ Password reset email sent to ${user.email}`);
         } catch (emailError) {
           console.error('Failed to send email:', emailError);
-          console.error('Email error details:', {
-            message: emailError.message,
-            code: emailError.code,
-            command: emailError.command,
-            response: emailError.response
-          });
         }
       });
-    } else {
-      console.warn('⚠️ Email transporter not configured. Password reset email will not be sent.');
-      console.warn('⚠️ Check GMAIL_EMAIL and GMAIL_APP_PASSWORD environment variables');
     }
 
-    // Return success immediately (email sent in background)
+    // Return success with reset link as fallback
     res.json({
       message: 'If an account with that email exists, a password reset link has been sent.',
-      // For development only - helps test reset without email
-      devToken: process.env.NODE_ENV === 'development' ? resetToken : undefined,
-      devResetUrl: process.env.NODE_ENV === 'development' ? resetUrl : undefined,
+      resetUrl: resetUrl,
+      resetToken: resetToken
     });
 
   } catch (error) {

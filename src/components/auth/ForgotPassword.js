@@ -75,15 +75,15 @@ const ForgotPassword = () => {
       const response = await authAPI.forgotPassword(formData.email);
       setMessage(response.message);
       setMessageSeverity('success');
-      setOpenDialog(true);
-      
-      // For development - show the reset link using the current app origin
-      if (response.devResetUrl) {
-        console.log('Reset URL:', response.devResetUrl);
-      } else if (response.devToken) {
-        const resetUrl = `${window.location.origin}/forgot-password?token=${response.devToken}`;
-        console.log('Reset URL:', resetUrl);
+
+      // If reset URL is provided in response, show it as a fallback
+      if (response.resetUrl) {
+        setMessage(
+          `${response.message}\n\nIf you don't receive the email, use this link:\n${response.resetUrl}`
+        );
       }
+
+      setOpenDialog(true);
     } catch (error) {
       setMessage(error.response?.data?.error || 'Failed to send reset email');
       setMessageSeverity('error');
