@@ -528,54 +528,62 @@ const ManagerPartsInventory = () => {
         )}
 
         {tabValue === 1 && (
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6">Ride Repairs</Typography>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                  <TextField
-                    placeholder="Search repairs..."
-                    variant="outlined"
-                    size="small"
-                    value={repairsSearchQuery}
-                    onChange={(e) => setRepairsSearchQuery(e.target.value)}
-                    InputProps={{
-                      startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                    }}
-                    sx={{ minWidth: 200 }}
-                  />
-                  <FormControl size="small" sx={{ minWidth: 120 }}>
-                    <InputLabel>Order</InputLabel>
-                    <Select
-                      label="Order"
-                      value={repairsSortOrder}
-                      onChange={(e) => setRepairsSortOrder(e.target.value)}
-                      MenuProps={{
-                        PaperProps: {
-                          sx: {
-                            maxHeight: 300,
-                            overflowY: 'auto',
-                            '&::-webkit-scrollbar': {
-                              width: '8px',
-                            },
-                            '&::-webkit-scrollbar-thumb': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                              borderRadius: '4px',
-                            },
-                            '&::-webkit-scrollbar-track': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                            },
+          <>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <TextField
+                  placeholder="Search repairs..."
+                  variant="outlined"
+                  size="small"
+                  value={repairsSearchQuery}
+                  onChange={(e) => setRepairsSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                  }}
+                  sx={{ minWidth: 200 }}
+                />
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel>Order</InputLabel>
+                  <Select
+                    label="Order"
+                    value={repairsSortOrder}
+                    onChange={(e) => setRepairsSortOrder(e.target.value)}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: 300,
+                          overflowY: 'auto',
+                          '&::-webkit-scrollbar': {
+                            width: '8px',
+                          },
+                          '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                            borderRadius: '4px',
+                          },
+                          '&::-webkit-scrollbar-track': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.05)',
                           },
                         },
-                      }}
-                    >
-                      <MenuItem value="asc">Ascending</MenuItem>
-                      <MenuItem value="desc">Descending</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
+                      },
+                    }}
+                  >
+                    <MenuItem value="asc">Ascending</MenuItem>
+                    <MenuItem value="desc">Descending</MenuItem>
+                  </Select>
+                </FormControl>
               </Box>
-              <TableContainer>
+              <Button
+                variant="contained"
+                startIcon={<ReportIcon />}
+                onClick={() => setOpenReportDialog(true)}
+              >
+                Export
+              </Button>
+            </Box>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Ride Repairs</Typography>
+                <TableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -607,57 +615,66 @@ const ManagerPartsInventory = () => {
               </TableContainer>
             </CardContent>
           </Card>
+          </>
         )}
 
         {tabValue === 2 && (
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6">Part Deployments</Typography>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                  <TextField
-                    placeholder="Search deployments..."
-                    variant="outlined"
-                    size="small"
-                    value={deploymentsSearchQuery}
-                    onChange={(e) => setDeploymentsSearchQuery(e.target.value)}
-                    InputProps={{
-                      startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                    }}
-                    sx={{ minWidth: 200 }}
-                  />
-                  <FormControl size="small" sx={{ minWidth: 120 }}>
-                    <InputLabel>Order</InputLabel>
-                    <Select
-                      label="Order"
-                      value={deploymentsSortOrder}
-                      onChange={(e) => setDeploymentsSortOrder(e.target.value)}
-                      MenuProps={{
-                        PaperProps: {
-                          sx: {
-                            maxHeight: 300,
-                            overflowY: 'auto',
-                            '&::-webkit-scrollbar': {
-                              width: '8px',
-                            },
-                            '&::-webkit-scrollbar-thumb': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                              borderRadius: '4px',
-                            },
-                            '&::-webkit-scrollbar-track': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                            },
+          <>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <TextField
+                  placeholder="Search deployments..."
+                  variant="outlined"
+                  size="small"
+                  value={deploymentsSearchQuery}
+                  onChange={(e) => setDeploymentsSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                  }}
+                  sx={{ minWidth: 200 }}
+                />
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel>Order</InputLabel>
+                  <Select
+                    label="Order"
+                    value={deploymentsSortOrder}
+                    onChange={(e) => setDeploymentsSortOrder(e.target.value)}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: 300,
+                          overflowY: 'auto',
+                          '&::-webkit-scrollbar': {
+                            width: '8px',
+                          },
+                          '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                            borderRadius: '4px',
+                          },
+                          '&::-webkit-scrollbar-track': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.05)',
                           },
                         },
-                      }}
-                    >
-                      <MenuItem value="asc">Ascending</MenuItem>
-                      <MenuItem value="desc">Descending</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
+                      },
+                    }}
+                  >
+                    <MenuItem value="asc">Ascending</MenuItem>
+                    <MenuItem value="desc">Descending</MenuItem>
+                  </Select>
+                </FormControl>
               </Box>
-              <TableContainer>
+              <Button
+                variant="contained"
+                startIcon={<ReportIcon />}
+                onClick={() => setOpenReportDialog(true)}
+              >
+                Export
+              </Button>
+            </Box>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Part Deployments</Typography>
+                <TableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -689,57 +706,66 @@ const ManagerPartsInventory = () => {
               </TableContainer>
             </CardContent>
           </Card>
+          </>
         )}
 
         {tabValue === 3 && (
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6">Part Removals</Typography>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                  <TextField
-                    placeholder="Search removals..."
-                    variant="outlined"
-                    size="small"
-                    value={removalsSearchQuery}
-                    onChange={(e) => setRemovalsSearchQuery(e.target.value)}
-                    InputProps={{
-                      startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                    }}
-                    sx={{ minWidth: 200 }}
-                  />
-                  <FormControl size="small" sx={{ minWidth: 120 }}>
-                    <InputLabel>Order</InputLabel>
-                    <Select
-                      label="Order"
-                      value={removalsSortOrder}
-                      onChange={(e) => setRemovalsSortOrder(e.target.value)}
-                      MenuProps={{
-                        PaperProps: {
-                          sx: {
-                            maxHeight: 300,
-                            overflowY: 'auto',
-                            '&::-webkit-scrollbar': {
-                              width: '8px',
-                            },
-                            '&::-webkit-scrollbar-thumb': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                              borderRadius: '4px',
-                            },
-                            '&::-webkit-scrollbar-track': {
-                              backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                            },
+          <>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <TextField
+                  placeholder="Search removals..."
+                  variant="outlined"
+                  size="small"
+                  value={removalsSearchQuery}
+                  onChange={(e) => setRemovalsSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                  }}
+                  sx={{ minWidth: 200 }}
+                />
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel>Order</InputLabel>
+                  <Select
+                    label="Order"
+                    value={removalsSortOrder}
+                    onChange={(e) => setRemovalsSortOrder(e.target.value)}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: 300,
+                          overflowY: 'auto',
+                          '&::-webkit-scrollbar': {
+                            width: '8px',
+                          },
+                          '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                            borderRadius: '4px',
+                          },
+                          '&::-webkit-scrollbar-track': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.05)',
                           },
                         },
-                      }}
-                    >
-                      <MenuItem value="asc">Ascending</MenuItem>
-                      <MenuItem value="desc">Descending</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
+                      },
+                    }}
+                  >
+                    <MenuItem value="asc">Ascending</MenuItem>
+                    <MenuItem value="desc">Descending</MenuItem>
+                  </Select>
+                </FormControl>
               </Box>
-              <TableContainer>
+              <Button
+                variant="contained"
+                startIcon={<ReportIcon />}
+                onClick={() => setOpenReportDialog(true)}
+              >
+                Export
+              </Button>
+            </Box>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Part Removals</Typography>
+                <TableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -771,6 +797,7 @@ const ManagerPartsInventory = () => {
               </TableContainer>
             </CardContent>
           </Card>
+          </>
         )}
 
         {tabValue === 0 && (
@@ -847,6 +874,57 @@ const ManagerPartsInventory = () => {
           ]}
         />
           </>
+        )}
+
+        {tabValue === 1 && (
+          <ReportGenerator
+            open={openReportDialog}
+            onClose={() => setOpenReportDialog(false)}
+            data={filteredAndSortedRepairs}
+            title="Ride Repairs Report"
+            reportType="repairs"
+            columns={[
+              { header: 'Ride', field: 'ride' },
+              { header: 'Date', field: 'date' },
+              { header: 'Issue', field: 'issue' },
+              { header: 'Technician', field: 'technician' },
+              { header: 'Status', field: 'status' }
+            ]}
+          />
+        )}
+
+        {tabValue === 2 && (
+          <ReportGenerator
+            open={openReportDialog}
+            onClose={() => setOpenReportDialog(false)}
+            data={filteredAndSortedDeployments}
+            title="Part Deployments Report"
+            reportType="deployments"
+            columns={[
+              { header: 'Date', field: 'date' },
+              { header: 'Place', field: 'place' },
+              { header: 'Ride', field: 'ride' },
+              { header: 'Status', field: 'status' },
+              { header: 'Encoded By', field: 'encoded_by' }
+            ]}
+          />
+        )}
+
+        {tabValue === 3 && (
+          <ReportGenerator
+            open={openReportDialog}
+            onClose={() => setOpenReportDialog(false)}
+            data={filteredAndSortedRemovals}
+            title="Part Removals Report"
+            reportType="removals"
+            columns={[
+              { header: 'Date', field: 'date' },
+              { header: 'Place', field: 'place' },
+              { header: 'Ride', field: 'ride' },
+              { header: 'Status', field: 'status' },
+              { header: 'Encoded By', field: 'encoded_by' }
+            ]}
+          />
         )}
       </Box>
     </DashboardLayout>
