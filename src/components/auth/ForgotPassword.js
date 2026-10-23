@@ -76,10 +76,15 @@ const ForgotPassword = () => {
       setMessage(response.message);
       setMessageSeverity('success');
 
-      // If reset URL is provided in response, show it as a fallback
-      if (response.resetUrl) {
+      // Build reset URL using current origin (frontend URL)
+      const resetUrl = response.resetToken
+        ? `${window.location.origin}/forgot-password?token=${response.resetToken}`
+        : response.resetUrl;
+
+      // Show the reset link as fallback
+      if (resetUrl) {
         setMessage(
-          `${response.message}\n\nIf you don't receive the email, use this link:\n${response.resetUrl}`
+          `${response.message}\n\nReset Link: ${resetUrl}`
         );
       }
 
