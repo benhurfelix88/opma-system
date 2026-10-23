@@ -1176,6 +1176,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
           `
         };
         
+        console.log('Attempting to send email to:', user.email);
         await transporter.sendMail(mailOptions);
         console.log(`✓ Password reset email sent to ${user.email}`);
 
@@ -1183,14 +1184,16 @@ app.post('/api/auth/forgot-password', async (req, res) => {
         console.error('Failed to send email:', emailError);
         // Continue with the response even if email fails
       }
+    } else {
+      console.log('Email transporter not configured');
     }
 
     const frontendBaseUrl = (process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
     res.json({
       message: 'If an account with that email exists, a password reset link has been sent.',
-      // Return reset link in response for testing if email fails
-      devToken: resetToken,
-      devResetUrl: `${frontendBaseUrl}/forgot-password?token=${resetToken}`,
+      // For development only - helps test reset without email
+      devToken: process.env.NODE_ENV === 'development' ? resetToken : undefined,
+      devResetUrl: process.env.NODE_ENV === 'development' ? `${frontendBaseUrl}/forgot-password?token=${resetToken}` : undefined,
     });
     
   } catch (error) {
