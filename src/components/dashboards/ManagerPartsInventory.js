@@ -32,6 +32,7 @@ import {
 import {
   Edit as EditIcon,
   PictureAsPdf as ReportIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -47,6 +48,12 @@ const ManagerPartsInventory = () => {
   const [sortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [repairsSearchQuery, setRepairsSearchQuery] = useState('');
+  const [repairsSortOrder, setRepairsSortOrder] = useState('desc');
+  const [deploymentsSearchQuery, setDeploymentsSearchQuery] = useState('');
+  const [deploymentsSortOrder, setDeploymentsSortOrder] = useState('desc');
+  const [removalsSearchQuery, setRemovalsSearchQuery] = useState('');
+  const [removalsSortOrder, setRemovalsSortOrder] = useState('desc');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedPart, setSelectedPart] = useState(null);
   const [formData, setFormData] = useState({
@@ -246,6 +253,57 @@ const ManagerPartsInventory = () => {
     if (!Number.isNaN(num)) return num;
     return String(value).toLowerCase();
   };
+
+  const filteredAndSortedRepairs = rideRepairs
+    .filter((repair) => {
+      if (!repairsSearchQuery) return true;
+      const q = repairsSearchQuery.toLowerCase();
+      return (
+        repair.ride?.toLowerCase().includes(q) ||
+        repair.issue?.toLowerCase().includes(q) ||
+        repair.technician?.toLowerCase().includes(q) ||
+        repair.status?.toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return repairsSortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+
+  const filteredAndSortedDeployments = partDeployments
+    .filter((deployment) => {
+      if (!deploymentsSearchQuery) return true;
+      const q = deploymentsSearchQuery.toLowerCase();
+      return (
+        deployment.place?.toLowerCase().includes(q) ||
+        deployment.ride?.toLowerCase().includes(q) ||
+        deployment.encoded_by?.toLowerCase().includes(q) ||
+        deployment.status?.toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return deploymentsSortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+
+  const filteredAndSortedRemovals = partRemovals
+    .filter((removal) => {
+      if (!removalsSearchQuery) return true;
+      const q = removalsSearchQuery.toLowerCase();
+      return (
+        removal.place?.toLowerCase().includes(q) ||
+        removal.ride?.toLowerCase().includes(q) ||
+        removal.encoded_by?.toLowerCase().includes(q) ||
+        removal.status?.toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return removalsSortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    });
 
   const filteredAndSortedParts = parts
     .filter((part) => {
@@ -472,7 +530,32 @@ const ManagerPartsInventory = () => {
         {tabValue === 1 && (
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>Ride Repairs</Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6">Ride Repairs</Typography>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                  <TextField
+                    size="small"
+                    placeholder="Search repairs..."
+                    value={repairsSearchQuery}
+                    onChange={(e) => setRepairsSearchQuery(e.target.value)}
+                    InputProps={{
+                      startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                    }}
+                    sx={{ minWidth: 200 }}
+                  />
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>Order</InputLabel>
+                    <Select
+                      label="Order"
+                      value={repairsSortOrder}
+                      onChange={(e) => setRepairsSortOrder(e.target.value)}
+                    >
+                      <MenuItem value="asc">Ascending</MenuItem>
+                      <MenuItem value="desc">Descending</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Box>
               <TableContainer>
                 <Table>
                   <TableHead>
@@ -485,12 +568,12 @@ const ManagerPartsInventory = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {rideRepairs.length === 0 ? (
+                    {filteredAndSortedRepairs.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={5} align="center">No ride repairs found</TableCell>
                       </TableRow>
                     ) : (
-                      rideRepairs.map((repair) => (
+                      filteredAndSortedRepairs.map((repair) => (
                         <TableRow key={repair.id}>
                           <TableCell>{repair.ride}</TableCell>
                           <TableCell>{new Date(repair.date).toLocaleDateString()}</TableCell>
@@ -510,7 +593,32 @@ const ManagerPartsInventory = () => {
         {tabValue === 2 && (
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>Part Deployments</Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6">Part Deployments</Typography>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                  <TextField
+                    size="small"
+                    placeholder="Search deployments..."
+                    value={deploymentsSearchQuery}
+                    onChange={(e) => setDeploymentsSearchQuery(e.target.value)}
+                    InputProps={{
+                      startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                    }}
+                    sx={{ minWidth: 200 }}
+                  />
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>Order</InputLabel>
+                    <Select
+                      label="Order"
+                      value={deploymentsSortOrder}
+                      onChange={(e) => setDeploymentsSortOrder(e.target.value)}
+                    >
+                      <MenuItem value="asc">Ascending</MenuItem>
+                      <MenuItem value="desc">Descending</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Box>
               <TableContainer>
                 <Table>
                   <TableHead>
@@ -523,12 +631,12 @@ const ManagerPartsInventory = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {partDeployments.length === 0 ? (
+                    {filteredAndSortedDeployments.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={5} align="center">No deployments found</TableCell>
                       </TableRow>
                     ) : (
-                      partDeployments.map((deployment) => (
+                      filteredAndSortedDeployments.map((deployment) => (
                         <TableRow key={deployment.id}>
                           <TableCell>{new Date(deployment.date).toLocaleDateString()}</TableCell>
                           <TableCell>{deployment.place}</TableCell>
@@ -548,7 +656,32 @@ const ManagerPartsInventory = () => {
         {tabValue === 3 && (
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>Part Removals</Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6">Part Removals</Typography>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                  <TextField
+                    size="small"
+                    placeholder="Search removals..."
+                    value={removalsSearchQuery}
+                    onChange={(e) => setRemovalsSearchQuery(e.target.value)}
+                    InputProps={{
+                      startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                    }}
+                    sx={{ minWidth: 200 }}
+                  />
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>Order</InputLabel>
+                    <Select
+                      label="Order"
+                      value={removalsSortOrder}
+                      onChange={(e) => setRemovalsSortOrder(e.target.value)}
+                    >
+                      <MenuItem value="asc">Ascending</MenuItem>
+                      <MenuItem value="desc">Descending</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Box>
               <TableContainer>
                 <Table>
                   <TableHead>
@@ -561,12 +694,12 @@ const ManagerPartsInventory = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {partRemovals.length === 0 ? (
+                    {filteredAndSortedRemovals.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={5} align="center">No removals found</TableCell>
                       </TableRow>
                     ) : (
-                      partRemovals.map((removal) => (
+                      filteredAndSortedRemovals.map((removal) => (
                         <TableRow key={removal.id}>
                           <TableCell>{new Date(removal.date).toLocaleDateString()}</TableCell>
                           <TableCell>{removal.place}</TableCell>
