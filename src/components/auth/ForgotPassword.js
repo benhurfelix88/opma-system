@@ -19,7 +19,7 @@ import {
   IconButton,
 } from '@mui/material';
 import LockResetIcon from '@mui/icons-material/LockReset';
-import { Visibility, VisibilityOff, Email as EmailIcon, ContentCopy } from '@mui/icons-material';
+import { Visibility, VisibilityOff, Email as EmailIcon } from '@mui/icons-material';
 import { keyframes } from '@mui/system';
 import { authAPI } from '../../services/api';
 
@@ -51,7 +51,6 @@ const ForgotPassword = () => {
   const [message, setMessage] = useState('');
   const [messageSeverity, setMessageSeverity] = useState('info');
   const [openDialog, setOpenDialog] = useState(false);
-  const [resetUrl, setResetUrl] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -71,24 +70,20 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
-    setResetUrl('');
 
     try {
       const response = await authAPI.forgotPassword(formData.email);
       setMessage(response.message);
       setMessageSeverity('success');
+      setOpenDialog(true);
       
-      // Show reset link if returned by backend
+      // For development - show the reset link using the current app origin
       if (response.devResetUrl) {
-        setResetUrl(response.devResetUrl);
         console.log('Reset URL:', response.devResetUrl);
       } else if (response.devToken) {
         const resetUrl = `${window.location.origin}/forgot-password?token=${response.devToken}`;
-        setResetUrl(resetUrl);
         console.log('Reset URL:', resetUrl);
       }
-      
-      setOpenDialog(true);
     } catch (error) {
       setMessage(error.response?.data?.error || 'Failed to send reset email');
       setMessageSeverity('error');
@@ -320,34 +315,6 @@ const ForgotPassword = () => {
           <Alert severity={messageSeverity} sx={{ mt: 1 }}>
             {message}
           </Alert>
-          {resetUrl && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Password Reset Link (copy this if email doesn't arrive):
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                value={resetUrl}
-                InputProps={{
-                  readOnly: true,
-                  endAdornment: (
-                    <IconButton
-                      onClick={() => {
-                        navigator.clipboard.writeText(resetUrl);
-                        setMessage('Link copied to clipboard!');
-                        setMessageSeverity('success');
-                      }}
-                      edge="end"
-                    >
-                      <ContentCopy />
-                    </IconButton>
-                  ),
-                }}
-                sx={{ mt: 1 }}
-              />
-            </Box>
-          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="primary" variant="contained">
