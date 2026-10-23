@@ -28,19 +28,28 @@ if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
     auth: {
       user: process.env.GMAIL_EMAIL,
       pass: process.env.GMAIL_APP_PASSWORD
+    },
+    tls: {
+      rejectUnauthorized: false // Allow self-signed certificates
     }
   });
-  
+
   // Verify email configuration
   transporter.verify((error, success) => {
     if (error) {
       console.error('Email configuration error:', error);
+      console.error('Email verification failed. Common issues:');
+      console.error('1. GMAIL_APP_PASSWORD must be a Gmail App Password (not regular password)');
+      console.error('2. Enable 2-Step Verification on your Google Account');
+      console.error('3. Generate App Password at: https://myaccount.google.com/apppasswords');
+      transporter = null; // Disable transporter if verification fails
     } else {
       console.log('✓ Email server is ready to send messages');
     }
   });
 } else {
   console.log('⚠️ Email credentials not configured. Password reset emails will not be sent.');
+  console.log('Set GMAIL_EMAIL and GMAIL_APP_PASSWORD environment variables');
 }
 
 // Create uploads directory if it doesn't exist
