@@ -258,7 +258,7 @@ const AdminPartsInventory = () => {
         </Box>
 
         {tabValue === 0 && (
-          <Box>
+          <>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <TextField
@@ -436,7 +436,7 @@ const AdminPartsInventory = () => {
             </Box>
           </CardContent>
         </Card>
-          </Box>
+          </>
         )}
 
         {tabValue === 1 && (
@@ -527,6 +527,7 @@ const AdminPartsInventory = () => {
               </TableContainer>
             </CardContent>
           </Card>
+          </>
         )}
 
         {tabValue === 2 && (
