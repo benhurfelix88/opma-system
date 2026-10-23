@@ -23,20 +23,34 @@ let transporter = null;
 
 // Initialize email transporter if Gmail credentials are available
 if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
+  console.log('📧 Initializing email transporter...');
+  console.log('📧 GMAIL_EMAIL:', process.env.GMAIL_EMAIL);
+  console.log('📧 GMAIL_APP_PASSWORD configured:', !!process.env.GMAIL_APP_PASSWORD);
+
   transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
     auth: {
       user: process.env.GMAIL_EMAIL,
       pass: process.env.GMAIL_APP_PASSWORD
+    },
+    tls: {
+      rejectUnauthorized: false
     }
   });
 
-  // Verify email configuration
+  // Verify email configuration on startup
   transporter.verify((error, success) => {
     if (error) {
-      console.error('Email configuration error:', error);
+      console.error('❌ Email configuration error:', error);
+      console.error('❌ Error details:', {
+        code: error.code,
+        command: error.command,
+        message: error.message
+      });
     } else {
-      console.log('✓ Email server is ready to send messages');
+      console.log('✅ Email server is ready to send messages');
     }
   });
 } else {
@@ -1097,6 +1111,8 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       return res.status(400).json({ error: 'Email is required' });
     }
 
+    console.log(`[Forgot Password] Processing request for: ${email}`);
+
     // Find user by email
     const [users] = await db.execute(
       'SELECT id, username, email, full_name FROM users WHERE email = $1',
@@ -1104,11 +1120,12 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     );
 
     if (users.length === 0) {
-      // Don't reveal if email exists or not for security
+      console.log(`[Forgot Password] No user found with email: ${email}`);
       return res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
     }
 
     const user = users[0];
+    console.log(`[Forgot Password] User found: ${user.username}`);
 
     // Clean up any existing tokens for this user
     await db.execute(
@@ -1126,82 +1143,90 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       [user.id, resetToken, expiresAt]
     );
 
-    const frontendBaseUrl = (process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
-    const resetUrl = `${frontendBaseUrl}/forgot-password?token=${resetToken}`;
+    console.log(`[Forgot Password] Token saved to database`);
 
-    console.log(`[Forgot Password] Token generated for ${user.email}, reset URL: ${resetUrl}`);
-
-    let emailError = null;
-
-    // Try to send email synchronously to catch errors
-    if (transporter) {
-      try {
-        const mailOptions = {
-          from: `"OPMA System" <${process.env.GMAIL_EMAIL}>`,
-          to: user.email,
-          subject: 'Password Reset Request - OPMA System',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
-              <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                <div style="text-align: center; margin-bottom: 30px;">
-                  <h1 style="color: #6b5b95; margin: 0;">OPMA System</h1>
-                  <p style="color: #666; margin: 5px 0 0 0;">Operations And Maintenance Management System</p>
-                </div>
-
-                <h2 style="color: #333; margin-bottom: 20px;">Password Reset Request</h2>
-
-                <p style="color: #666; line-height: 1.6; margin-bottom: 25px;">
-                  Hello ${user.full_name || user.username},<br><br>
-                  You requested to reset your password for your OPMA System account. Click the button below to reset your password:
-                </p>
-
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${resetUrl}"
-                     style="background-color: #6b5b95; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
-                    Reset Password
-                  </a>
-                </div>
-
-                <p style="color: #999; font-size: 14px; line-height: 1.5; margin-top: 30px;">
-                  Or copy and paste this link into your browser:<br>
-                  <a href="${resetUrl}" style="color: #6b5b95;">${resetUrl}</a>
-                </p>
-
-                <p style="color: #999; font-size: 14px; margin-top: 25px;">
-                  <strong>Important:</strong><br>
-                  • This link will expire in 1 hour for security reasons<br>
-                  • If you didn't request this password reset, please ignore this email<br>
-                  • Your password will remain unchanged if you don't click the link
-                </p>
-
-                <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 20px; text-align: center; color: #999; font-size: 12px;">
-                  <p>This is an automated message from OPMA System. Please do not reply to this email.</p>
-                </div>
-              </div>
-            </div>
-          `
-        };
-
-        await transporter.sendMail(mailOptions);
-        console.log(`✓ Password reset email sent to ${user.email}`);
-      } catch (emailError) {
-        console.error('Failed to send email:', emailError);
-        emailError = emailError.message || 'Unknown email error';
-      }
-    } else {
-      emailError = 'Email transporter not configured';
+    // Send email
+    if (!transporter) {
+      console.error('[Forgot Password] Email transporter not configured');
+      return res.status(500).json({
+        error: 'Email service is not configured. Please contact the administrator.'
+      });
     }
 
-    // Return success with reset link and email error if any
+    const frontendBaseUrl = process.env.FRONTEND_URL || 'https://opma-system-t7ur.vercel.app';
+    const resetUrl = `${frontendBaseUrl}/forgot-password?token=${resetToken}`;
+
+    console.log(`[Forgot Password] Sending email to ${user.email}`);
+    console.log(`[Forgot Password] Reset URL: ${resetUrl}`);
+
+    const mailOptions = {
+      from: process.env.GMAIL_EMAIL,
+      to: user.email,
+      subject: 'Password Reset Request - OPMA System',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
+          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #6b5b95; margin: 0;">OPMA System</h1>
+              <p style="color: #666; margin: 5px 0 0 0;">Operations And Maintenance Management System</p>
+            </div>
+
+            <h2 style="color: #333; margin-bottom: 20px;">Password Reset Request</h2>
+
+            <p style="color: #666; line-height: 1.6; margin-bottom: 25px;">
+              Hello ${user.full_name || user.username},<br><br>
+              You requested to reset your password for your OPMA System account. Click the button below to reset your password:
+            </p>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetUrl}"
+                 style="background-color: #6b5b95; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                Reset Password
+              </a>
+            </div>
+
+            <p style="color: #999; font-size: 14px; line-height: 1.5; margin-top: 30px;">
+              Or copy and paste this link into your browser:<br>
+              <a href="${resetUrl}" style="color: #6b5b95;">${resetUrl}</a>
+            </p>
+
+            <p style="color: #999; font-size: 14px; margin-top: 25px;">
+              <strong>Important:</strong><br>
+              • This link will expire in 1 hour for security reasons<br>
+              • If you didn't request this password reset, please ignore this email<br>
+              • Your password will remain unchanged if you don't click the link
+            </p>
+
+            <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 20px; text-align: center; color: #999; font-size: 12px;">
+              <p>This is an automated message from OPMA System. Please do not reply to this email.</p>
+            </div>
+          </div>
+        </div>
+      `
+    };
+
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      console.log(`[Forgot Password] Email sent successfully:`, info);
+      console.log(`[Forgot Password] Message ID: ${info.messageId}`);
+    } catch (emailError) {
+      console.error('[Forgot Password] Email send failed:', emailError);
+      console.error('[Forgot Password] Error code:', emailError.code);
+      console.error('[Forgot Password] Error message:', emailError.message);
+      return res.status(500).json({
+        error: 'Failed to send email',
+        details: emailError.message
+      });
+    }
+
     res.json({
-      message: 'If an account with that email exists, a password reset link has been sent.',
+      message: 'Password reset link has been sent to your email.',
       resetUrl: resetUrl,
-      resetToken: resetToken,
-      emailError: emailError // Include error details for debugging
+      resetToken: resetToken
     });
 
   } catch (error) {
-    console.error('Forgot password error:', error);
+    console.error('[Forgot Password] Server error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
