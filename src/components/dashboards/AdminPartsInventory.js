@@ -16,6 +16,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import { 
   Search as SearchIcon,
@@ -25,10 +27,14 @@ import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import { sparePartsAPI } from '../../services/api';
+import { sparePartsAPI, rideRepairsAPI, partDeploymentsAPI, partRemovalsAPI } from '../../services/api';
 
 const AdminPartsInventory = () => {
+  const [tabValue, setTabValue] = useState(0);
   const [parts, setParts] = useState([]);
+  const [rideRepairs, setRideRepairs] = useState([]);
+  const [partDeployments, setPartDeployments] = useState([]);
+  const [partRemovals, setPartRemovals] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -38,6 +44,9 @@ const AdminPartsInventory = () => {
 
   useEffect(() => {
     loadParts();
+    loadRideRepairs();
+    loadPartDeployments();
+    loadPartRemovals();
   }, []);
 
   const loadParts = async () => {
@@ -49,7 +58,7 @@ const AdminPartsInventory = () => {
         // Use approval_status from database directly, fallback to parsing notes if needed
         let approvalStatus = part.approval_status || 'Pending';
         let notes = part.notes || '';
-        
+
         // Fallback: if approval_status doesn't exist, try parsing from notes (for backward compatibility)
         if (!part.approval_status && part.notes) {
           try {
@@ -65,7 +74,7 @@ const AdminPartsInventory = () => {
             notes = part.notes;
           }
         }
-        
+
         return {
           ...part,
           id: part.id,
@@ -87,6 +96,33 @@ const AdminPartsInventory = () => {
       console.error('Error loading parts:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadRideRepairs = async () => {
+    try {
+      const repairs = await rideRepairsAPI.getAll();
+      setRideRepairs(repairs || []);
+    } catch (error) {
+      console.error('Error loading ride repairs:', error);
+    }
+  };
+
+  const loadPartDeployments = async () => {
+    try {
+      const deployments = await partDeploymentsAPI.getAll();
+      setPartDeployments(deployments || []);
+    } catch (error) {
+      console.error('Error loading part deployments:', error);
+    }
+  };
+
+  const loadPartRemovals = async () => {
+    try {
+      const removals = await partRemovalsAPI.getAll();
+      setPartRemovals(removals || []);
+    } catch (error) {
+      console.error('Error loading part removals:', error);
     }
   };
 
@@ -155,7 +191,18 @@ const AdminPartsInventory = () => {
   return (
     <DashboardLayout title="Ride Parts Inventory">
       <Box sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ mb: 3 }}>
+          <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
+            <Tab label="Parts Inventory" />
+            <Tab label="Ride Repairs" />
+            <Tab label="Deployments" />
+            <Tab label="Removals" />
+          </Tabs>
+        </Box>
+
+        {tabValue === 0 && (
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <TextField
               placeholder="Search parts..."
@@ -332,27 +379,145 @@ const AdminPartsInventory = () => {
             </Box>
           </CardContent>
         </Card>
+          </Box>
+        )}
 
-        <ReportGenerator
-          open={openReportDialog}
-          onClose={() => setOpenReportDialog(false)}
-          data={filteredAndSortedParts}
-          title="Ride Parts Inventory Report"
-          reportType="parts"
-          columns={[
-            { header: 'Part Name', field: 'name' },
-            { header: 'Ride', field: 'ride' },
-            { header: 'Quantity', field: 'quantity' },
-            { header: 'Unit', field: 'unit' },
-            { header: 'Price', field: 'price' },
-            { header: 'Total Amount', field: 'totalAmount' },
-            { header: 'Status', field: 'status' },
-            { header: 'Location', field: 'location' },
-            { header: 'Supplier', field: 'supplier' },
-            { header: 'Approval Status', field: 'approvalStatus' },
-            { header: 'Last Updated', field: 'updated_at' }
-          ]}
-        />
+        {tabValue === 1 && (
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Ride Repairs</Typography>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Ride</TableCell>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Issue</TableCell>
+                      <TableCell>Technician</TableCell>
+                      <TableCell>Status</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {rideRepairs.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center">No ride repairs found</TableCell>
+                      </TableRow>
+                    ) : (
+                      rideRepairs.map((repair) => (
+                        <TableRow key={repair.id}>
+                          <TableCell>{repair.ride}</TableCell>
+                          <TableCell>{new Date(repair.date).toLocaleDateString()}</TableCell>
+                          <TableCell>{repair.issue}</TableCell>
+                          <TableCell>{repair.technician}</TableCell>
+                          <TableCell>{repair.status}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {tabValue === 2 && (
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Part Deployments</Typography>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Place</TableCell>
+                      <TableCell>Ride</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Encoded By</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {partDeployments.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center">No deployments found</TableCell>
+                      </TableRow>
+                    ) : (
+                      partDeployments.map((deployment) => (
+                        <TableRow key={deployment.id}>
+                          <TableCell>{new Date(deployment.date).toLocaleDateString()}</TableCell>
+                          <TableCell>{deployment.place}</TableCell>
+                          <TableCell>{deployment.ride}</TableCell>
+                          <TableCell>{deployment.status}</TableCell>
+                          <TableCell>{deployment.encoded_by}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {tabValue === 3 && (
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Part Removals</Typography>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Place</TableCell>
+                      <TableCell>Ride</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Encoded By</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {partRemovals.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center">No removals found</TableCell>
+                      </TableRow>
+                    ) : (
+                      partRemovals.map((removal) => (
+                        <TableRow key={removal.id}>
+                          <TableCell>{new Date(removal.date).toLocaleDateString()}</TableCell>
+                          <TableCell>{removal.place}</TableCell>
+                          <TableCell>{removal.ride}</TableCell>
+                          <TableCell>{removal.status}</TableCell>
+                          <TableCell>{removal.encoded_by}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {tabValue === 0 && (
+          <ReportGenerator
+            open={openReportDialog}
+            onClose={() => setOpenReportDialog(false)}
+            data={filteredAndSortedParts}
+            title="Ride Parts Inventory Report"
+            reportType="parts"
+            columns={[
+              { header: 'Part Name', field: 'name' },
+              { header: 'Ride', field: 'ride' },
+              { header: 'Quantity', field: 'quantity' },
+              { header: 'Unit', field: 'unit' },
+              { header: 'Price', field: 'price' },
+              { header: 'Total Amount', field: 'totalAmount' },
+              { header: 'Status', field: 'status' },
+              { header: 'Location', field: 'location' },
+              { header: 'Supplier', field: 'supplier' },
+              { header: 'Approval Status', field: 'approvalStatus' },
+              { header: 'Last Updated', field: 'updated_at' }
+            ]}
+          />
+        )}
       </Box>
     </DashboardLayout>
   );

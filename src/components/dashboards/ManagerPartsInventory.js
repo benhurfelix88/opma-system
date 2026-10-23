@@ -26,6 +26,8 @@ import {
   Snackbar,
   Card,
   CardContent,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -33,10 +35,14 @@ import {
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
-import { sparePartsAPI } from '../../services/api';
+import { sparePartsAPI, rideRepairsAPI, partDeploymentsAPI, partRemovalsAPI } from '../../services/api';
 
 const ManagerPartsInventory = () => {
+  const [tabValue, setTabValue] = useState(0);
   const [parts, setParts] = useState([]);
+  const [rideRepairs, setRideRepairs] = useState([]);
+  const [partDeployments, setPartDeployments] = useState([]);
+  const [partRemovals, setPartRemovals] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -52,6 +58,9 @@ const ManagerPartsInventory = () => {
 
   useEffect(() => {
     loadParts();
+    loadRideRepairs();
+    loadPartDeployments();
+    loadPartRemovals();
   }, []);
 
   const loadParts = async () => {
@@ -99,6 +108,33 @@ const ManagerPartsInventory = () => {
     } catch (error) {
       console.error('Error loading parts:', error);
     } finally {
+    }
+  };
+
+  const loadRideRepairs = async () => {
+    try {
+      const repairs = await rideRepairsAPI.getAll();
+      setRideRepairs(repairs || []);
+    } catch (error) {
+      console.error('Error loading ride repairs:', error);
+    }
+  };
+
+  const loadPartDeployments = async () => {
+    try {
+      const deployments = await partDeploymentsAPI.getAll();
+      setPartDeployments(deployments || []);
+    } catch (error) {
+      console.error('Error loading part deployments:', error);
+    }
+  };
+
+  const loadPartRemovals = async () => {
+    try {
+      const removals = await partRemovalsAPI.getAll();
+      setPartRemovals(removals || []);
+    } catch (error) {
+      console.error('Error loading part removals:', error);
     }
   };
 
@@ -261,7 +297,18 @@ const ManagerPartsInventory = () => {
   return (
     <DashboardLayout title="Ride Parts Inventory">
       <Box sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ mb: 3 }}>
+          <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
+            <Tab label="Parts Inventory" />
+            <Tab label="Ride Repairs" />
+            <Tab label="Deployments" />
+            <Tab label="Removals" />
+          </Tabs>
+        </Box>
+
+        {tabValue === 0 && (
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <TextField
               size="small"
@@ -419,7 +466,125 @@ const ManagerPartsInventory = () => {
           </Box>
         </CardContent>
       </Card>
+          </Box>
+        )}
 
+        {tabValue === 1 && (
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Ride Repairs</Typography>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Ride</TableCell>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Issue</TableCell>
+                      <TableCell>Technician</TableCell>
+                      <TableCell>Status</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {rideRepairs.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center">No ride repairs found</TableCell>
+                      </TableRow>
+                    ) : (
+                      rideRepairs.map((repair) => (
+                        <TableRow key={repair.id}>
+                          <TableCell>{repair.ride}</TableCell>
+                          <TableCell>{new Date(repair.date).toLocaleDateString()}</TableCell>
+                          <TableCell>{repair.issue}</TableCell>
+                          <TableCell>{repair.technician}</TableCell>
+                          <TableCell>{repair.status}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {tabValue === 2 && (
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Part Deployments</Typography>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Place</TableCell>
+                      <TableCell>Ride</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Encoded By</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {partDeployments.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center">No deployments found</TableCell>
+                      </TableRow>
+                    ) : (
+                      partDeployments.map((deployment) => (
+                        <TableRow key={deployment.id}>
+                          <TableCell>{new Date(deployment.date).toLocaleDateString()}</TableCell>
+                          <TableCell>{deployment.place}</TableCell>
+                          <TableCell>{deployment.ride}</TableCell>
+                          <TableCell>{deployment.status}</TableCell>
+                          <TableCell>{deployment.encoded_by}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {tabValue === 3 && (
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Part Removals</Typography>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Place</TableCell>
+                      <TableCell>Ride</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Encoded By</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {partRemovals.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center">No removals found</TableCell>
+                      </TableRow>
+                    ) : (
+                      partRemovals.map((removal) => (
+                        <TableRow key={removal.id}>
+                          <TableCell>{new Date(removal.date).toLocaleDateString()}</TableCell>
+                          <TableCell>{removal.place}</TableCell>
+                          <TableCell>{removal.ride}</TableCell>
+                          <TableCell>{removal.status}</TableCell>
+                          <TableCell>{removal.encoded_by}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {tabValue === 0 && (
+          <>
         {/* Review Dialog */}
         <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
           <DialogTitle>Review Part</DialogTitle>
@@ -491,6 +656,8 @@ const ManagerPartsInventory = () => {
             { header: 'Last Updated', field: 'updated_at' }
           ]}
         />
+          </>
+        )}
       </Box>
     </DashboardLayout>
   );
