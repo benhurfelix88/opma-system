@@ -94,8 +94,8 @@ const UserManagement = () => {
 
   useEffect(() => {
     // Check if user is logged in and is IT Admin
-    const token = localStorage.getItem('authToken');
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    const token = sessionStorage.getItem('authToken');
+    const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || 'null');
     if (!token && (!currentUser || currentUser.role !== 'IT Admin')) {
       navigate('/login');
       return;
@@ -182,7 +182,7 @@ const UserManagement = () => {
     }
 
     // Check if user is the current logged-in user
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || 'null');
     if (currentUser && currentUser.id === user.id) {
       setWarningMessage('You cannot delete your own account while logged in.');
       setWarningAction(() => () => {
@@ -307,10 +307,10 @@ const UserManagement = () => {
       await usersAPI.delete(userToDelete.id);
       await loadUsers();
       
-      const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+      const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || 'null');
       if (userToDelete.role === 'IT Admin' && currentUser && currentUser.id === userToDelete.id) {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('currentUser');
+        sessionStorage.removeItem('authToken');
+        sessionStorage.removeItem('currentUser');
         window.location.href = '/login';
       }
       

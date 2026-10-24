@@ -62,12 +62,12 @@ const PersonnelRideCounters = () => {
       console.log('🚀 Starting loadRideCounters...');
       
       // Get current user and check assigned ride
-      const user = JSON.parse(localStorage.getItem('currentUser'));
+      const user = JSON.parse(sessionStorage.getItem('currentUser'));
       console.log('👤 Current user:', user);
       setCurrentUser(user);
-      
+
       if (!user) {
-        console.error('❌ No user found in localStorage');
+        console.error('❌ No user found in sessionStorage');
         setError('User not authenticated');
         return;
       }

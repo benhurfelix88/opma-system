@@ -46,14 +46,14 @@ const ManageUsers = () => {
 
   useEffect(() => {
     // Check if user is logged in and is IT Admin
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
     if (!currentUser || currentUser.role !== 'IT Admin') {
       navigate('/login');
       return;
     }
 
-    // Load users from localStorage
-    const storedUsers = localStorage.getItem('users');
+    // Load users from sessionStorage
+    const storedUsers = sessionStorage.getItem('users');
     if (storedUsers) {
       const parsedUsers = JSON.parse(storedUsers);
       // Sort users by creation time to identify the first IT Admin
@@ -134,11 +134,11 @@ const ManageUsers = () => {
     setWarningAction(() => () => {
       const updatedUsers = users.filter((user) => user.id !== id);
       setUsers(updatedUsers);
-      localStorage.setItem('users', JSON.stringify(updatedUsers));
-      
+      sessionStorage.setItem('users', JSON.stringify(updatedUsers));
+
       // If IT Admin is deleted, redirect to login
       if (userToDelete.role === 'IT Admin') {
-        localStorage.removeItem('currentUser');
+        sessionStorage.removeItem('currentUser');
         window.location.href = '/login';
       }
     });
@@ -160,7 +160,7 @@ const ManageUsers = () => {
       : [...users, formData];
 
     setUsers(updatedUsers);
-    localStorage.setItem('users', JSON.stringify(updatedUsers));
+    sessionStorage.setItem('users', JSON.stringify(updatedUsers));
     handleCloseDialog();
   };
 

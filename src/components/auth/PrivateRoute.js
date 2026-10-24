@@ -9,9 +9,9 @@ const PrivateRoute = ({ children, allowedRoles }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('authToken');
-      const storedUser = localStorage.getItem('currentUser');
-      
+      const token = sessionStorage.getItem('authToken');
+      const storedUser = sessionStorage.getItem('currentUser');
+
       if (!token && !storedUser) {
         setLoading(false);
         return;
@@ -24,14 +24,14 @@ const PrivateRoute = ({ children, allowedRoles }) => {
           setUser(userData);
         } catch (error) {
           // Token invalid, clear storage
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('currentUser');
+          sessionStorage.removeItem('authToken');
+          sessionStorage.removeItem('currentUser');
         }
       } else if (storedUser) {
         // Fallback to stored user if no token (for migration period)
         setUser(JSON.parse(storedUser));
       }
-      
+
       setLoading(false);
     };
 

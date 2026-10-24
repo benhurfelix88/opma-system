@@ -104,7 +104,7 @@ const ManagerDashboard = () => {
     }
 
     // Check authentication
-    const user = JSON.parse(localStorage.getItem('currentUser'));
+    const user = JSON.parse(sessionStorage.getItem('currentUser'));
     if (!user) {
       navigate('/login');
       return;
@@ -214,12 +214,12 @@ const ManagerDashboard = () => {
   const handleDeleteMaintenance = (id) => {
     const updatedRecords = maintenanceRecords.filter((record) => record.id !== id);
     setMaintenanceRecords(updatedRecords);
-    localStorage.setItem('maintenanceRecords', JSON.stringify(updatedRecords));
+    sessionStorage.setItem('maintenanceRecords', JSON.stringify(updatedRecords));
   };
 
   const handleMaintenanceSubmit = () => {
-    // Get current user from localStorage
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    // Get current user from sessionStorage
+    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
     const username = currentUser ? currentUser.username : 'Unknown User';
 
     if (editingMaintenance) {
@@ -227,7 +227,7 @@ const ManagerDashboard = () => {
         record.id === editingMaintenance.id ? { ...maintenanceData, id: record.id, reportedBy: username } : record
       );
       setMaintenanceRecords(updatedRecords);
-      localStorage.setItem('maintenanceRecords', JSON.stringify(updatedRecords));
+      sessionStorage.setItem('maintenanceRecords', JSON.stringify(updatedRecords));
     } else {
       const newRecord = {
         ...maintenanceData,
@@ -236,7 +236,7 @@ const ManagerDashboard = () => {
       };
       const updatedRecords = [...maintenanceRecords, newRecord];
       setMaintenanceRecords(updatedRecords);
-      localStorage.setItem('maintenanceRecords', JSON.stringify(updatedRecords));
+      sessionStorage.setItem('maintenanceRecords', JSON.stringify(updatedRecords));
     }
     setOpenMaintenanceDialog(false);
   };

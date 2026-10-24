@@ -69,7 +69,7 @@ const IncidentReport = () => {
 
   useEffect(() => {
     // Check authentication
-    const user = JSON.parse(localStorage.getItem('currentUser'));
+    const user = JSON.parse(sessionStorage.getItem('currentUser'));
     if (!user) {
       navigate('/login');
       return;

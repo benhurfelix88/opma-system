@@ -93,7 +93,7 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
 
   useEffect(() => {
     const loadCurrentUser = async () => {
-      const storedUser = localStorage.getItem('currentUser');
+      const storedUser = sessionStorage.getItem('currentUser');
       if (storedUser) {
         const userData = JSON.parse(storedUser);
         setUser(userData);
@@ -110,21 +110,6 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
       }
     };
     loadCurrentUser();
-
-    // Listen for storage changes to detect logout from other tabs
-    const handleStorageChange = (e) => {
-      if (e.key === 'authToken' && e.newValue === null) {
-        // Token was removed (user logged out from another tab)
-        localStorage.removeItem('currentUser');
-        window.location.href = '/login';
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, [API_BASE_URL]);
 
   const getMenuItems = () => {
@@ -215,7 +200,7 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
         fullName: editedUser.fullName || editedUser.full_name,
         mobileNumber: editedUser.mobileNumber || editedUser.mobile_number,
       };
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      sessionStorage.setItem('currentUser', JSON.stringify(updatedUser));
       setUser(updatedUser);
       setEditMode(false);
       setProfileSnackbar({ open: true, message: 'Profile updated successfully', severity: 'success' });

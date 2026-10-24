@@ -36,8 +36,8 @@ const TicketValidation = () => {
   });
 
   useEffect(() => {
-    // Load validations from localStorage
-    const storedValidations = localStorage.getItem('ticketValidations');
+    // Load validations from sessionStorage
+    const storedValidations = sessionStorage.getItem('ticketValidations');
     if (storedValidations) {
       setValidations(JSON.parse(storedValidations));
     }
@@ -70,14 +70,14 @@ const TicketValidation = () => {
 
     const updatedValidations = [newValidation, ...validations];
     setValidations(updatedValidations);
-    localStorage.setItem('ticketValidations', JSON.stringify(updatedValidations));
+    sessionStorage.setItem('ticketValidations', JSON.stringify(updatedValidations));
     handleCloseDialog();
   };
 
   const handleDelete = (id) => {
     const updatedValidations = validations.filter((validation) => validation.id !== id);
     setValidations(updatedValidations);
-    localStorage.setItem('ticketValidations', JSON.stringify(updatedValidations));
+    sessionStorage.setItem('ticketValidations', JSON.stringify(updatedValidations));
   };
 
   return (

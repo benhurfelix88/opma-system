@@ -39,8 +39,8 @@ const ManagerInventoryMonitoring = () => {
   });
 
   useEffect(() => {
-    // Load inventory from localStorage
-    const storedInventory = localStorage.getItem('inventory');
+    // Load inventory from sessionStorage
+    const storedInventory = sessionStorage.getItem('inventory');
     if (storedInventory) {
       setInventory(JSON.parse(storedInventory));
     }
@@ -88,7 +88,7 @@ const ManagerInventoryMonitoring = () => {
     }
 
     setInventory(updatedInventory);
-    localStorage.setItem('inventory', JSON.stringify(updatedInventory));
+    sessionStorage.setItem('inventory', JSON.stringify(updatedInventory));
     handleCloseDialog();
   };
 
@@ -112,7 +112,7 @@ const ManagerInventoryMonitoring = () => {
     });
 
     setInventory(updatedInventory);
-    localStorage.setItem('inventory', JSON.stringify(updatedInventory));
+    sessionStorage.setItem('inventory', JSON.stringify(updatedInventory));
   };
 
   return (

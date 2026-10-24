@@ -116,8 +116,8 @@ const AdminDashboard = () => {
   const [warningAction] = useState(null);
 
   useEffect(() => {
-    // Load current user from localStorage
-    const storedUser = localStorage.getItem('currentUser');
+    // Load current user from sessionStorage
+    const storedUser = sessionStorage.getItem('currentUser');
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
@@ -153,7 +153,7 @@ const AdminDashboard = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Avatar sx={{ bgcolor: 'primary.main' }}>U</Avatar>
                         <Typography variant="h4">
-                          {JSON.parse(localStorage.getItem('users') || '[]').length}
+                          {JSON.parse(sessionStorage.getItem('users') || '[]').length}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -191,7 +191,7 @@ const AdminDashboard = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Avatar sx={{ bgcolor: 'primary.main' }}>M</Avatar>
                         <Typography variant="h4">
-                          {JSON.parse(localStorage.getItem('maintenanceRecords') || '[]').length}
+                          {JSON.parse(sessionStorage.getItem('maintenanceRecords') || '[]').length}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -210,7 +210,7 @@ const AdminDashboard = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <TicketIcon color="success" />
                         <Typography variant="h4">
-                          {JSON.parse(localStorage.getItem('rides') || '[]').length}
+                          {JSON.parse(sessionStorage.getItem('rides') || '[]').length}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -260,7 +260,7 @@ const AdminDashboard = () => {
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {JSON.parse(localStorage.getItem('maintenanceRecords') || '[]')
+                            {JSON.parse(sessionStorage.getItem('maintenanceRecords') || '[]')
                               .slice(0, 5)
                               .map((record) => (
                                 <TableRow key={record.id}>

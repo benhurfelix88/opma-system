@@ -13,16 +13,16 @@ const api = axios.create({
 // Add auth token to requests
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
+    const token = sessionStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     // For FormData, remove Content-Type to let browser set it with boundary
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type'];
     }
-    
+
     return config;
   },
   (error) => {
@@ -38,10 +38,10 @@ api.interceptors.response.use(
       // Don't redirect if we're already on the login page or if it's a login request
       const isLoginRequest = error.config?.url?.includes('/auth/login');
       const isOnLoginPage = window.location.pathname === '/login' || window.location.pathname === '/';
-      
+
       if (!isLoginRequest && !isOnLoginPage) {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('currentUser');
+        sessionStorage.removeItem('authToken');
+        sessionStorage.removeItem('currentUser');
         window.location.href = '/login';
       }
     }
