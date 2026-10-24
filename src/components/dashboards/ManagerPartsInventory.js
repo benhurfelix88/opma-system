@@ -487,7 +487,24 @@ const ManagerPartsInventory = () => {
                       />
                     </TableCell>
                     <TableCell align="center">
-                      {part.approval_date ? new Date(part.approval_date).toLocaleDateString() : 'N/A'}
+                      {part.approval_date ? (
+                        <Box>
+                          <Typography variant="body2">
+                            {new Date(part.approval_date).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {new Date(part.approval_date).toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true
+                            })}
+                          </Typography>
+                        </Box>
+                      ) : 'N/A'}
                     </TableCell>
                     <TableCell align="center">
                       {part.updated_at ? (
