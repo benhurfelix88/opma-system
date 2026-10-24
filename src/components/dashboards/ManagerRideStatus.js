@@ -37,8 +37,10 @@ import {
   Close as CloseIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  PictureAsPdf as ReportIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
+import ReportGenerator from '../common/ReportGenerator';
 import { ridesAPI, rideStatusAPI, sparePartsAPI } from '../../services/api';
 
 const ManagerRideStatus = () => {
@@ -59,6 +61,7 @@ const ManagerRideStatus = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [rideToDelete, setRideToDelete] = useState(null);
   const [ridePartsCount, setRidePartsCount] = useState(0);
+  const [openReportDialog, setOpenReportDialog] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -266,15 +269,15 @@ const ManagerRideStatus = () => {
       <Box p={3}>
       <Box display="flex" justifyContent="flex-end" alignItems="center" mb={3}>
         <Box display="flex" gap={2}>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setOpenAddDialog(true)}
           >
             Add
           </Button>
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             startIcon={refreshing ? <CircularProgress size={20} /> : <RefreshIcon />}
             onClick={loadData}
             disabled={refreshing}
@@ -289,6 +292,13 @@ const ManagerRideStatus = () => {
             }}
           >
             {refreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<ReportIcon />}
+            onClick={() => setOpenReportDialog(true)}
+          >
+            Export
           </Button>
         </Box>
       </Box>
@@ -709,14 +719,32 @@ const ManagerRideStatus = () => {
         TransitionComponent={Slide}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleCloseSnackbar} 
+        <Alert
+          onClose={handleCloseSnackbar}
           severity={snackbar.severity}
           sx={{ width: '100%' }}
         >
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* Report Generator */}
+      <ReportGenerator
+        open={openReportDialog}
+        onClose={() => setOpenReportDialog(false)}
+        data={rides.map(ride => ({
+          name: ride.name,
+          location: ride.location || '',
+          status: getStatusLabel(rideStatusMap[ride.name] || 'operational')
+        }))}
+        title="Ride Status Report"
+        reportType="ride-status"
+        columns={[
+          { header: 'Ride Name', field: 'name' },
+          { header: 'Location', field: 'location' },
+          { header: 'Status', field: 'status' }
+        ]}
+      />
       </Box>
     </DashboardLayout>
   );
