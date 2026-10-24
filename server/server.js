@@ -817,26 +817,17 @@ app.post('/api/auth/login', async (req, res) => {
     // Check if user already has an active session (enforce 1 session per account)
     try {
       const [existingSessions] = await db.execute(
-        'SELECT id, created_at, last_activity FROM sessions WHERE user_id = $1 AND expires_at > NOW()',
+        'SELECT id FROM sessions WHERE user_id = $1 AND expires_at > NOW()',
         [user.id]
       );
 
       if (existingSessions.length > 0) {
-        // Check if the session has recent activity (within last 10 seconds)
-        const lastActivity = new Date(existingSessions[0].last_activity);
-        const tenSecondsAgo = new Date(Date.now() - 10 * 1000);
-
-        if (lastActivity > tenSecondsAgo) {
-          // Session is actively being used - prevent new login
-          return res.status(409).json({
-            error: 'This account is already in use',
-            message: 'This account is currently active in another tab. Only one session per account is allowed.',
-            alreadyLoggedIn: true
-          });
-        } else {
-          // Session is old/inactive - delete it and allow new login
-          await db.execute('DELETE FROM sessions WHERE user_id = $1', [user.id]);
-        }
+        // User is already logged in - prevent new login
+        return res.status(409).json({
+          error: 'This account is already in use',
+          message: 'This account is currently active in another tab. Only one session per account is allowed.',
+          alreadyLoggedIn: true
+        });
       }
     } catch (sessionError) {
       console.error('Error checking existing sessions:', sessionError);
@@ -1053,7 +1044,7 @@ app.post('/api/auth/logout', authenticateToken, async (req, res) => {
   }
 });
 
-// Update session activity (heartbeat) - updates last_activity without causing logout
+// Update session activity (heartbeat) - keeps session active
 app.post('/api/auth/heartbeat', authenticateToken, async (req, res) => {
   try {
     const token = req.headers['authorization']?.split(' ')[1];

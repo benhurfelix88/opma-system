@@ -111,7 +111,7 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
     };
     loadCurrentUser();
 
-    // Send heartbeat every 10 seconds to update session activity
+    // Send heartbeat every 30 seconds to keep session active
     const heartbeatInterval = setInterval(async () => {
       const token = sessionStorage.getItem('authToken');
       if (token) {
@@ -122,7 +122,7 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
           // Don't auto-logout on heartbeat failure - just log the error
         }
       }
-    }, 10000);
+    }, 30000);
 
     return () => clearInterval(heartbeatInterval);
   }, [API_BASE_URL]);
