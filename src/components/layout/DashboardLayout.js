@@ -111,25 +111,20 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
     };
     loadCurrentUser();
 
-    // Listen for session invalidation from other tabs via BroadcastChannel
-    const channel = new BroadcastChannel('session_events');
-    channel.onmessage = (event) => {
-      if (event.data.type === 'session_invalidated') {
-        const storedUser = sessionStorage.getItem('currentUser');
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          if (userData.id === event.data.userId) {
-            sessionStorage.removeItem('authToken');
-            sessionStorage.removeItem('currentUser');
-            window.location.href = '/login';
-          }
+    // Send heartbeat every 10 seconds to update session activity
+    const heartbeatInterval = setInterval(async () => {
+      const token = sessionStorage.getItem('authToken');
+      if (token) {
+        try {
+          await authAPI.heartbeat();
+        } catch (error) {
+          console.error('Heartbeat failed:', error);
+          // Don't auto-logout on heartbeat failure - just log the error
         }
       }
-    };
+    }, 10000);
 
-    return () => {
-      channel.close();
-    };
+    return () => clearInterval(heartbeatInterval);
   }, [API_BASE_URL]);
 
   const getMenuItems = () => {

@@ -125,11 +125,6 @@ export const authAPI = {
     const response = await api.post('/auth/heartbeat');
     return response.data;
   },
-
-  checkUserSessionStatus: async (userId) => {
-    const response = await api.get(`/users/${userId}/session-status`);
-    return response.data;
-  },
 };
 
 // ==================== USERS API ====================

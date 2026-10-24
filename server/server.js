@@ -1053,6 +1053,23 @@ app.post('/api/auth/logout', authenticateToken, async (req, res) => {
   }
 });
 
+// Update session activity (heartbeat) - updates last_activity without causing logout
+app.post('/api/auth/heartbeat', authenticateToken, async (req, res) => {
+  try {
+    const token = req.headers['authorization']?.split(' ')[1];
+    if (token) {
+      await db.execute(
+        'UPDATE sessions SET last_activity = NOW() WHERE token = $1',
+        [token]
+      );
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Heartbeat error:', error);
+    res.json({ success: false });
+  }
+});
+
 // Check if user is logged in
 app.get('/api/users/:id/session-status', authenticateToken, async (req, res) => {
   try {
