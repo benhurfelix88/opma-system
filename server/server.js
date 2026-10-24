@@ -816,6 +816,10 @@ app.post('/api/auth/login', async (req, res) => {
 
     // Check if user already has an active session (enforce 1 session per account)
     try {
+      // First, clean up any expired sessions for this user
+      await db.execute('DELETE FROM sessions WHERE user_id = $1 AND expires_at <= NOW()', [user.id]);
+
+      // Then check for active sessions
       const [existingSessions] = await db.execute(
         'SELECT id FROM sessions WHERE user_id = $1 AND expires_at > NOW()',
         [user.id]
