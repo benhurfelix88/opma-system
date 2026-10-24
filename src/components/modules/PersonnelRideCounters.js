@@ -28,12 +28,10 @@ import {
   PersonAdd as PersonAddIcon,
   Info as InfoIcon,
   Close as CloseIcon,
-  PictureAsPdf as ReportIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
 import { ridesAPI } from '../../services/api';
 import rideEntriesAPI from '../../services/rideEntriesAPI';
-import ReportGenerator from '../common/ReportGenerator';
 
 const PersonnelRideCounters = () => {
   const [rides, setRides] = useState([]);
@@ -44,8 +42,7 @@ const PersonnelRideCounters = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [refreshing, setRefreshing] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [openReportDialog, setOpenReportDialog] = useState(false);
-  
+
   // Manual entry states
   const [entryDialogOpen, setEntryDialogOpen] = useState(false);
   const [selectedRide, setSelectedRide] = useState(null);
@@ -108,7 +105,7 @@ const PersonnelRideCounters = () => {
       const todayEntries = await rideEntriesAPI.getTodayEntries(assignedRide.id);
       console.log('📝 Today entries:', todayEntries);
       
-      // Map database fields to match ReportGenerator expectations
+      // Map database fields for display
       const mappedEntries = todayEntries.map(entry => {
         // Format entry date to ensure it's just YYYY-MM-DD
         let formattedDate = entry.entry_date || entry.entryDate || '';
@@ -385,21 +382,7 @@ const PersonnelRideCounters = () => {
           >
             {refreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
-          <Button 
-            variant="contained"
-            startIcon={<ReportIcon />}
-            onClick={() => setOpenReportDialog(true)}
-            size="small"
-            sx={{
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'scale(1.05)',
-              },
-            }}
-          >
-            Export
-          </Button>
-          <Button 
+          <Button
             onClick={handleOpenViewEntriesDialog}
             variant="contained"
             size="small"
@@ -723,21 +706,6 @@ const PersonnelRideCounters = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-
-        <ReportGenerator
-          open={openReportDialog}
-          onClose={() => setOpenReportDialog(false)}
-          data={todayEntries}
-          title="Customers' Count (per ride) Report"
-          reportType="rideCounters"
-          columns={[
-            { header: 'Ride Name', field: 'rideName' },
-            { header: 'Customer Count', field: 'customerCount' },
-            { header: 'Entry Time', field: 'entryTime' },
-            { header: 'Entry Date', field: 'entryDate' },
-            { header: 'Entry Type', field: 'entryType' }
-          ]}
-        />
     </Box>
   );
 };
