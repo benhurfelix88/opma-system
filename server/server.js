@@ -567,12 +567,19 @@ async function ensureSpareParts() {
       )
     `);
 
-    // Add approval_status and notes columns if they don't exist (for existing tables)
+    // Add approval_status, approval_date, and notes columns if they don't exist (for existing tables)
     try {
       await db.execute("ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'Pending'");
       console.log('✓ approval_status column ensured in spare_parts');
     } catch (alterError) {
       console.log('Note: Could not add approval_status column (may already exist):', alterError.message);
+    }
+
+    try {
+      await db.execute('ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP');
+      console.log('✓ approval_date column ensured in spare_parts');
+    } catch (alterError) {
+      console.log('Note: Could not add approval_date column (may already exist):', alterError.message);
     }
 
     try {
@@ -2207,10 +2214,24 @@ app.put('/api/spare-parts/:id', authenticateToken, async (req, res) => {
 
     console.log('Updating spare part:', { id: req.params.id, approval_status, notes });
 
-    const result = await db.execute(
-      'UPDATE spare_parts SET part_name = ?, part_number = ?, category = ?, quantity = ?, unit = ?, location = ?, supplier = ?, cost = ?, status = ?, ride = ?, approval_status = ?, notes = ? WHERE id = ?',
-      [part_name, part_number, category, quantity, unit, location, supplier, cost, status, ride || '', approval_status || 'Pending', notes || '', req.params.id]
-    );
+    // Check if approval_status is being changed
+    const [currentPart] = await db.execute('SELECT approval_status FROM spare_parts WHERE id = ?', [req.params.id]);
+    const currentApprovalStatus = currentPart[0]?.approval_status || 'Pending';
+    const newApprovalStatus = approval_status || 'Pending';
+
+    // Build update query
+    let updateQuery = 'UPDATE spare_parts SET part_name = ?, part_number = ?, category = ?, quantity = ?, unit = ?, location = ?, supplier = ?, cost = ?, status = ?, ride = ?, approval_status = ?, notes = ?';
+    let params = [part_name, part_number, category, quantity, unit, location, supplier, cost, status, ride || '', newApprovalStatus, notes || ''];
+
+    // If approval_status changed, update approval_date
+    if (currentApprovalStatus !== newApprovalStatus) {
+      updateQuery += ', approval_date = CURRENT_TIMESTAMP';
+    }
+
+    updateQuery += ' WHERE id = ?';
+    params.push(req.params.id);
+
+    const result = await db.execute(updateQuery, params);
 
     console.log('Spare part updated successfully with approval_status:', approval_status);
     console.log('Update result:', result);

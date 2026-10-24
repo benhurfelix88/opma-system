@@ -157,6 +157,7 @@ CREATE TABLE IF NOT EXISTS spare_parts (
     status VARCHAR(50),
     ride VARCHAR(255),
     approval_status VARCHAR(50) DEFAULT 'Pending',
+    approval_date TIMESTAMP,
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

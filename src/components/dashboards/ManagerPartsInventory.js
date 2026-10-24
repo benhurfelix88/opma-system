@@ -425,6 +425,7 @@ const ManagerPartsInventory = () => {
                 <TableCell align="center">Location</TableCell>
                 <TableCell align="center">Supplier</TableCell>
                 <TableCell align="center">Approval Status</TableCell>
+                <TableCell align="center">Approval Date</TableCell>
                 <TableCell align="center">Last Updated</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
@@ -432,7 +433,7 @@ const ManagerPartsInventory = () => {
             <TableBody>
               {filteredAndSortedParts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={12} align="center">
+                  <TableCell colSpan={13} align="center">
                     <Typography variant="body1" color="text.secondary">
                       No parts found
                     </Typography>
@@ -472,18 +473,21 @@ const ManagerPartsInventory = () => {
                         label={part.approvalStatus || 'Pending'}
                         variant="outlined"
                         size="small"
-                        sx={{ 
-                          color: getApprovalColor(part.approvalStatus) === 'success' ? 'green' : 
-                                getApprovalColor(part.approvalStatus) === 'warning' ? 'orange' : 
-                                getApprovalColor(part.approvalStatus) === 'error' ? 'red' : 
+                        sx={{
+                          color: getApprovalColor(part.approvalStatus) === 'success' ? 'green' :
+                                getApprovalColor(part.approvalStatus) === 'warning' ? 'orange' :
+                                getApprovalColor(part.approvalStatus) === 'error' ? 'red' :
                                 getApprovalColor(part.approvalStatus) === 'info' ? 'blue' : 'gray',
-                          borderColor: getApprovalColor(part.approvalStatus) === 'success' ? 'green' : 
-                                       getApprovalColor(part.approvalStatus) === 'warning' ? 'orange' : 
-                                       getApprovalColor(part.approvalStatus) === 'error' ? 'red' : 
+                          borderColor: getApprovalColor(part.approvalStatus) === 'success' ? 'green' :
+                                       getApprovalColor(part.approvalStatus) === 'warning' ? 'orange' :
+                                       getApprovalColor(part.approvalStatus) === 'error' ? 'red' :
                                        getApprovalColor(part.approvalStatus) === 'info' ? 'blue' : 'gray',
                           backgroundColor: 'transparent'
                         }}
                       />
+                    </TableCell>
+                    <TableCell align="center">
+                      {part.approval_date ? new Date(part.approval_date).toLocaleDateString() : 'N/A'}
                     </TableCell>
                     <TableCell align="center">
                       {part.updated_at ? (
@@ -868,6 +872,7 @@ const ManagerPartsInventory = () => {
             { header: 'Total Amount', field: 'totalAmount' },
             { header: 'Status', field: 'status' },
             { header: 'Approval Status', field: 'approvalStatus' },
+            { header: 'Approval Date', field: 'approval_date' },
             { header: 'Location', field: 'location' },
             { header: 'Supplier', field: 'supplier' },
             { header: 'Last Updated', field: 'updated_at' }
