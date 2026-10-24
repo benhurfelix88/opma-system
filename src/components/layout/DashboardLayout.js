@@ -106,12 +106,6 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
           setEditedUser(freshUser);
         } catch (error) {
           console.error('Failed to fetch current user:', error);
-          // If 401, session was invalidated (same user logged in from another tab)
-          if (error.response?.status === 401) {
-            sessionStorage.removeItem('authToken');
-            sessionStorage.removeItem('currentUser');
-            window.location.href = '/login';
-          }
         }
       }
     };

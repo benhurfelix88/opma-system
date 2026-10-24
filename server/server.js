@@ -822,11 +822,15 @@ app.post('/api/auth/login', async (req, res) => {
       );
 
       if (existingSessions.length > 0) {
-        // User is already logged in elsewhere - invalidate old session and allow new login
-        await db.execute('DELETE FROM sessions WHERE user_id = $1', [user.id]);
+        // User is already logged in elsewhere - prevent new login
+        return res.status(409).json({
+          error: 'This account is already in use',
+          message: 'This account is currently active in another tab. Only one session per account is allowed.',
+          alreadyLoggedIn: true
+        });
       }
     } catch (sessionError) {
-      console.error('Error checking/deleting existing sessions:', sessionError);
+      console.error('Error checking existing sessions:', sessionError);
       // Continue with login even if session check fails
     }
 
