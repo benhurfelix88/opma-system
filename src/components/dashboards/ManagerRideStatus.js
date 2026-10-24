@@ -733,16 +733,22 @@ const ManagerRideStatus = () => {
         open={openReportDialog}
         onClose={() => setOpenReportDialog(false)}
         data={rides.map(ride => ({
+          id: ride.id,
           name: ride.name,
           location: ride.location || '',
-          status: getStatusLabel(rideStatusMap[ride.name] || 'operational')
+          status: getStatusLabel(rideStatusMap[ride.name] || 'operational'),
+          dateCreated: ride.created_at ? new Date(ride.created_at).toLocaleDateString() : 'N/A',
+          timeCreated: ride.created_at ? new Date(ride.created_at).toLocaleTimeString() : 'N/A'
         }))}
         title="Ride Status Report"
         reportType="ride-status"
         columns={[
+          { header: 'Ride ID', field: 'id' },
           { header: 'Ride Name', field: 'name' },
           { header: 'Location', field: 'location' },
-          { header: 'Status', field: 'status' }
+          { header: 'Status', field: 'status' },
+          { header: 'Date Created', field: 'dateCreated' },
+          { header: 'Time Created', field: 'timeCreated' }
         ]}
       />
       </Box>
