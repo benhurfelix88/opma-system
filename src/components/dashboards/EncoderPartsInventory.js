@@ -53,7 +53,7 @@ const fadeIn = keyframes`
 `;
 
 const LOW_STOCK_THRESHOLD = 10;
-const DEPLOYMENT_REMOVAL_STATUS_OPTIONS = ['Complete', 'Defective', 'Missing'];
+const DEPLOYMENT_REMOVAL_STATUS_OPTIONS = ['Complete', 'Defective', 'With missing parts'];
 const VISIBLE_LIST_LIMIT = 8;
 const RIDE_LIST_ITEM_HEIGHT = 48;
 const PARTS_TABLE_ROW_HEIGHT = 52;
@@ -1394,6 +1394,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                 <Select value={summaryMode} onChange={e => setSummaryMode(e.target.value)} label="Type">
                   <MenuItem value="deployment">Deployment</MenuItem>
                   <MenuItem value="removal">Removal</MenuItem>
+                  <MenuItem value="repairs">Ride Repairs</MenuItem>
                   <MenuItem value="parts">Ride Parts Inventory</MenuItem>
                 </Select>
               </FormControl>
@@ -1430,16 +1431,19 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Supplier</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Last Updated</TableCell>
                         </>
+                      ) : summaryMode === 'repairs' ? (
+                        <>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Issue</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Technician</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
+                        </>
                       ) : (
                         <>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Rides</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Parts</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Quantity</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Price</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Supplier</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Last Updated</TableCell>
                         </>
                       )}
                     </TableRow>
@@ -1448,7 +1452,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     {summaryMode === 'deployment' && (
                       deployments.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={8} align="center">
+                          <TableCell colSpan={3} align="center">
                             <Typography variant="body1" color="text.secondary">
                               No deployment records found
                             </Typography>
@@ -1456,17 +1460,11 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                         </TableRow>
                       ) : (
                         deployments.map((item) => {
-                          const part = spareParts.find(p => p.name === item.parts && p.ride === item.ride);
                           return (
                             <TableRow key={item.id}>
                               <TableCell align="center">{item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</TableCell>
                               <TableCell align="center">{item.ride || 'N/A'}</TableCell>
-                              <TableCell align="center">{item.parts || 'N/A'}</TableCell>
-                              <TableCell align="center">{item.quantity || 'N/A'}</TableCell>
-                              <TableCell align="center">{part?.price ? `₱${Number(part.price).toFixed(2)}` : 'N/A'}</TableCell>
-                              <TableCell align="center">{part?.supplier || 'N/A'}</TableCell>
                               <TableCell align="center">{item.status || 'N/A'}</TableCell>
-                              <TableCell align="center">{item.date ? new Date(item.date).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}</TableCell>
                             </TableRow>
                           );
                         })
@@ -1475,7 +1473,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     {summaryMode === 'removal' && (
                       removals.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={8} align="center">
+                          <TableCell colSpan={3} align="center">
                             <Typography variant="body1" color="text.secondary">
                               No removal records found
                             </Typography>
@@ -1483,17 +1481,34 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                         </TableRow>
                       ) : (
                         removals.map((item) => {
-                          const part = spareParts.find(p => p.name === item.parts && p.ride === item.ride);
                           return (
                             <TableRow key={item.id}>
                               <TableCell align="center">{item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</TableCell>
                               <TableCell align="center">{item.ride || 'N/A'}</TableCell>
-                              <TableCell align="center">{item.parts || 'N/A'}</TableCell>
-                              <TableCell align="center">{item.quantity || 'N/A'}</TableCell>
-                              <TableCell align="center">{part?.price ? `₱${Number(part.price).toFixed(2)}` : 'N/A'}</TableCell>
-                              <TableCell align="center">{part?.supplier || 'N/A'}</TableCell>
                               <TableCell align="center">{item.status || 'N/A'}</TableCell>
-                              <TableCell align="center">{item.date ? new Date(item.date).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}</TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )
+                    )}
+                    {summaryMode === 'repairs' && (
+                      repairs.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} align="center">
+                            <Typography variant="body1" color="text.secondary">
+                              No repair records found
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        repairs.map((item) => {
+                          return (
+                            <TableRow key={item.id}>
+                              <TableCell align="center">{item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</TableCell>
+                              <TableCell align="center">{item.ride || 'N/A'}</TableCell>
+                              <TableCell align="center">{item.issue || 'N/A'}</TableCell>
+                              <TableCell align="center">{item.technician || 'N/A'}</TableCell>
+                              <TableCell align="center">{item.status || 'N/A'}</TableCell>
                             </TableRow>
                           );
                         })
