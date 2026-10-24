@@ -822,11 +822,11 @@ app.post('/api/auth/login', async (req, res) => {
       );
 
       if (existingSessions.length > 0) {
-        // Check if the session has recent activity (within last 5 minutes)
+        // Check if the session has recent activity (within last 10 seconds)
         const lastActivity = new Date(existingSessions[0].last_activity);
-        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const tenSecondsAgo = new Date(Date.now() - 10 * 1000);
 
-        if (lastActivity > fiveMinutesAgo) {
+        if (lastActivity > tenSecondsAgo) {
           // Session is actively being used - prevent new login
           return res.status(409).json({
             error: 'This account is already in use',
