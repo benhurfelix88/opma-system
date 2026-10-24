@@ -94,6 +94,7 @@ const AdminPartsInventory = () => {
           ride: part.ride || '', // Use actual ride field from database
           totalAmount: (part.cost || 0) * (part.quantity || 0),
           approvalStatus: approvalStatus,
+          approval_date: part.approval_date,
           notes: notes,
         };
       });
@@ -360,13 +361,14 @@ const AdminPartsInventory = () => {
                 <TableCell align="center" sx={{ width: '10%' }}>Location</TableCell>
                 <TableCell align="center" sx={{ width: '12%' }}>Supplier</TableCell>
                 <TableCell align="center" sx={{ width: '10%' }}>Approval Status</TableCell>
+                <TableCell align="center" sx={{ width: '10%' }}>Approval Date</TableCell>
                 <TableCell align="center" sx={{ width: '10%' }}>Last Updated</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredAndSortedParts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} align="center">
+                  <TableCell colSpan={12} align="center">
                     <Typography variant="body1" color="text.secondary">
                       No parts found
                     </Typography>
@@ -416,6 +418,26 @@ const AdminPartsInventory = () => {
                             backgroundColor: 'transparent'
                           }}
                         />
+                    </TableCell>
+                    <TableCell align="center">
+                      {part.approval_date ? (
+                        <Box>
+                          <Typography variant="body2">
+                            {new Date(part.approval_date).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {new Date(part.approval_date).toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true
+                            })}
+                          </Typography>
+                        </Box>
+                      ) : 'N/A'}
                     </TableCell>
                     <TableCell align="center">
                       {part.updated_at ? new Date(part.updated_at).toLocaleString('en-US', {
@@ -730,6 +752,7 @@ const AdminPartsInventory = () => {
               { header: 'Location', field: 'location' },
               { header: 'Supplier', field: 'supplier' },
               { header: 'Approval Status', field: 'approvalStatus' },
+              { header: 'Approval Date', field: 'approval_date' },
               { header: 'Last Updated', field: 'updated_at' }
             ]}
           />
