@@ -814,12 +814,20 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(403).json({ error: 'Your account is pending approval' });
     }
 
-    // Invalidate any existing session for this user (enforce 1 session per account)
+    // Check if user already has an active session (enforce 1 session per account)
     try {
-      await db.execute('DELETE FROM sessions WHERE user_id = $1', [user.id]);
+      const [existingSessions] = await db.execute(
+        'SELECT id, created_at FROM sessions WHERE user_id = $1 AND expires_at > NOW()',
+        [user.id]
+      );
+
+      if (existingSessions.length > 0) {
+        // User is already logged in elsewhere - invalidate old session and allow new login
+        await db.execute('DELETE FROM sessions WHERE user_id = $1', [user.id]);
+      }
     } catch (sessionError) {
-      console.error('Error deleting existing sessions:', sessionError);
-      // Continue with login even if session deletion fails
+      console.error('Error checking/deleting existing sessions:', sessionError);
+      // Continue with login even if session check fails
     }
 
     // Create JWT token

@@ -106,10 +106,36 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
           setEditedUser(freshUser);
         } catch (error) {
           console.error('Failed to fetch current user:', error);
+          // If 401, session was invalidated (same user logged in from another tab)
+          if (error.response?.status === 401) {
+            sessionStorage.removeItem('authToken');
+            sessionStorage.removeItem('currentUser');
+            window.location.href = '/login';
+          }
         }
       }
     };
     loadCurrentUser();
+
+    // Listen for session invalidation from other tabs via BroadcastChannel
+    const channel = new BroadcastChannel('session_events');
+    channel.onmessage = (event) => {
+      if (event.data.type === 'session_invalidated') {
+        const storedUser = sessionStorage.getItem('currentUser');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          if (userData.id === event.data.userId) {
+            sessionStorage.removeItem('authToken');
+            sessionStorage.removeItem('currentUser');
+            window.location.href = '/login';
+          }
+        }
+      }
+    };
+
+    return () => {
+      channel.close();
+    };
   }, [API_BASE_URL]);
 
   const getMenuItems = () => {
