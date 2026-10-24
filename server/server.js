@@ -819,19 +819,28 @@ app.post('/api/auth/login', async (req, res) => {
       // First, clean up any expired sessions for this user
       await db.execute('DELETE FROM sessions WHERE user_id = $1 AND expires_at <= NOW()', [user.id]);
 
-      // Then check for active sessions
+      // Then check for active sessions with recent activity
       const [existingSessions] = await db.execute(
-        'SELECT id FROM sessions WHERE user_id = $1 AND expires_at > NOW()',
+        'SELECT id, last_activity FROM sessions WHERE user_id = $1 AND expires_at > NOW()',
         [user.id]
       );
 
       if (existingSessions.length > 0) {
-        // User is already logged in - prevent new login
-        return res.status(409).json({
-          error: 'This account is already in use',
-          message: 'This account is currently active in another tab. Only one session per account is allowed.',
-          alreadyLoggedIn: true
-        });
+        // Check if session has recent activity (within last 2 minutes)
+        const lastActivity = new Date(existingSessions[0].last_activity);
+        const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+
+        if (lastActivity > twoMinutesAgo) {
+          // Session is actively being used - prevent new login
+          return res.status(409).json({
+            error: 'This account is already in use',
+            message: 'This account is currently active in another tab. Only one session per account is allowed.',
+            alreadyLoggedIn: true
+          });
+        } else {
+          // Session is inactive (tab likely closed) - delete it and allow new login
+          await db.execute('DELETE FROM sessions WHERE user_id = $1', [user.id]);
+        }
       }
     } catch (sessionError) {
       console.error('Error checking existing sessions:', sessionError);
