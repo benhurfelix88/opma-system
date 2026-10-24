@@ -814,25 +814,12 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(403).json({ error: 'Your account is pending approval' });
     }
 
-    // Check if user already has an active session (activity in last 1 minute)
+    // Invalidate any existing session for this user (enforce 1 session per account)
     try {
-      const [existingSessions] = await db.execute(
-        'SELECT id, created_at, last_activity FROM sessions WHERE user_id = $1 AND expires_at > NOW() AND last_activity > NOW() - INTERVAL \'1 minute\'',
-        [user.id]
-      );
-
-      if (existingSessions.length > 0) {
-        // User is already actively logged in elsewhere
-        const lastActivity = new Date(existingSessions[0].last_activity).toLocaleString();
-        return res.status(409).json({
-          error: 'This account is already in use by another user',
-          message: `This account is currently active (last activity: ${lastActivity}). Only one user can access this account at a time.`,
-          alreadyLoggedIn: true
-        });
-      }
+      await db.execute('DELETE FROM sessions WHERE user_id = $1', [user.id]);
     } catch (sessionError) {
-      console.error('Error checking existing sessions:', sessionError);
-      // Continue with login even if session check fails
+      console.error('Error deleting existing sessions:', sessionError);
+      // Continue with login even if session deletion fails
     }
 
     // Create JWT token
@@ -1042,23 +1029,6 @@ app.post('/api/auth/logout', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Logout error:', error);
     res.json({ message: 'Logged out successfully' });
-  }
-});
-
-// Update session activity (heartbeat)
-app.post('/api/auth/heartbeat', authenticateToken, async (req, res) => {
-  try {
-    const token = req.headers['authorization']?.split(' ')[1];
-    if (token) {
-      await db.execute(
-        'UPDATE sessions SET last_activity = NOW() WHERE token = $1',
-        [token]
-      );
-    }
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Heartbeat error:', error);
-    res.json({ success: false });
   }
 });
 

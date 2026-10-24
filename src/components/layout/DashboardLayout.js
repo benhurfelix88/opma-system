@@ -106,36 +106,25 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
           setEditedUser(freshUser);
         } catch (error) {
           console.error('Failed to fetch current user:', error);
-          // If 401, session is invalid (someone else logged in)
-          if (error.response?.status === 401) {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('currentUser');
-            window.location.href = '/login';
-          }
         }
       }
     };
     loadCurrentUser();
 
-    // Send heartbeat every 30 seconds to update session activity
-    const heartbeatInterval = setInterval(async () => {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        try {
-          await authAPI.heartbeat();
-        } catch (error) {
-          console.error('Heartbeat failed:', error);
-          // If 401, session is invalid (someone else logged in)
-          if (error.response?.status === 401) {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('currentUser');
-            window.location.href = '/login';
-          }
-        }
+    // Listen for storage changes to detect logout from other tabs
+    const handleStorageChange = (e) => {
+      if (e.key === 'authToken' && e.newValue === null) {
+        // Token was removed (user logged out from another tab)
+        localStorage.removeItem('currentUser');
+        window.location.href = '/login';
       }
-    }, 30000);
+    };
 
-    return () => clearInterval(heartbeatInterval);
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, [API_BASE_URL]);
 
   const getMenuItems = () => {
