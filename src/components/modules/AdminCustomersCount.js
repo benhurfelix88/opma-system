@@ -28,6 +28,7 @@ import {
 import {
   Refresh as RefreshIcon,
   FilterList as FilterIcon,
+  Person as PersonIcon,
   Info as InfoIcon,
   Close as CloseIcon,
   DateRange as DateIcon,
