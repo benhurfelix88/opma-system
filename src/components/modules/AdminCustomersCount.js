@@ -751,6 +751,7 @@ const AdminCustomersCount = () => {
             { header: 'Date', field: 'entry_timestamp', render: (item) => new Date(item.entry_timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) },
             { header: 'Ride Name', field: 'ride_id', render: (item) => getRideName(item.ride_id) },
             { header: 'Location', field: 'ride_id', render: (item) => getRideLocation(item.ride_id) },
+            { header: 'Personnel', field: 'personnel_name' },
             { header: 'Customer Count', field: 'customer_count' },
             { header: 'Entry Time', field: 'entry_time', render: (item) => item.entry_time ? new Date(`1970-01-01T${item.entry_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '--:--' }
           ]}

@@ -703,15 +703,10 @@ const PersonnelRideCounters = () => {
                           <Typography variant="body1" fontWeight="bold">
                             {entry.rideName}
                           </Typography>
-                          <Chip 
-                            label={`${entry.customerCount} customers`} 
-                            color="primary" 
-                            size="small" 
-                          />
-                          <Chip 
-                            label={entry.entryTime} 
-                            color="default" 
-                            size="small" 
+                          <Chip
+                            label={`${entry.customerCount} customers`}
+                            color="primary"
+                            size="small"
                           />
                         </Box>
                         <Typography variant="body2" color="text.secondary">
@@ -802,11 +797,6 @@ const PersonnelRideCounters = () => {
                         <Chip
                           label={`${entry.customer_count || entry.customerCount} customers`}
                           color="primary"
-                          size="small"
-                        />
-                        <Chip
-                          label={entry.entry_time || entry.entryTime}
-                          color="default"
                           size="small"
                         />
                       </Box>
