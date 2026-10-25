@@ -28,7 +28,6 @@ import {
 import {
   Refresh as RefreshIcon,
   FilterList as FilterIcon,
-  Person as PersonIcon,
   Info as InfoIcon,
   Close as CloseIcon,
   DateRange as DateIcon,
@@ -57,6 +56,8 @@ const AdminCustomersCount = () => {
   const [viewDetailsDialogOpen, setViewDetailsDialogOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [rideSelectionModalOpen, setRideSelectionModalOpen] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyFilterType, setHistoryFilterType] = useState('days');
 
   const loadCustomersCount = useCallback(async () => {
     try {
@@ -170,6 +171,30 @@ const AdminCustomersCount = () => {
     return filteredEntries.reduce((sum, entry) => sum + (entry.customer_count || 0), 0);
   };
 
+  const getHistoryEntries = () => {
+    const now = new Date();
+    let startDate = new Date();
+
+    switch (historyFilterType) {
+      case 'days':
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case 'weeks':
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case 'months':
+        startDate.setMonth(now.getMonth() - 6);
+        break;
+      default:
+        startDate.setDate(now.getDate() - 7);
+    }
+
+    return allEntries.filter(entry => {
+      const entryDate = new Date(entry.entry_timestamp);
+      return entryDate >= startDate && entryDate <= now;
+    }).sort((a, b) => new Date(b.entry_timestamp) - new Date(a.entry_timestamp));
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
@@ -226,6 +251,14 @@ const AdminCustomersCount = () => {
             sx={{ ml: 2 }}
           >
             Export
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<ScheduleIcon />}
+            onClick={() => setHistoryDialogOpen(true)}
+            sx={{ ml: 2 }}
+          >
+            History
           </Button>
         </Box>
       </Box>
@@ -289,9 +322,9 @@ const AdminCustomersCount = () => {
                   <Table stickyHeader>
                   <TableHead>
                     <TableRow>
-                      <TableCell 
+                      <TableCell
                         align="center"
-                        sx={{ 
+                        sx={{
                           fontWeight: 'bold',
                           fontSize: '0.875rem',
                           py: 2,
@@ -300,12 +333,12 @@ const AdminCustomersCount = () => {
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                           <ScheduleIcon sx={{ fontSize: 20, color: '#1976d2' }} />
-                          Date & Time
+                          Date
                         </Box>
                       </TableCell>
-                      <TableCell 
+                      <TableCell
                         align="center"
-                        sx={{ 
+                        sx={{
                           fontWeight: 'bold',
                           fontSize: '0.875rem',
                           py: 2,
@@ -317,9 +350,9 @@ const AdminCustomersCount = () => {
                           Ride
                         </Box>
                       </TableCell>
-                      <TableCell 
+                      <TableCell
                         align="center"
-                        sx={{ 
+                        sx={{
                           fontWeight: 'bold',
                           fontSize: '0.875rem',
                           py: 2,
@@ -328,23 +361,9 @@ const AdminCustomersCount = () => {
                       >
                         Location
                       </TableCell>
-                      <TableCell 
+                      <TableCell
                         align="center"
-                        sx={{ 
-                          fontWeight: 'bold',
-                          fontSize: '0.875rem',
-                          py: 2,
-                          borderBottom: '2px solid #e0e0e0'
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                          <PersonIcon sx={{ fontSize: 20, color: '#1976d2' }} />
-                          Personnel
-                        </Box>
-                      </TableCell>
-                      <TableCell 
-                        align="center"
-                        sx={{ 
+                        sx={{
                           fontWeight: 'bold',
                           fontSize: '0.875rem',
                           py: 2,
@@ -376,7 +395,11 @@ const AdminCustomersCount = () => {
                     {filteredEntries.map((entry) => (
                       <TableRow key={entry.id} hover>
                         <TableCell align="center">
-                          {new Date(entry.entry_timestamp).toLocaleString()}
+                          {new Date(entry.entry_timestamp).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
                         </TableCell>
                         <TableCell align="center">
                           <Box display="flex" alignItems="center" gap={1}>
@@ -389,18 +412,10 @@ const AdminCustomersCount = () => {
                           {getRideLocation(entry.ride_id)}
                         </TableCell>
                         <TableCell align="center">
-                          <Chip 
-                            icon={<PersonIcon />}
-                            label={entry.personnel_name || 'Unknown'} 
-                            variant="outlined" 
-                            size="small" 
-                          />
-                        </TableCell>
-                        <TableCell align="center">
-                          <Chip 
-                            label={`${entry.customer_count || 0} customers`} 
-                            color="primary" 
-                            size="small" 
+                          <Chip
+                            label={`${entry.customer_count || 0} customers`}
+                            color="primary"
+                            size="small"
                           />
                         </TableCell>
                         <TableCell align="center">
@@ -587,6 +602,113 @@ const AdminCustomersCount = () => {
           </DialogActions>
         </Dialog>
 
+        {/* History Dialog */}
+        <Dialog
+          open={historyDialogOpen}
+          onClose={() => setHistoryDialogOpen(false)}
+          maxWidth="lg"
+          fullWidth
+          TransitionComponent={Slide}
+          transitionDuration={{ enter: 300, exit: 200 }}
+        >
+          <DialogTitle>
+            <Box display="flex" alignItems="center" gap={2}>
+              <ScheduleIcon color="primary" />
+              <Typography variant="h6" fontWeight="bold">
+                Entry History
+              </Typography>
+              <Box sx={{ flexGrow: 1 }} />
+              <IconButton onClick={() => setHistoryDialogOpen(false)} size="small">
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            <Box display="flex" gap={2} mb={3}>
+              <Button
+                variant={historyFilterType === 'days' ? 'contained' : 'outlined'}
+                onClick={() => setHistoryFilterType('days')}
+                size="small"
+              >
+                Last 7 Days
+              </Button>
+              <Button
+                variant={historyFilterType === 'weeks' ? 'contained' : 'outlined'}
+                onClick={() => setHistoryFilterType('weeks')}
+                size="small"
+              >
+                Last 30 Days
+              </Button>
+              <Button
+                variant={historyFilterType === 'months' ? 'contained' : 'outlined'}
+                onClick={() => setHistoryFilterType('months')}
+                size="small"
+              >
+                Last 6 Months
+              </Button>
+            </Box>
+            {getHistoryEntries().length === 0 ? (
+              <Box textAlign="center" py={4}>
+                <Typography variant="body1" color="text.secondary">
+                  No entries found for the selected period
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ maxHeight: '70vh', overflow: 'auto' }}>
+                <TableContainer component={Paper}>
+                  <Table stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell align="center">Date</TableCell>
+                        <TableCell align="center">Ride</TableCell>
+                        <TableCell align="center">Location</TableCell>
+                        <TableCell align="center">Customers</TableCell>
+                        <TableCell align="center">Entry Time</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {getHistoryEntries().map((entry) => (
+                        <TableRow key={entry.id} hover>
+                          <TableCell align="center">
+                            {new Date(entry.entry_timestamp).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </TableCell>
+                          <TableCell align="center">
+                            <Typography variant="body2" fontWeight="bold">
+                              {getRideName(entry.ride_id)}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="center">
+                            {getRideLocation(entry.ride_id)}
+                          </TableCell>
+                          <TableCell align="center">
+                            <Chip
+                              label={`${entry.customer_count || 0} customers`}
+                              color="primary"
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell align="center">
+                            {entry.entry_time ? new Date(`1970-01-01T${entry.entry_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '--:--'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setHistoryDialogOpen(false)} variant="contained">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+
         <ReportGenerator
           open={openReportDialog}
           onClose={() => setOpenReportDialog(false)}
@@ -594,14 +716,11 @@ const AdminCustomersCount = () => {
           title="Customer Count Report"
           reportType="customers"
           columns={[
-            { header: 'Date', field: 'entry_date', render: (item) => new Date(item.entry_date).toLocaleDateString() },
-            { header: 'Ride Name', field: 'ride_name' },
-            { header: 'Location', field: 'ride_id', render: (item) => {
-              const ride = rides.find(r => r.id === item.ride_id);
-              return ride ? (ride.location || '-') : '-';
-            }},
+            { header: 'Date', field: 'entry_timestamp', render: (item) => new Date(item.entry_timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) },
+            { header: 'Ride Name', field: 'ride_id', render: (item) => getRideName(item.ride_id) },
+            { header: 'Location', field: 'ride_id', render: (item) => getRideLocation(item.ride_id) },
             { header: 'Customer Count', field: 'customer_count' },
-            { header: 'Entry Time', field: 'entry_timestamp', render: (item) => new Date(item.entry_timestamp).toLocaleTimeString() }
+            { header: 'Entry Time', field: 'entry_time', render: (item) => item.entry_time ? new Date(`1970-01-01T${item.entry_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '--:--' }
           ]}
         />
     </Box>
