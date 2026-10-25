@@ -285,7 +285,7 @@ const AdminCustomersCount = () => {
               onClick={() => setRideSelectionModalOpen(true)}
               sx={{ height: 56 }}
             >
-              {selectedRide ? rides.find(r => r.id === selectedRide)?.name || 'Selected Ride' : 'All Rides'}
+              {selectedRide ? `${rides.find(r => r.id === selectedRide)?.name || 'Selected Ride'} (${rides.find(r => r.id === selectedRide)?.location || 'No location'})` : 'All Rides'}
             </Button>
           </Grid>
           <Grid item xs={12} md={4}>
@@ -614,6 +614,9 @@ const AdminCustomersCount = () => {
                   >
                     <Typography variant="subtitle2" fontWeight="bold">
                       {ride.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {ride.location || 'No location'}
                     </Typography>
                   </Box>
                 ))}
