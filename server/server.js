@@ -2598,41 +2598,41 @@ app.delete('/api/ride-scans/:id', authenticateToken, async (req, res) => {
 app.get('/api/ride-entries', authenticateToken, async (req, res) => {
   try {
     const { date, rideId, rideName, enteredBy, entryType, startDate, endDate } = req.query;
-    
-    let query = 'SELECT * FROM ride_entries WHERE 1=1';
+
+    let query = 'SELECT re.*, u.username as personnel_name FROM ride_entries re LEFT JOIN users u ON re.entered_by = u.id WHERE 1=1';
     const params = [];
-    
+
     if (date) {
-      query += ' AND entry_date = ?';
+      query += ' AND re.entry_date = ?';
       params.push(date);
     }
     if (rideId) {
-      query += ' AND ride_id = ?';
+      query += ' AND re.ride_id = ?';
       params.push(rideId);
     }
     if (rideName) {
-      query += ' AND ride_name LIKE ?';
+      query += ' AND re.ride_name LIKE ?';
       params.push(`%${rideName}%`);
     }
     if (enteredBy) {
-      query += ' AND entered_by = ?';
+      query += ' AND re.entered_by = ?';
       params.push(enteredBy);
     }
     if (entryType) {
-      query += ' AND entry_type = ?';
+      query += ' AND re.entry_type = ?';
       params.push(entryType);
     }
     if (startDate) {
-      query += ' AND entry_date >= ?';
+      query += ' AND re.entry_date >= ?';
       params.push(startDate);
     }
     if (endDate) {
-      query += ' AND entry_date <= ?';
+      query += ' AND re.entry_date <= ?';
       params.push(endDate);
     }
-    
-    query += ' ORDER BY entry_timestamp DESC';
-    
+
+    query += ' ORDER BY re.entry_timestamp DESC';
+
     const [entries] = await db.execute(query, params);
     res.json(entries);
   } catch (error) {
@@ -2646,29 +2646,29 @@ app.get('/api/ride-entries/ride/:rideId', authenticateToken, async (req, res) =>
   try {
     const { rideId } = req.params;
     const { date, startDate, endDate, entryType } = req.query;
-    
-    let query = 'SELECT * FROM ride_entries WHERE ride_id = ?';
+
+    let query = 'SELECT re.*, u.username as personnel_name FROM ride_entries re LEFT JOIN users u ON re.entered_by = u.id WHERE re.ride_id = ?';
     const params = [rideId];
-    
+
     if (date) {
-      query += ' AND entry_date = ?';
+      query += ' AND re.entry_date = ?';
       params.push(date);
     }
     if (startDate) {
-      query += ' AND entry_date >= ?';
+      query += ' AND re.entry_date >= ?';
       params.push(startDate);
     }
     if (endDate) {
-      query += ' AND entry_date <= ?';
+      query += ' AND re.entry_date <= ?';
       params.push(endDate);
     }
     if (entryType) {
-      query += ' AND entry_type = ?';
+      query += ' AND re.entry_type = ?';
       params.push(entryType);
     }
-    
-    query += ' ORDER BY entry_timestamp DESC';
-    
+
+    query += ' ORDER BY re.entry_timestamp DESC';
+
     const [entries] = await db.execute(query, params);
     res.json(entries);
   } catch (error) {
@@ -2682,25 +2682,25 @@ app.get('/api/ride-entries/user/:userId', authenticateToken, async (req, res) =>
   try {
     const { userId } = req.params;
     const { date, startDate, endDate } = req.query;
-    
-    let query = 'SELECT * FROM ride_entries WHERE entered_by = ?';
+
+    let query = 'SELECT re.*, u.username as personnel_name FROM ride_entries re LEFT JOIN users u ON re.entered_by = u.id WHERE re.entered_by = ?';
     const params = [userId];
-    
+
     if (date) {
-      query += ' AND entry_date = ?';
+      query += ' AND re.entry_date = ?';
       params.push(date);
     }
     if (startDate) {
-      query += ' AND entry_date >= ?';
+      query += ' AND re.entry_date >= ?';
       params.push(startDate);
     }
     if (endDate) {
-      query += ' AND entry_date <= ?';
+      query += ' AND re.entry_date <= ?';
       params.push(endDate);
     }
-    
-    query += ' ORDER BY entry_timestamp DESC';
-    
+
+    query += ' ORDER BY re.entry_timestamp DESC';
+
     const [entries] = await db.execute(query, params);
     res.json(entries);
   } catch (error) {
