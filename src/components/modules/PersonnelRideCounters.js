@@ -29,6 +29,7 @@ import {
   Info as InfoIcon,
   Close as CloseIcon,
   Warning as WarningIcon,
+  Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 import { ridesAPI } from '../../services/api';
 import rideEntriesAPI from '../../services/rideEntriesAPI';
@@ -42,6 +43,9 @@ const PersonnelRideCounters = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [refreshing, setRefreshing] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyFilterType, setHistoryFilterType] = useState('days');
+  const [allEntries, setAllEntries] = useState([]);
 
   // Manual entry states
   const [entryDialogOpen, setEntryDialogOpen] = useState(false);
@@ -104,6 +108,12 @@ const PersonnelRideCounters = () => {
       console.log('📊 Fetching today entries for ride:', assignedRide.id);
       const todayEntries = await rideEntriesAPI.getTodayEntries(assignedRide.id);
       console.log('📝 Today entries:', todayEntries);
+
+      // Get all entries for history
+      console.log('📊 Fetching all entries for ride:', assignedRide.id);
+      const allEntriesData = await rideEntriesAPI.getEntriesByRide(assignedRide.id);
+      console.log('📝 All entries:', allEntriesData);
+      setAllEntries(allEntriesData || []);
       
       // Map database fields for display
       const mappedEntries = todayEntries.map(entry => {
@@ -294,6 +304,30 @@ const PersonnelRideCounters = () => {
     setViewEntriesDialogOpen(true);
   };
 
+  const getHistoryEntries = () => {
+    const now = new Date();
+    let startDate = new Date();
+
+    switch (historyFilterType) {
+      case 'days':
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case 'weeks':
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case 'months':
+        startDate.setMonth(now.getMonth() - 6);
+        break;
+      default:
+        startDate.setDate(now.getDate() - 7);
+    }
+
+    return allEntries.filter(entry => {
+      const entryDate = new Date(entry.entry_timestamp || entry.entryTimestamp);
+      return entryDate >= startDate && entryDate <= now;
+    }).sort((a, b) => new Date(b.entry_timestamp || b.entryTimestamp) - new Date(a.entry_timestamp || a.entryTimestamp));
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'operational':
@@ -385,6 +419,20 @@ const PersonnelRideCounters = () => {
           <Button
             onClick={handleOpenViewEntriesDialog}
             variant="contained"
+            size="small"
+            sx={{
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'scale(1.05)',
+              },
+            }}
+          >
+            Today's Entries
+          </Button>
+          <Button
+            onClick={() => setHistoryDialogOpen(true)}
+            variant="contained"
+            startIcon={<ScheduleIcon />}
             size="small"
             sx={{
               transition: 'all 0.3s ease',
@@ -685,6 +733,102 @@ const PersonnelRideCounters = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setViewEntriesDialogOpen(false)} variant="contained">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* History Dialog */}
+      <Dialog
+        open={historyDialogOpen}
+        onClose={() => setHistoryDialogOpen(false)}
+        maxWidth="lg"
+        fullWidth
+        TransitionComponent={Slide}
+        transitionDuration={{ enter: 300, exit: 200 }}
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center" gap={2}>
+            <ScheduleIcon color="primary" />
+            <Typography variant="h6" fontWeight="bold">
+              Entry History
+            </Typography>
+            <Box sx={{ flexGrow: 1 }} />
+            <IconButton onClick={() => setHistoryDialogOpen(false)} size="small">
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Box display="flex" gap={2} mb={3}>
+            <Button
+              variant={historyFilterType === 'days' ? 'contained' : 'outlined'}
+              onClick={() => setHistoryFilterType('days')}
+              size="small"
+            >
+              Last 7 Days
+            </Button>
+            <Button
+              variant={historyFilterType === 'weeks' ? 'contained' : 'outlined'}
+              onClick={() => setHistoryFilterType('weeks')}
+              size="small"
+            >
+              Last 30 Days
+            </Button>
+            <Button
+              variant={historyFilterType === 'months' ? 'contained' : 'outlined'}
+              onClick={() => setHistoryFilterType('months')}
+              size="small"
+            >
+              Last 6 Months
+            </Button>
+          </Box>
+          {getHistoryEntries().length === 0 ? (
+            <Box textAlign="center" py={4}>
+              <Typography variant="body1" color="text.secondary">
+                No entries found for the selected period
+              </Typography>
+            </Box>
+          ) : (
+            <List>
+              {getHistoryEntries().map((entry) => (
+                <Paper key={entry.id} elevation={2} sx={{ mb: 2, p: 2 }}>
+                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Box flex={1}>
+                      <Box display="flex" alignItems="center" gap={2} mb={1}>
+                        <Typography variant="body1" fontWeight="bold">
+                          {entry.ride_name || entry.rideName}
+                        </Typography>
+                        <Chip
+                          label={`${entry.customer_count || entry.customerCount} customers`}
+                          color="primary"
+                          size="small"
+                        />
+                        <Chip
+                          label={entry.entry_time || entry.entryTime}
+                          color="default"
+                          size="small"
+                        />
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Added at {formatSafeDate(entry.entry_timestamp || entry.entryTimestamp)} {formatSafeTime(entry.entry_timestamp || entry.entryTimestamp)}
+                      </Typography>
+                    </Box>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Chip
+                        label={getStatusLabel(counters[entry.ride_name || entry.rideName]?.status || 'operational')}
+                        color={getStatusColor(counters[entry.ride_name || entry.rideName]?.status || 'operational')}
+                        size="medium"
+                      />
+                    </Box>
+                  </Box>
+                </Paper>
+              ))}
+            </List>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setHistoryDialogOpen(false)} variant="contained">
             Close
           </Button>
         </DialogActions>

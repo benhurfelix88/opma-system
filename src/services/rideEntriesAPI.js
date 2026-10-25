@@ -95,7 +95,7 @@ const rideEntriesAPI = {
       const today = new Date().toISOString().split('T')[0];
       const url = `${API_BASE_URL}/ride-entries/ride/${rideId}?date=${today}`;
       console.log('🌐 API Request:', url);
-      
+
       const response = await api.get(`/ride-entries/ride/${rideId}?date=${today}`);
       console.log('📥 API Response:', response.data);
       return response.data;
@@ -108,6 +108,18 @@ const rideEntriesAPI = {
         status: error.response?.status,
         url: `${API_BASE_URL}/ride-entries/ride/${rideId}?date=${new Date().toISOString().split('T')[0]}`
       });
+      throw error;
+    }
+  },
+
+  // Get all entries for a specific ride (for history)
+  getEntriesByRide: async (rideId) => {
+    try {
+      const response = await api.get(`/ride-entries/ride/${rideId}`);
+      console.log('📥 All entries for ride:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error fetching all ride entries:', error);
       throw error;
     }
   },

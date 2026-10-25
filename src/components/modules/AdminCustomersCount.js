@@ -371,6 +371,20 @@ const AdminCustomersCount = () => {
                         }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                          <PersonIcon sx={{ fontSize: 20, color: '#1976d2' }} />
+                          Personnel
+                        </Box>
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{
+                          fontWeight: 'bold',
+                          fontSize: '0.875rem',
+                          py: 2,
+                          borderBottom: '2px solid #e0e0e0'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                           <AssessmentIcon sx={{ fontSize: 20, color: '#1976d2' }} />
                           Customers
                         </Box>
@@ -410,6 +424,14 @@ const AdminCustomersCount = () => {
                         </TableCell>
                         <TableCell align="center">
                           {getRideLocation(entry.ride_id)}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            icon={<PersonIcon />}
+                            label={entry.personnel_name || 'Unknown'}
+                            variant="outlined"
+                            size="small"
+                          />
                         </TableCell>
                         <TableCell align="center">
                           <Chip
@@ -662,6 +684,7 @@ const AdminCustomersCount = () => {
                         <TableCell align="center">Date</TableCell>
                         <TableCell align="center">Ride</TableCell>
                         <TableCell align="center">Location</TableCell>
+                        <TableCell align="center">Personnel</TableCell>
                         <TableCell align="center">Customers</TableCell>
                         <TableCell align="center">Entry Time</TableCell>
                       </TableRow>
@@ -683,6 +706,14 @@ const AdminCustomersCount = () => {
                           </TableCell>
                           <TableCell align="center">
                             {getRideLocation(entry.ride_id)}
+                          </TableCell>
+                          <TableCell align="center">
+                            <Chip
+                              icon={<PersonIcon />}
+                              label={entry.personnel_name || 'Unknown'}
+                              variant="outlined"
+                              size="small"
+                            />
                           </TableCell>
                           <TableCell align="center">
                             <Chip
