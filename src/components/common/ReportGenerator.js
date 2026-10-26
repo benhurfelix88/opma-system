@@ -225,6 +225,32 @@ const ReportGenerator = ({
           }
         }
 
+        // Format approval_date (timestamp with date and time)
+        if (col.field === 'approval_date') {
+          if (value && typeof value === 'string') {
+            const date = new Date(value);
+            if (!isNaN(date.getTime())) {
+              value = date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              });
+            }
+          } else if (value instanceof Date) {
+            value = value.toLocaleString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+          }
+        }
+
         return `<td>${value}</td>`;
       }).join('');
 
@@ -412,23 +438,49 @@ const ReportGenerator = ({
           if (value && typeof value === 'string') {
             const date = new Date(value);
             if (!isNaN(date.getTime())) {
-              value = date.toLocaleString('en-US', { 
-                year: 'numeric', 
-                month: '2-digit', 
+              value = date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
                 day: '2-digit',
-                hour: 'numeric', 
+                hour: 'numeric',
                 minute: '2-digit',
-                hour12: true 
+                hour12: true
               });
             }
           } else if (value instanceof Date) {
-            value = value.toLocaleString('en-US', { 
-              year: 'numeric', 
-              month: '2-digit', 
+            value = value.toLocaleString('en-US', {
+              year: 'numeric',
+              month: '2-digit',
               day: '2-digit',
-              hour: 'numeric', 
+              hour: 'numeric',
               minute: '2-digit',
-              hour12: true 
+              hour12: true
+            });
+          }
+        }
+
+        // Format approval_date field to show date and time with AM/PM
+        if (col.field === 'approval_date') {
+          if (value && typeof value === 'string') {
+            const date = new Date(value);
+            if (!isNaN(date.getTime())) {
+              value = date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              });
+            }
+          } else if (value instanceof Date) {
+            value = value.toLocaleString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
             });
           }
         }
