@@ -193,44 +193,62 @@ const ReportGenerator = ({
     const filteredData = getFilteredData();
     const printWindow = window.open('', '_blank');
 
-    // Generate table rows
-    const tableRows = filteredData.map(item => {
-      const cells = columns.map(col => {
-        let value = item[col.field] || '';
+    // Split columns into chunks of 25
+    const columnChunks = [];
+    for (let i = 0; i < columns.length; i += 25) {
+      columnChunks.push(columns.slice(i, i + 25));
+    }
 
-        // Use render function if available
-        if (col.render) {
-          value = col.render(item);
-        }
+    // Generate table HTML for each chunk
+    const tableHTMLs = columnChunks.map((chunk, chunkIndex) => {
+      // Generate table rows for this chunk
+      const tableRows = filteredData.map(item => {
+        const cells = chunk.map(col => {
+          let value = item[col.field] || '';
 
-        // Format dates
-        if (col.field === 'entry_timestamp' || col.field === 'entry_date' || col.field === 'date') {
-          if (value && typeof value === 'string' && value.includes('T')) {
-            value = new Date(value).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric'
-            });
+          // Use render function if available
+          if (col.render) {
+            value = col.render(item);
           }
-        }
 
-        // Format times
-        if (col.field === 'entry_time') {
-          if (value && typeof value === 'string') {
-            const [hours, minutes] = value.split(':');
-            const hour = parseInt(hours, 10);
-            const ampm = hour >= 12 ? 'PM' : 'AM';
-            const hour12 = hour % 12 || 12;
-            value = `${hour12}:${minutes} ${ampm}`;
+          // Format dates
+          if (col.field === 'entry_timestamp' || col.field === 'entry_date' || col.field === 'date') {
+            if (value && typeof value === 'string' && value.includes('T')) {
+              value = new Date(value).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              });
+            }
           }
-        }
 
-        // Format approval_date (timestamp with date and time)
-        if (col.field === 'approval_date') {
-          if (value && typeof value === 'string') {
-            const date = new Date(value);
-            if (!isNaN(date.getTime())) {
-              value = date.toLocaleString('en-US', {
+          // Format times
+          if (col.field === 'entry_time') {
+            if (value && typeof value === 'string') {
+              const [hours, minutes] = value.split(':');
+              const hour = parseInt(hours, 10);
+              const ampm = hour >= 12 ? 'PM' : 'AM';
+              const hour12 = hour % 12 || 12;
+              value = `${hour12}:${minutes} ${ampm}`;
+            }
+          }
+
+          // Format approval_date (timestamp with date and time)
+          if (col.field === 'approval_date') {
+            if (value && typeof value === 'string') {
+              const date = new Date(value);
+              if (!isNaN(date.getTime())) {
+                value = date.toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                });
+              }
+            } else if (value instanceof Date) {
+              value = value.toLocaleString('en-US', {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric',
@@ -239,26 +257,31 @@ const ReportGenerator = ({
                 hour12: true
               });
             }
-          } else if (value instanceof Date) {
-            value = value.toLocaleString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit',
-              hour12: true
-            });
           }
-        }
 
-        return `<td>${value}</td>`;
+          return `<td>${value}</td>`;
+        }).join('');
+
+        return `<tr>${cells}</tr>`;
       }).join('');
 
-      return `<tr>${cells}</tr>`;
-    }).join('');
+      // Generate table headers for this chunk
+      const tableHeaders = chunk.map(col => `<th>${col.header}</th>`).join('');
 
-    // Generate table headers
-    const tableHeaders = columns.map(col => `<th>${col.header}</th>`).join('');
+      return `
+        <div class="table-section">
+          <div class="table-title">Part ${chunkIndex + 1} of ${columnChunks.length}</div>
+          <table>
+            <thead>
+              <tr>${tableHeaders}</tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }).join('');
 
     // Generate date range info
     let dateRangeInfo = '';
@@ -283,56 +306,72 @@ const ReportGenerator = ({
           <style>
             body {
               font-family: Arial, sans-serif;
-              margin: 20px;
+              margin: 0;
+              padding: 10px;
               line-height: 1.4;
               color: #333;
             }
             .header {
               text-align: center;
-              margin-bottom: 30px;
+              margin-bottom: 15px;
+              page-break-after: avoid;
             }
             .system-name {
-              font-size: 24px;
+              font-size: 20px;
               font-weight: bold;
               color: #1976d2;
-              margin-bottom: 10px;
+              margin-bottom: 8px;
             }
             .report-title {
-              font-size: 20px;
+              font-size: 16px;
               color: #333;
               margin-bottom: 5px;
             }
             .date-info {
               font-style: italic;
               color: #666;
-              margin-bottom: 20px;
+              margin-bottom: 10px;
+              font-size: 12px;
             }
             .summary-section {
               background-color: #f8f9fa;
-              padding: 15px;
+              padding: 10px;
               border-radius: 5px;
-              margin-bottom: 20px;
+              margin-bottom: 15px;
               border-left: 4px solid #1976d2;
+              page-break-after: avoid;
             }
             .summary-item {
               display: inline-block;
-              margin: 5px 15px 5px 0;
+              margin: 3px 10px 3px 0;
               font-weight: bold;
+              font-size: 12px;
+            }
+            .table-section {
+              margin-bottom: 20px;
+              page-break-after: always;
+            }
+            .table-title {
+              text-align: center;
+              font-weight: bold;
+              margin-bottom: 10px;
+              color: #666;
+              font-size: 12px;
             }
             table {
               width: 100%;
               border-collapse: collapse;
-              margin-bottom: 20px;
+              margin-bottom: 0;
               box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-              font-size: 11px;
+              font-size: 10px;
             }
             th, td {
               border: 1px solid #ddd;
-              padding: 8px 6px;
+              padding: 6px 4px;
               text-align: center;
               vertical-align: middle;
               white-space: nowrap;
-              max-width: 150px;
+              max-width: 120px;
               overflow: hidden;
               text-overflow: ellipsis;
             }
@@ -341,8 +380,8 @@ const ReportGenerator = ({
               font-weight: bold;
               color: #333;
               text-transform: uppercase;
-              font-size: 10px;
-              padding: 10px 6px;
+              font-size: 9px;
+              padding: 8px 4px;
             }
             tr:nth-child(even) {
               background-color: #f9f9f9;
@@ -359,14 +398,16 @@ const ReportGenerator = ({
             @media print {
               @page {
                 size: landscape;
-                margin: 0.5cm;
+                margin: 0.3cm;
               }
-              body { margin: 10px; }
-              table { page-break-inside: avoid; }
+              body { margin: 0; padding: 5px; }
               .header { page-break-after: avoid; }
+              .summary-section { page-break-after: avoid; }
+              .table-section { page-break-after: always; }
+              .table-section:last-child { page-break-after: auto; }
               th, td {
-                font-size: 9px;
-                padding: 4px 3px;
+                font-size: 8px;
+                padding: 3px 2px;
               }
             }
           </style>
@@ -381,16 +422,7 @@ const ReportGenerator = ({
             <span class="summary-item">Total Records: ${filteredData.length}</span>
             <span class="summary-item">Generated: ${new Date().toLocaleString()}</span>
           </div>
-          ${filteredData.length === 0 ? '<div class="no-data">No data available for the selected period</div>' : `
-          <table>
-            <thead>
-              <tr>${tableHeaders}</tr>
-            </thead>
-            <tbody>
-              ${tableRows}
-            </tbody>
-          </table>
-          `}
+          ${filteredData.length === 0 ? '<div class="no-data">No data available for the selected period</div>' : tableHTMLs}
         </body>
       </html>
     `);
