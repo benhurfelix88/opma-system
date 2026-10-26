@@ -298,19 +298,25 @@ const ReportGenerator = ({
               border-collapse: collapse;
               margin-bottom: 20px;
               box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              font-size: 11px;
             }
             th, td {
               border: 1px solid #ddd;
-              padding: 12px;
+              padding: 8px 6px;
               text-align: center;
               vertical-align: middle;
+              white-space: nowrap;
+              max-width: 150px;
+              overflow: hidden;
+              text-overflow: ellipsis;
             }
             th {
               background-color: #f5f5f5;
               font-weight: bold;
               color: #333;
               text-transform: uppercase;
-              font-size: 14px;
+              font-size: 10px;
+              padding: 10px 6px;
             }
             tr:nth-child(even) {
               background-color: #f9f9f9;
@@ -325,15 +331,23 @@ const ReportGenerator = ({
               font-style: italic;
             }
             @media print {
+              @page {
+                size: landscape;
+                margin: 0.5cm;
+              }
               body { margin: 10px; }
               table { page-break-inside: avoid; }
               .header { page-break-after: avoid; }
+              th, td {
+                font-size: 9px;
+                padding: 4px 3px;
+              }
             }
           </style>
         </head>
         <body>
           <div class="header">
-            <div class="system-name">ARMS - Amusement Ride Management System</div>
+            <div class="system-name">OPMA - Operations And Maintenance Management System</div>
             <div class="report-title">${title}</div>
             ${dateRangeInfo}
           </div>
