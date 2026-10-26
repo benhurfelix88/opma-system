@@ -40,10 +40,8 @@ import {
   Info as InfoIcon,
   Add as AddIconMaterial,
   RemoveCircleOutline as RemoveCircleOutlineIcon,
-  PictureAsPdf as ReportIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
-import ReportGenerator from '../common/ReportGenerator';
 import { incidentsAPI } from '../../services/api';
 import { getReviewStatusChipSx, normalizeReviewStatus } from '../../utils/incidentReviewStatus';
 import { Snackbar } from '@mui/material';
@@ -60,7 +58,6 @@ const PersonnelIncidentReport = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [sortBy, setSortBy] = useState('dateTime');
   const [sortOrder, setSortOrder] = useState('desc');
-  const [openReportDialog, setOpenReportDialog] = useState(false);
   const [incidentData, setIncidentData] = useState({
     // Incident Details
     dateTime: '',
@@ -690,13 +687,6 @@ const PersonnelIncidentReport = () => {
             </FormControl>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<ReportIcon />}
-              onClick={() => setOpenReportDialog(true)}
-            >
-              Export
-            </Button>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
@@ -1519,21 +1509,6 @@ const PersonnelIncidentReport = () => {
             </Button>
           </DialogActions>
         </Dialog>
-
-        <ReportGenerator
-          open={openReportDialog}
-          onClose={() => setOpenReportDialog(false)}
-          data={getFilteredIncidents()}
-          title="Incident Reports"
-          reportType="incidents"
-          columns={[
-            { header: 'Date & Time', field: 'dateTime', render: (item) => new Date(item.dateTime).toLocaleString() },
-            { header: 'Location', field: 'location' },
-            { header: 'Type', field: 'type' },
-            { header: 'Status', field: 'status' },
-            { header: 'Description', field: 'description' }
-          ]}
-        />
       </Box>
     </DashboardLayout>
   );

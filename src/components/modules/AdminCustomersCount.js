@@ -24,6 +24,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
@@ -59,6 +63,7 @@ const AdminCustomersCount = () => {
   const [rideSelectionModalOpen, setRideSelectionModalOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [historyFilterType, setHistoryFilterType] = useState('days');
+  const [reportPeriod, setReportPeriod] = useState('all');
 
   const loadCustomersCount = useCallback(async () => {
     try {
@@ -196,6 +201,31 @@ const AdminCustomersCount = () => {
     }).sort((a, b) => new Date(b.entry_timestamp) - new Date(a.entry_timestamp));
   };
 
+  const getReportData = () => {
+    const now = new Date();
+    let startDate = new Date();
+
+    switch (reportPeriod) {
+      case 'days':
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case 'weeks':
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case 'months':
+        startDate.setMonth(now.getMonth() - 6);
+        break;
+      case 'all':
+      default:
+        return filteredEntries;
+    }
+
+    return filteredEntries.filter(entry => {
+      const entryDate = new Date(entry.entry_timestamp);
+      return entryDate >= startDate && entryDate <= now;
+    });
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
@@ -245,6 +275,19 @@ const AdminCustomersCount = () => {
           >
             {refreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Report Period</InputLabel>
+            <Select
+              value={reportPeriod}
+              label="Report Period"
+              onChange={(e) => setReportPeriod(e.target.value)}
+            >
+              <MenuItem value="all">All Data</MenuItem>
+              <MenuItem value="days">Last 7 Days</MenuItem>
+              <MenuItem value="weeks">Last 30 Days</MenuItem>
+              <MenuItem value="months">Last 6 Months</MenuItem>
+            </Select>
+          </FormControl>
           <Button
             variant="contained"
             startIcon={<ReportIcon />}
@@ -747,7 +790,7 @@ const AdminCustomersCount = () => {
         <ReportGenerator
           open={openReportDialog}
           onClose={() => setOpenReportDialog(false)}
-          data={filteredEntries}
+          data={getReportData()}
           title="Customer Count Report"
           reportType="customers"
           columns={[
