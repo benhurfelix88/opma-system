@@ -193,10 +193,10 @@ const ReportGenerator = ({
     const filteredData = getFilteredData();
     const printWindow = window.open('', '_blank');
 
-    // Split columns into chunks of 25
+    // Split columns into chunks of 20
     const columnChunks = [];
-    for (let i = 0; i < columns.length; i += 25) {
-      columnChunks.push(columns.slice(i, i + 25));
+    for (let i = 0; i < columns.length; i += 20) {
+      columnChunks.push(columns.slice(i, i + 20));
     }
 
     // Generate table HTML for each chunk
