@@ -190,53 +190,96 @@ const ReportGenerator = ({
   };
 
   const handlePrint = () => {
-    const printContent = reportRef.current;
+    const filteredData = getFilteredData();
     const printWindow = window.open('', '_blank');
-    
+
+    // Generate table rows
+    const tableRows = filteredData.map(item => {
+      const cells = columns.map(col => {
+        let value = item[col.field] || '';
+
+        // Use render function if available
+        if (col.render) {
+          value = col.render(item);
+        }
+
+        // Format dates
+        if (col.field === 'entry_timestamp' || col.field === 'entry_date' || col.field === 'date') {
+          if (value && typeof value === 'string' && value.includes('T')) {
+            value = new Date(value).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            });
+          }
+        }
+
+        // Format times
+        if (col.field === 'entry_time') {
+          if (value && typeof value === 'string') {
+            const [hours, minutes] = value.split(':');
+            const hour = parseInt(hours, 10);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            value = `${hour12}:${minutes} ${ampm}`;
+          }
+        }
+
+        return `<td>${value}</td>`;
+      }).join('');
+
+      return `<tr>${cells}</tr>`;
+    }).join('');
+
+    // Generate table headers
+    const tableHeaders = columns.map(col => `<th>${col.header}</th>`).join('');
+
+    // Generate date range info
+    let dateRangeInfo = '';
+    if (dateRange === 'overall') {
+      dateRangeInfo = '<p class="date-info">Report Period: All Data</p>';
+    } else if (dateRange === 'daily') {
+      dateRangeInfo = `<p class="date-info">Report Period: ${selectedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>`;
+    } else if (dateRange === 'weekly') {
+      const weekRange = getWeekDateRange(selectedDate);
+      dateRangeInfo = `<p class="date-info">Report Period: Week ${weekRange.weekNumber} (${weekRange.startDate.toLocaleDateString()} - ${weekRange.endDate.toLocaleDateString()})</p>`;
+    } else if (dateRange === 'monthly') {
+      dateRangeInfo = `<p class="date-info">Report Period: ${months[selectedDate.getMonth()]} ${selectedDate.getFullYear()}</p>`;
+    } else if (dateRange === 'custom') {
+      dateRangeInfo = `<p class="date-info">Report Period: ${customStartDate?.toLocaleDateString()} - ${customEndDate?.toLocaleDateString()}</p>`;
+    }
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
           <title>${title} - Report</title>
           <style>
-            body { 
-              font-family: Arial, sans-serif; 
-              margin: 20px; 
+            body {
+              font-family: Arial, sans-serif;
+              margin: 20px;
               line-height: 1.4;
               color: #333;
             }
-            h1 { 
-              color: #1976d2; 
-              text-align: center; 
+            .header {
+              text-align: center;
               margin-bottom: 30px;
-              border-bottom: 2px solid #1976d2;
-              padding-bottom: 10px;
             }
-            h2 { 
-              color: #333; 
-              margin-top: 20px; 
+            .system-name {
+              font-size: 24px;
+              font-weight: bold;
+              color: #1976d2;
               margin-bottom: 10px;
             }
-            table { 
-              width: 100%; 
-              border-collapse: collapse; 
-              margin-bottom: 20px;
-              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            th, td { 
-              border: 1px solid #ddd; 
-              padding: 12px; 
-              text-align: left; 
-              vertical-align: top;
-            }
-            th { 
-              background-color: #f5f5f5; 
-              font-weight: bold; 
+            .report-title {
+              font-size: 20px;
               color: #333;
-              text-align: center;
+              margin-bottom: 5px;
             }
-            tr:nth-child(even) { 
-              background-color: #f9f9f9; 
+            .date-info {
+              font-style: italic;
+              color: #666;
+              margin-bottom: 20px;
             }
             .summary-section {
               background-color: #f8f9fa;
@@ -250,25 +293,68 @@ const ReportGenerator = ({
               margin: 5px 15px 5px 0;
               font-weight: bold;
             }
-            .date-info {
-              text-align: center;
+            table {
+              width: 100%;
+              border-collapse: collapse;
               margin-bottom: 20px;
-              font-style: italic;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 12px;
+              text-align: center;
+              vertical-align: middle;
+            }
+            th {
+              background-color: #f5f5f5;
+              font-weight: bold;
+              color: #333;
+              text-transform: uppercase;
+              font-size: 14px;
+            }
+            tr:nth-child(even) {
+              background-color: #f9f9f9;
+            }
+            tr:hover {
+              background-color: #f0f0f0;
+            }
+            .no-data {
+              text-align: center;
+              padding: 40px;
               color: #666;
+              font-style: italic;
             }
             @media print {
               body { margin: 10px; }
               table { page-break-inside: avoid; }
-              h1 { page-break-after: avoid; }
+              .header { page-break-after: avoid; }
             }
           </style>
         </head>
         <body>
-          ${printContent.innerHTML}
+          <div class="header">
+            <div class="system-name">ARMS - Amusement Ride Management System</div>
+            <div class="report-title">${title}</div>
+            ${dateRangeInfo}
+          </div>
+          <div class="summary-section">
+            <span class="summary-item">Total Records: ${filteredData.length}</span>
+            <span class="summary-item">Generated: ${new Date().toLocaleString()}</span>
+          </div>
+          ${filteredData.length === 0 ? '<div class="no-data">No data available for the selected period</div>' : `
+          <table>
+            <thead>
+              <tr>${tableHeaders}</tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+          `}
         </body>
       </html>
     `);
-    
+
     printWindow.document.close();
     printWindow.print();
   };
