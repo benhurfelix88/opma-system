@@ -388,9 +388,9 @@ const PersonnelRideCounters = () => {
           <Typography variant="h4" fontWeight="bold">
             {rides.length > 0 ? `${rides[0].name} Counter` : 'Ride Counter'}
           </Typography>
-          {currentUser && currentUser.assignedRide && (
+          {rides.length > 0 && (
             <Typography variant="body2" color="text.secondary">
-              Your assigned ride
+              {rides[0].location || 'Not specified'}
             </Typography>
           )}
         </Box>
@@ -445,20 +445,6 @@ const PersonnelRideCounters = () => {
           </Button>
         </Box>
       </Box>
-
-      {/* Ride Location Display */}
-      {rides.length > 0 && (
-        <Fade in={true} style={{ transitionDelay: '100ms' }}>
-          <Paper elevation={2} sx={{ p: 2, mb: 3, bgcolor: 'background.default' }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Location
-            </Typography>
-            <Typography variant="h5" fontWeight="bold">
-              {rides[0].location || 'Not specified'}
-            </Typography>
-          </Paper>
-        </Fade>
-      )}
 
       {/* Summary Card */}
       <Zoom in={true} style={{ transitionDelay: '200ms' }}>
