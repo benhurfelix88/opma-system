@@ -42,7 +42,6 @@ const PersonnelRideCounters = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [refreshing, setRefreshing] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [historyFilterType, setHistoryFilterType] = useState('days');
   const [allEntries, setAllEntries] = useState([]);
@@ -64,8 +63,7 @@ const PersonnelRideCounters = () => {
       
       // Get current user and check assigned ride
       const user = JSON.parse(sessionStorage.getItem('currentUser'));
-      console.log('👤 Current user:', user);
-      setCurrentUser(user);
+      console.log('👤 Current user:', user?.username || user?.fullName || 'Unknown');
 
       if (!user) {
         console.error('❌ No user found in sessionStorage');
