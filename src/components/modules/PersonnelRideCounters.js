@@ -387,7 +387,7 @@ const PersonnelRideCounters = () => {
             {rides.length > 0 ? `${rides[0].name} Counter` : 'Ride Counter'}
           </Typography>
           {rides.length > 0 && (
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="h6" fontWeight="bold" color="text.secondary">
               {rides[0].location || 'Not specified'}
             </Typography>
           )}
