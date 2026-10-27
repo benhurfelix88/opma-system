@@ -245,6 +245,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           ride: part.ride || '', // Use actual ride field from database
           category: part.category || '',
           approvalStatus,
+          approval_date: part.approval_date,
           totalAmount: (part.cost || 0) * (part.quantity || 0),
           lastUpdated: part.updated_at || part.created_at || new Date().toISOString(),
         };
@@ -988,13 +989,14 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Supplier</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Last Updated</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Status</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Date</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {filteredParts.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={selectedRide ? 11 : 12} align="center">
+                        <TableCell colSpan={selectedRide ? 12 : 13} align="center">
                           <Typography variant="body1" color="text.secondary">
                             No parts found
                           </Typography>
@@ -1047,6 +1049,26 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                 backgroundColor: 'transparent',
                               }}
                             />
+                          </TableCell>
+                          <TableCell align="center">
+                            {part.approval_date ? (
+                              <Box>
+                                <Typography variant="body2">
+                                  {new Date(part.approval_date).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                  })}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  {new Date(part.approval_date).toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true
+                                  })}
+                                </Typography>
+                              </Box>
+                            ) : 'N/A'}
                           </TableCell>
                           <TableCell align="center">
                             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
