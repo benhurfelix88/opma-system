@@ -492,8 +492,8 @@ const ManagerPartsInventory = () => {
                           <Typography variant="body2">
                             {new Date(part.approval_date).toLocaleDateString('en-US', {
                               year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
+                              month: '2-digit',
+                              day: '2-digit'
                             })}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">

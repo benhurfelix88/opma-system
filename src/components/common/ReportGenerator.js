@@ -216,7 +216,7 @@ const ReportGenerator = ({
             if (value && typeof value === 'string' && value.includes('T')) {
               value = new Date(value).toLocaleDateString('en-US', {
                 year: 'numeric',
-                month: 'short',
+                month: '2-digit',
                 day: 'numeric'
               });
             }
@@ -240,7 +240,7 @@ const ReportGenerator = ({
               if (!isNaN(date.getTime())) {
                 value = date.toLocaleString('en-US', {
                   year: 'numeric',
-                  month: 'short',
+                  month: '2-digit',
                   day: 'numeric',
                   hour: 'numeric',
                   minute: '2-digit',
@@ -250,7 +250,7 @@ const ReportGenerator = ({
             } else if (value instanceof Date) {
               value = value.toLocaleString('en-US', {
                 year: 'numeric',
-                month: 'short',
+                month: '2-digit',
                 day: 'numeric',
                 hour: 'numeric',
                 minute: '2-digit',
@@ -498,7 +498,7 @@ const ReportGenerator = ({
             if (!isNaN(date.getTime())) {
               value = date.toLocaleString('en-US', {
                 year: 'numeric',
-                month: 'short',
+                month: '2-digit',
                 day: 'numeric',
                 hour: 'numeric',
                 minute: '2-digit',
@@ -508,7 +508,7 @@ const ReportGenerator = ({
           } else if (value instanceof Date) {
             value = value.toLocaleString('en-US', {
               year: 'numeric',
-              month: 'short',
+              month: '2-digit',
               day: 'numeric',
               hour: 'numeric',
               minute: '2-digit',
