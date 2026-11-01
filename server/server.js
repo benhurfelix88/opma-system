@@ -738,6 +738,21 @@ async function ensurePartRemovals() {
   }
 }
 
+// Fix corrupted photos data in incident_reports
+async function fixCorruptedPhotos() {
+  try {
+    const [result] = await db.execute(
+      'UPDATE incident_reports SET photos = NULL WHERE photos = ? OR photos LIKE ?',
+      ['[object Object]', '%[object Object]%']
+    );
+    if (result.affectedRows > 0) {
+      console.log(`✓ Fixed ${result.affectedRows} corrupted photo records`);
+    }
+  } catch (e) {
+    console.error('Fix corrupted photos failed:', e.message);
+  }
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -751,6 +766,7 @@ ensureIncidentSchema();
 ensureUsersAndAdmin();
 ensureRides();
 ensureRideEntries();
+fixCorruptedPhotos();
 ensureDailyRideSummary();
 ensurePasswordResetTokens();
 ensureSessions();
@@ -1795,7 +1811,13 @@ app.get('/api/incidents', authenticateToken, async (req, res) => {
       let photos = [];
       if (incident.photos) {
         try {
-          photos = JSON.parse(incident.photos);
+          // Handle case where photos is already an object (not a string)
+          if (typeof incident.photos === 'object') {
+            photos = Array.isArray(incident.photos) ? incident.photos : [];
+          } else {
+            photos = JSON.parse(incident.photos);
+          }
+
           console.log('Incident', incident.id, 'photos:', JSON.stringify(photos, null, 2));
 
           // Convert file paths to full URLs if they're relative paths
@@ -1813,6 +1835,7 @@ app.get('/api/incidents', authenticateToken, async (req, res) => {
           });
         } catch (e) {
           console.error('Error parsing photos for incident', incident.id, ':', e);
+          console.error('Raw photos value:', incident.photos);
           photos = [];
         }
       }
