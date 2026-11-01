@@ -216,7 +216,7 @@ const ManagerIncidentReports = () => {
       const mappedIncidents = allIncidents.map(incident => {
         const photos = (incident.photos || []).map(photo => ({
           ...photo,
-          preview: photo.data || photo.preview,
+          preview: photo.path || photo.preview,
         }));
         let rawDateTime = '';
         if (incident.date_reported && incident.time_reported && 
@@ -288,29 +288,19 @@ const ManagerIncidentReports = () => {
 
   const handlePhotoUpload = (event) => {
     const files = Array.from(event.target.files);
-    
-    // Convert each file to base64 for database storage
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const base64Data = e.target.result;
-        const newPhoto = {
-          id: Date.now() + Math.random(),
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          data: base64Data, // Store base64 data
-          preview: base64Data, // Use base64 for preview
-          isNew: true // Flag to identify newly uploaded files
-        };
-        
-        setIncidentData(prev => ({
-          ...prev,
-          photos: [...prev.photos, newPhoto]
-        }));
-      };
-      reader.readAsDataURL(file);
-    });
+    const newPhotos = files.map(file => ({
+      id: Date.now() + Math.random(),
+      file: file,
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      preview: URL.createObjectURL(file),
+      isNew: true
+    }));
+    setIncidentData(prev => ({
+      ...prev,
+      photos: [...prev.photos, ...newPhotos]
+    }));
   };
 
   const handleRemovePhoto = (photoId) => {
@@ -325,7 +315,7 @@ const ManagerIncidentReports = () => {
       setSelectedIncident(incident);
       const photos = (incident.photos || []).map(photo => ({
         ...photo,
-        preview: photo.data || photo.preview,
+        preview: photo.path || photo.preview,
         isNew: false
       }));
       let formattedDateTime = '';
@@ -461,15 +451,19 @@ const ManagerIncidentReports = () => {
       if (!dateStr || !timeStr) {
         throw new Error('Invalid date/time value');
       }
-      // Convert all photos to base64 format for database storage
-      const photosPayload = (incidentData.photos || []).map(photo => ({
-        id: photo.id,
-        name: photo.name,
-        type: photo.type,
-        size: photo.size,
-        data: photo.data // Base64 data
-      }));
-
+      const newPhotoFiles = (incidentData.photos || [])
+        .filter(photo => photo.isNew && photo.file instanceof File)
+        .map(photo => photo.file);
+      const existingPhotos = (incidentData.photos || [])
+        .filter(photo => !photo.isNew)
+        .map(photo => ({
+          id: photo.id,
+          filename: photo.filename,
+          originalname: photo.originalname || photo.name,
+          path: photo.path,
+          mimetype: photo.mimetype || photo.type,
+          size: photo.size
+        }));
       const incidentPayload = {
         incident_id: selectedIncident ? selectedIncident.incident_id : `INC-${Date.now()}`,
         ride_name: incidentData.location,
@@ -488,13 +482,12 @@ const ManagerIncidentReports = () => {
         follow_up: incidentData.followUp || '',
         recommendations: incidentData.recommendations || '',
         resolution: incidentData.recommendations || '',
-        photos: photosPayload
       };
       if (selectedIncident) {
-        await incidentsAPI.update(selectedIncident.id, incidentPayload);
+        await incidentsAPI.update(selectedIncident.id, incidentPayload, newPhotoFiles, existingPhotos);
         setSnackbar({ open: true, message: 'Incident updated successfully', severity: 'success' });
       } else {
-        await incidentsAPI.create(incidentPayload);
+        await incidentsAPI.create(incidentPayload, newPhotoFiles);
         setSnackbar({ open: true, message: 'Incident reported successfully', severity: 'success' });
       }
       await loadIncidents();
@@ -1349,7 +1342,7 @@ const ManagerIncidentReports = () => {
                             <CardMedia
                               component="img"
                               height="200"
-                              image={photo.data || photo.preview}
+                              image={photo.path || photo.preview}
                               alt="Incident photo"
                               onClick={() => handlePhotoClick(photo)}
                               sx={{
@@ -1475,7 +1468,7 @@ const ManagerIncidentReports = () => {
                 }}
               >
                 <img
-                  src={selectedPhoto.data || selectedPhoto.preview}
+                  src={selectedPhoto.path || selectedPhoto.preview}
                   alt="Full size"
                   style={{
                     maxWidth: '100%',

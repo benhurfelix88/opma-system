@@ -12,6 +12,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
+const axios = require('axios');
 const db = require('./config/database');
 
 const app = express();
@@ -85,6 +86,35 @@ const upload = multer({
     }
   }
 });
+
+// Upload image to ImgBB for persistent storage
+async function uploadToImgBB(filePath) {
+  try {
+    const imgbbApiKey = process.env.IMGBB_API_KEY;
+    if (!imgbbApiKey) {
+      console.warn('⚠️ ImgBB API key not configured. Using local storage.');
+      return null;
+    }
+
+    const imageBuffer = fs.readFileSync(filePath);
+    const base64Image = imageBuffer.toString('base64');
+
+    const formData = new FormData();
+    formData.append('key', imgbbApiKey);
+    formData.append('image', base64Image);
+
+    const response = await axios.post('https://api.imgbb.com/1/upload', formData);
+
+    if (response.data && response.data.data && response.data.data.url) {
+      return response.data.data.url;
+    } else {
+      throw new Error('Invalid response from ImgBB');
+    }
+  } catch (error) {
+    console.error('Error uploading to ImgBB:', error.message);
+    return null;
+  }
+}
 
 // Configure multer specifically for profile pictures (PNG and JPG only)
 const profileStorage = multer.diskStorage({
@@ -1821,7 +1851,7 @@ app.get('/api/incidents', authenticateToken, async (req, res) => {
 });
 
 // Create incident report with file uploads
-app.post('/api/incidents', authenticateToken, async (req, res) => {
+app.post('/api/incidents', authenticateToken, upload.array('photos', 10), async (req, res) => {
   try {
     const {
       incident_id,
@@ -1839,9 +1869,43 @@ app.post('/api/incidents', authenticateToken, async (req, res) => {
       response,
       actions_taken,
       follow_up,
-      recommendations,
-      photos
+      recommendations
     } = req.body;
+
+    // Process uploaded files and upload to ImgBB
+    let photosData = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const filePath = path.join(uploadsDir, file.filename);
+        const imgUrl = await uploadToImgBB(filePath);
+
+        if (imgUrl) {
+          // Use ImgBB URL
+          photosData.push({
+            id: Date.now() + Math.random(),
+            filename: file.filename,
+            originalname: file.originalname,
+            path: imgUrl,
+            mimetype: file.mimetype,
+            size: file.size
+          });
+          // Delete local file after successful upload
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+        } else {
+          // Fallback to local path
+          photosData.push({
+            id: Date.now() + Math.random(),
+            filename: file.filename,
+            originalname: file.originalname,
+            path: `/uploads/images/${file.filename}`,
+            mimetype: file.mimetype,
+            size: file.size
+          });
+        }
+      }
+    }
 
     // Parse involved_parties if it's a string
     let partiesJson = null;
@@ -1854,8 +1918,8 @@ app.post('/api/incidents', authenticateToken, async (req, res) => {
       }
     }
 
-    // Handle base64 photos - they're already in the correct format from frontend
-    const photosJson = photos && photos.length > 0 ? JSON.stringify(photos) : null;
+    // Convert photos to JSON string
+    const photosJson = photosData.length > 0 ? JSON.stringify(photosData) : null;
 
     // Validate and normalize date_reported and time_reported
     const normalizedDateReported = date_reported && date_reported.trim() !== '' ? date_reported.trim() : null;
@@ -1892,6 +1956,16 @@ app.post('/api/incidents', authenticateToken, async (req, res) => {
     res.json({ id: result.insertId, message: 'Incident report created successfully' });
   } catch (error) {
     console.error('Create incident error:', error);
+
+    // Delete uploaded files if there was an error
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        const filePath = path.join(uploadsDir, file.filename);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      });
+    }
 
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ error: 'Incident ID already exists' });
@@ -1936,7 +2010,7 @@ app.patch('/api/incidents/:id/review-status', authenticateToken, updateIncidentR
 app.put('/api/incidents/:id/review-status', authenticateToken, updateIncidentReviewStatusHandler);
 
 // Update incident report
-app.put('/api/incidents/:id', authenticateToken, async (req, res) => {
+app.put('/api/incidents/:id', authenticateToken, upload.array('photos', 10), async (req, res) => {
   try {
     const {
       incident_id,
@@ -1948,6 +2022,7 @@ app.put('/api/incidents/:id', authenticateToken, async (req, res) => {
       time_reported,
       status,
       resolution,
+      existing_photos,
       involved_parties,
       injuries,
       property_damage,
@@ -1956,12 +2031,75 @@ app.put('/api/incidents/:id', authenticateToken, async (req, res) => {
       actions_taken,
       follow_up,
       recommendations,
-      review_status,
-      photos
+      review_status
     } = req.body;
 
     const userRole = (req.user.role || '').toString();
     const isOperationsManager = userRole === 'Operations Manager';
+
+    // Get existing photos from database
+    const [existingIncident] = await db.execute('SELECT photos FROM incident_reports WHERE id = ?', [req.params.id]);
+    let existingPhotos = [];
+    if (existingIncident && existingIncident[0] && existingIncident[0].photos) {
+      try {
+        existingPhotos = JSON.parse(existingIncident[0].photos);
+      } catch (e) {
+        existingPhotos = [];
+      }
+    }
+
+    // Process new uploaded files and upload to ImgBB
+    let newPhotosData = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const filePath = path.join(uploadsDir, file.filename);
+        const imgUrl = await uploadToImgBB(filePath);
+
+        if (imgUrl) {
+          // Use ImgBB URL
+          newPhotosData.push({
+            id: Date.now() + Math.random(),
+            filename: file.filename,
+            originalname: file.originalname,
+            path: imgUrl,
+            mimetype: file.mimetype,
+            size: file.size
+          });
+          // Delete local file after successful upload
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+        } else {
+          // Fallback to local path
+          newPhotosData.push({
+            id: Date.now() + Math.random(),
+            filename: file.filename,
+            originalname: file.originalname,
+            path: `/uploads/images/${file.filename}`,
+            mimetype: file.mimetype,
+            size: file.size
+          });
+        }
+      }
+    }
+
+    // Combine existing photos (if provided) and new photos
+    let finalPhotos = [];
+
+    // If existing_photos is provided, parse and use it, otherwise keep current photos
+    if (existing_photos) {
+      try {
+        const parsed = typeof existing_photos === 'string' ? JSON.parse(existing_photos) : existing_photos;
+        finalPhotos = Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        finalPhotos = existingPhotos;
+      }
+    } else {
+      finalPhotos = existingPhotos;
+    }
+
+    // Add new photos
+    finalPhotos = [...finalPhotos, ...newPhotosData];
 
     // Parse involved_parties if it's a string
     let partiesJson = null;
@@ -1974,13 +2112,13 @@ app.put('/api/incidents/:id', authenticateToken, async (req, res) => {
       }
     }
 
-    // Handle base64 photos - they're already in the correct format from frontend
-    const photosJson = photos && photos.length > 0 ? JSON.stringify(photos) : null;
+    // Convert photos to JSON string
+    const photosJson = finalPhotos.length > 0 ? JSON.stringify(finalPhotos) : null;
 
     // Validate and normalize date_reported and time_reported
     const normalizedDateReported = date_reported && date_reported.trim() !== '' ? date_reported.trim() : null;
     const normalizedTimeReported = time_reported && time_reported.trim() !== '' ? time_reported.trim() : null;
-    
+
     const [columns] = await db.execute(`
       SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
       WHERE TABLE_SCHEMA = current_database() AND TABLE_NAME = 'incident_reports'
@@ -2017,6 +2155,17 @@ app.put('/api/incidents/:id', authenticateToken, async (req, res) => {
     res.json({ message: 'Incident report updated successfully' });
   } catch (error) {
     console.error('Update incident error:', error);
+
+    // Delete uploaded files if there was an error
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        const filePath = path.join(uploadsDir, file.filename);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      });
+    }
+
     res.status(500).json({ error: error.message || 'Server error' });
   }
 });
