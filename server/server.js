@@ -1870,14 +1870,25 @@ app.post('/api/incidents', authenticateToken, upload.array('photos', 10), async 
     // Process uploaded files - Cloudinary or local storage
     let photosData = [];
     if (req.files && req.files.length > 0) {
-      photosData = req.files.map(file => ({
-        id: Date.now() + Math.random(),
-        filename: file.filename || file.originalname,
-        originalname: file.originalname,
-        path: file.path || (file.filename ? `/uploads/images/${file.filename}` : null),
-        mimetype: file.mimetype,
-        size: file.size
-      }));
+      console.log('Received files:', req.files.length);
+      console.log('File structure:', JSON.stringify(req.files[0], null, 2));
+
+      photosData = req.files.map(file => {
+        // Cloudinary returns url, local storage returns path
+        const photoUrl = file.url || file.path || (file.filename ? `/uploads/images/${file.filename}` : null);
+        console.log('Photo URL for', file.originalname, ':', photoUrl);
+
+        return {
+          id: Date.now() + Math.random(),
+          filename: file.filename || file.originalname,
+          originalname: file.originalname,
+          path: photoUrl,
+          mimetype: file.mimetype,
+          size: file.size
+        };
+      });
+
+      console.log('Processed photos data:', JSON.stringify(photosData, null, 2));
     }
 
     // Parse involved_parties if it's a string
