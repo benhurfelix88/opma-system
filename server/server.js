@@ -12,7 +12,8 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
-const axios = require('axios');
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const db = require('./config/database');
 
 const app = express();
@@ -42,6 +43,18 @@ if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
   console.log('⚠️ Email credentials not configured. Password reset emails will not be sent.');
 }
 
+// Configure Cloudinary for image storage
+if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+  console.log('✓ Cloudinary is configured for image storage');
+} else {
+  console.log('⚠️ Cloudinary credentials not configured. Using local storage fallback.');
+}
+
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads', 'images');
 if (!fs.existsSync(uploadsDir)) {
@@ -54,13 +67,24 @@ if (!fs.existsSync(profilePicsDir)) {
   fs.mkdirSync(profilePicsDir, { recursive: true });
 }
 
-// Configure multer for incident photo uploads
-const storage = multer.diskStorage({
+// Configure Cloudinary storage for incident photos
+const cloudinaryStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'incident-photos',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    transformation: [
+      { width: 1920, height: 1080, crop: 'limit' }
+    ]
+  }
+});
+
+// Fallback to local storage if Cloudinary is not configured
+const localStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
-    // Generate unique filename: timestamp-originalname
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname);
     const name = path.basename(file.originalname, ext);
@@ -68,17 +92,17 @@ const storage = multer.diskStorage({
   }
 });
 
+// Use Cloudinary storage if configured, otherwise local storage
 const upload = multer({
-  storage: storage,
+  storage: process.env.CLOUDINARY_CLOUD_NAME ? cloudinaryStorage : localStorage,
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    // Accept only image files
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
-    
+
     if (mimetype && extname) {
       return cb(null, true);
     } else {
@@ -86,35 +110,6 @@ const upload = multer({
     }
   }
 });
-
-// Upload image to ImgBB for persistent storage
-async function uploadToImgBB(filePath) {
-  try {
-    const imgbbApiKey = process.env.IMGBB_API_KEY;
-    if (!imgbbApiKey) {
-      console.warn('⚠️ ImgBB API key not configured. Using local storage.');
-      return null;
-    }
-
-    const imageBuffer = fs.readFileSync(filePath);
-    const base64Image = imageBuffer.toString('base64');
-
-    const formData = new FormData();
-    formData.append('key', imgbbApiKey);
-    formData.append('image', base64Image);
-
-    const response = await axios.post('https://api.imgbb.com/1/upload', formData);
-
-    if (response.data && response.data.data && response.data.data.url) {
-      return response.data.data.url;
-    } else {
-      throw new Error('Invalid response from ImgBB');
-    }
-  } catch (error) {
-    console.error('Error uploading to ImgBB:', error.message);
-    return null;
-  }
-}
 
 // Configure multer specifically for profile pictures (PNG and JPG only)
 const profileStorage = multer.diskStorage({
@@ -1872,39 +1867,17 @@ app.post('/api/incidents', authenticateToken, upload.array('photos', 10), async 
       recommendations
     } = req.body;
 
-    // Process uploaded files and upload to ImgBB
+    // Process uploaded files - Cloudinary or local storage
     let photosData = [];
     if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
-        const filePath = path.join(uploadsDir, file.filename);
-        const imgUrl = await uploadToImgBB(filePath);
-
-        if (imgUrl) {
-          // Use ImgBB URL
-          photosData.push({
-            id: Date.now() + Math.random(),
-            filename: file.filename,
-            originalname: file.originalname,
-            path: imgUrl,
-            mimetype: file.mimetype,
-            size: file.size
-          });
-          // Delete local file after successful upload
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-          }
-        } else {
-          // Fallback to local path
-          photosData.push({
-            id: Date.now() + Math.random(),
-            filename: file.filename,
-            originalname: file.originalname,
-            path: `/uploads/images/${file.filename}`,
-            mimetype: file.mimetype,
-            size: file.size
-          });
-        }
-      }
+      photosData = req.files.map(file => ({
+        id: Date.now() + Math.random(),
+        filename: file.filename || file.originalname,
+        originalname: file.originalname,
+        path: file.path || (file.filename ? `/uploads/images/${file.filename}` : null),
+        mimetype: file.mimetype,
+        size: file.size
+      }));
     }
 
     // Parse involved_parties if it's a string
@@ -2048,39 +2021,17 @@ app.put('/api/incidents/:id', authenticateToken, upload.array('photos', 10), asy
       }
     }
 
-    // Process new uploaded files and upload to ImgBB
+    // Process new uploaded files - Cloudinary or local storage
     let newPhotosData = [];
     if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
-        const filePath = path.join(uploadsDir, file.filename);
-        const imgUrl = await uploadToImgBB(filePath);
-
-        if (imgUrl) {
-          // Use ImgBB URL
-          newPhotosData.push({
-            id: Date.now() + Math.random(),
-            filename: file.filename,
-            originalname: file.originalname,
-            path: imgUrl,
-            mimetype: file.mimetype,
-            size: file.size
-          });
-          // Delete local file after successful upload
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-          }
-        } else {
-          // Fallback to local path
-          newPhotosData.push({
-            id: Date.now() + Math.random(),
-            filename: file.filename,
-            originalname: file.originalname,
-            path: `/uploads/images/${file.filename}`,
-            mimetype: file.mimetype,
-            size: file.size
-          });
-        }
-      }
+      newPhotosData = req.files.map(file => ({
+        id: Date.now() + Math.random(),
+        filename: file.filename || file.originalname,
+        originalname: file.originalname,
+        path: file.path || (file.filename ? `/uploads/images/${file.filename}` : null),
+        mimetype: file.mimetype,
+        size: file.size
+      }));
     }
 
     // Combine existing photos (if provided) and new photos
