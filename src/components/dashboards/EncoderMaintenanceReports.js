@@ -532,19 +532,24 @@ const EncoderMaintenanceReports = () => {
                         <InfoIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title={record.status === 'Completed' ? 'Cannot edit completed maintenance records' : 'Edit'}>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleOpenDialog(record)}
-                        disabled={record.status === 'Completed'}
-                        sx={{
-                          opacity: record.status === 'Completed' ? 0.5 : 1,
-                          cursor: record.status === 'Completed' ? 'not-allowed' : 'pointer'
-                        }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
+                    {record.status !== 'Completed' && (
+                      <Tooltip title="Edit">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenDialog(record)}
+                          sx={{
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                              backgroundColor: 'primary.main',
+                              color: 'white',
+                              transform: 'scale(1.1)',
+                            },
+                          }}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                     <Tooltip title="Delete">
                       <IconButton
                         size="small"
