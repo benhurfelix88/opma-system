@@ -1069,8 +1069,22 @@ const ManagerIncidentReports = () => {
                           height="140"
                           image={photo.preview}
                           alt="Incident photo"
+                          onClick={() => handlePhotoClick(photo)}
+                          sx={{
+                            cursor: 'pointer',
+                            '&:hover': {
+                              opacity: 0.9,
+                            },
+                          }}
                         />
                         <CardActions>
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => handlePhotoClick(photo)}
+                          >
+                            <InfoIcon />
+                          </IconButton>
                           <IconButton
                             size="small"
                             color="error"
