@@ -67,20 +67,8 @@ if (!fs.existsSync(profilePicsDir)) {
   fs.mkdirSync(profilePicsDir, { recursive: true });
 }
 
-// Configure Cloudinary storage for incident photos
-const cloudinaryStorage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'incident-photos',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
-    transformation: [
-      { width: 1920, height: 1080, crop: 'limit' }
-    ]
-  }
-});
-
-// Fallback to local storage if Cloudinary is not configured
-const localStorage = multer.diskStorage({
+// Configure multer to save files locally first, then we'll upload to Cloudinary
+const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadsDir);
   },
@@ -92,9 +80,8 @@ const localStorage = multer.diskStorage({
   }
 });
 
-// Use Cloudinary storage if configured, otherwise local storage
 const upload = multer({
-  storage: process.env.CLOUDINARY_CLOUD_NAME ? cloudinaryStorage : localStorage,
+  storage: storage,
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB limit
   },
@@ -110,6 +97,30 @@ const upload = multer({
     }
   }
 });
+
+// Upload file to Cloudinary
+async function uploadToCloudinary(filePath) {
+  try {
+    if (!process.env.CLOUDINARY_CLOUD_NAME) {
+      console.warn('⚠️ Cloudinary not configured, using local storage');
+      return null;
+    }
+
+    console.log('Uploading to Cloudinary:', filePath);
+    const result = await cloudinary.uploader.upload(filePath, {
+      folder: 'incident-photos',
+      transformation: [
+        { width: 1920, height: 1080, crop: 'limit' }
+      ]
+    });
+
+    console.log('Cloudinary upload successful:', result.secure_url);
+    return result.secure_url;
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    return null;
+  }
+}
 
 // Configure multer specifically for profile pictures (PNG and JPG only)
 const profileStorage = multer.diskStorage({
@@ -1867,28 +1878,48 @@ app.post('/api/incidents', authenticateToken, upload.array('photos', 10), async 
       recommendations
     } = req.body;
 
-    // Process uploaded files - Cloudinary or local storage
+    // Process uploaded files - upload to Cloudinary or use local storage
     let photosData = [];
     if (req.files && req.files.length > 0) {
       console.log('Received files:', req.files.length);
-      console.log('File structure:', JSON.stringify(req.files[0], null, 2));
 
-      photosData = req.files.map(file => {
-        // Cloudinary returns url, local storage returns path
-        const photoUrl = file.url || file.path || (file.filename ? `/uploads/images/${file.filename}` : null);
-        console.log('Photo URL for', file.originalname, ':', photoUrl);
+      for (const file of req.files) {
+        const filePath = path.join(uploadsDir, file.filename);
+        console.log('Processing file:', file.originalname, 'at path:', filePath);
 
-        return {
-          id: Date.now() + Math.random(),
-          filename: file.filename || file.originalname,
-          originalname: file.originalname,
-          path: photoUrl,
-          mimetype: file.mimetype,
-          size: file.size
-        };
-      });
+        // Try to upload to Cloudinary
+        const cloudinaryUrl = await uploadToCloudinary(filePath);
 
-      console.log('Processed photos data:', JSON.stringify(photosData, null, 2));
+        if (cloudinaryUrl) {
+          // Use Cloudinary URL
+          photosData.push({
+            id: Date.now() + Math.random(),
+            filename: file.filename,
+            originalname: file.originalname,
+            path: cloudinaryUrl,
+            mimetype: file.mimetype,
+            size: file.size
+          });
+          // Delete local file after successful upload
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log('Deleted local file after Cloudinary upload');
+          }
+        } else {
+          // Fallback to local path
+          photosData.push({
+            id: Date.now() + Math.random(),
+            filename: file.filename,
+            originalname: file.originalname,
+            path: `/uploads/images/${file.filename}`,
+            mimetype: file.mimetype,
+            size: file.size
+          });
+          console.log('Using local storage fallback');
+        }
+      }
+
+      console.log('Final photos data:', JSON.stringify(photosData, null, 2));
     }
 
     // Parse involved_parties if it's a string
@@ -2032,17 +2063,48 @@ app.put('/api/incidents/:id', authenticateToken, upload.array('photos', 10), asy
       }
     }
 
-    // Process new uploaded files - Cloudinary or local storage
+    // Process new uploaded files - upload to Cloudinary or use local storage
     let newPhotosData = [];
     if (req.files && req.files.length > 0) {
-      newPhotosData = req.files.map(file => ({
-        id: Date.now() + Math.random(),
-        filename: file.filename || file.originalname,
-        originalname: file.originalname,
-        path: file.path || (file.filename ? `/uploads/images/${file.filename}` : null),
-        mimetype: file.mimetype,
-        size: file.size
-      }));
+      console.log('Received files for update:', req.files.length);
+
+      for (const file of req.files) {
+        const filePath = path.join(uploadsDir, file.filename);
+        console.log('Processing file for update:', file.originalname, 'at path:', filePath);
+
+        // Try to upload to Cloudinary
+        const cloudinaryUrl = await uploadToCloudinary(filePath);
+
+        if (cloudinaryUrl) {
+          // Use Cloudinary URL
+          newPhotosData.push({
+            id: Date.now() + Math.random(),
+            filename: file.filename,
+            originalname: file.originalname,
+            path: cloudinaryUrl,
+            mimetype: file.mimetype,
+            size: file.size
+          });
+          // Delete local file after successful upload
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log('Deleted local file after Cloudinary upload');
+          }
+        } else {
+          // Fallback to local path
+          newPhotosData.push({
+            id: Date.now() + Math.random(),
+            filename: file.filename,
+            originalname: file.originalname,
+            path: `/uploads/images/${file.filename}`,
+            mimetype: file.mimetype,
+            size: file.size
+          });
+          console.log('Using local storage fallback');
+        }
+      }
+
+      console.log('Final new photos data:', JSON.stringify(newPhotosData, null, 2));
     }
 
     // Combine existing photos (if provided) and new photos
