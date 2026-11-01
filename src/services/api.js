@@ -237,41 +237,10 @@ export const incidentsAPI = {
     return response.data;
   },
 
-  create: async (incidentData, photoFiles = []) => {
+  create: async (incidentData) => {
     try {
-      // Create FormData for file uploads
-      const formData = new FormData();
-      
-      // Add all incident data fields
-      Object.keys(incidentData).forEach(key => {
-        if (key !== 'photos' && incidentData[key] !== null && incidentData[key] !== undefined) {
-          if (typeof incidentData[key] === 'object' && !Array.isArray(incidentData[key])) {
-            // If it's an object (like involved_parties), stringify it
-            formData.append(key, JSON.stringify(incidentData[key]));
-          } else if (Array.isArray(incidentData[key])) {
-            // If it's an array, stringify it
-            formData.append(key, JSON.stringify(incidentData[key]));
-          } else {
-            formData.append(key, String(incidentData[key]));
-          }
-        }
-      });
-      
-      // Add photo files
-      if (photoFiles && photoFiles.length > 0) {
-        photoFiles.forEach((file) => {
-          // If file is a File object, append it directly
-          if (file instanceof File) {
-            formData.append('photos', file);
-          } else if (file.file) {
-            // If it's an object with a file property
-            formData.append('photos', file.file);
-          }
-        });
-      }
-      
-      // Send FormData - don't set Content-Type, let browser set it automatically
-      const response = await api.post('/incidents', formData);
+      // Send as JSON with base64 photos
+      const response = await api.post('/incidents', incidentData);
       return response.data;
     } catch (error) {
       console.error('Error creating incident:', error);
@@ -280,42 +249,10 @@ export const incidentsAPI = {
     }
   },
 
-  update: async (id, incidentData, photoFiles = [], existingPhotos = []) => {
+  update: async (id, incidentData) => {
     try {
-      // Create FormData for file uploads
-      const formData = new FormData();
-      
-      // Add all incident data fields
-      Object.keys(incidentData).forEach(key => {
-        if (key !== 'photos' && incidentData[key] !== null && incidentData[key] !== undefined) {
-          if (typeof incidentData[key] === 'object' && !Array.isArray(incidentData[key])) {
-            formData.append(key, JSON.stringify(incidentData[key]));
-          } else if (Array.isArray(incidentData[key])) {
-            formData.append(key, JSON.stringify(incidentData[key]));
-          } else {
-            formData.append(key, String(incidentData[key]));
-          }
-        }
-      });
-      
-      // Add existing photos (photos that should be kept)
-      if (existingPhotos && existingPhotos.length > 0) {
-        formData.append('existing_photos', JSON.stringify(existingPhotos));
-      }
-      
-      // Add new photo files
-      if (photoFiles && photoFiles.length > 0) {
-        photoFiles.forEach((file) => {
-          if (file instanceof File) {
-            formData.append('photos', file);
-          } else if (file.file) {
-            formData.append('photos', file.file);
-          }
-        });
-      }
-      
-      // Send FormData - don't set Content-Type, let browser set it automatically
-      const response = await api.put(`/incidents/${id}`, formData);
+      // Send as JSON with base64 photos
+      const response = await api.put(`/incidents/${id}`, incidentData);
       return response.data;
     } catch (error) {
       console.error('Error updating incident:', error);

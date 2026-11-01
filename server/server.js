@@ -1821,16 +1821,16 @@ app.get('/api/incidents', authenticateToken, async (req, res) => {
 });
 
 // Create incident report with file uploads
-app.post('/api/incidents', authenticateToken, upload.array('photos', 10), async (req, res) => {
+app.post('/api/incidents', authenticateToken, async (req, res) => {
   try {
-    const { 
-      incident_id, 
-      ride_name, 
-      incident_type, 
-      severity, 
-      description, 
-      date_reported, 
-      time_reported, 
+    const {
+      incident_id,
+      ride_name,
+      incident_type,
+      severity,
+      description,
+      date_reported,
+      time_reported,
       status,
       involved_parties,
       injuries,
@@ -1839,22 +1839,10 @@ app.post('/api/incidents', authenticateToken, upload.array('photos', 10), async 
       response,
       actions_taken,
       follow_up,
-      recommendations
+      recommendations,
+      photos
     } = req.body;
-    
-    // Process uploaded files
-    let photosData = [];
-    if (req.files && req.files.length > 0) {
-      photosData = req.files.map(file => ({
-        id: Date.now() + Math.random(),
-        filename: file.filename,
-        originalname: file.originalname,
-        path: `/uploads/images/${file.filename}`,
-        mimetype: file.mimetype,
-        size: file.size
-      }));
-    }
-    
+
     // Parse involved_parties if it's a string
     let partiesJson = null;
     if (involved_parties) {
@@ -1865,28 +1853,28 @@ app.post('/api/incidents', authenticateToken, upload.array('photos', 10), async 
         partiesJson = JSON.stringify([]);
       }
     }
-    
-    // Convert photos to JSON string
-    const photosJson = photosData.length > 0 ? JSON.stringify(photosData) : null;
-    
+
+    // Handle base64 photos - they're already in the correct format from frontend
+    const photosJson = photos && photos.length > 0 ? JSON.stringify(photos) : null;
+
     // Validate and normalize date_reported and time_reported
     const normalizedDateReported = date_reported && date_reported.trim() !== '' ? date_reported.trim() : null;
     const normalizedTimeReported = time_reported && time_reported.trim() !== '' ? time_reported.trim() : null;
-    
+
     const [result] = await db.execute(
-      `INSERT INTO incident_reports 
-       (incident_id, ride_name, incident_type, severity, description, date_reported, time_reported, status, 
-        photos, involved_parties, injuries, property_damage, other_impact, response, actions_taken, 
-        follow_up, recommendations, reported_by) 
+      `INSERT INTO incident_reports
+       (incident_id, ride_name, incident_type, severity, description, date_reported, time_reported, status,
+        photos, involved_parties, injuries, property_damage, other_impact, response, actions_taken,
+        follow_up, recommendations, reported_by)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        incident_id, 
-        ride_name, 
-        incident_type, 
-        severity, 
-        description, 
-        normalizedDateReported, 
-        normalizedTimeReported, 
+        incident_id,
+        ride_name,
+        incident_type,
+        severity,
+        description,
+        normalizedDateReported,
+        normalizedTimeReported,
         status || 'Open',
         photosJson,
         partiesJson,
@@ -1904,17 +1892,7 @@ app.post('/api/incidents', authenticateToken, upload.array('photos', 10), async 
     res.json({ id: result.insertId, message: 'Incident report created successfully' });
   } catch (error) {
     console.error('Create incident error:', error);
-    
-    // Delete uploaded files if there was an error
-    if (req.files && req.files.length > 0) {
-      req.files.forEach(file => {
-        const filePath = path.join(uploadsDir, file.filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      });
-    }
-    
+
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ error: 'Incident ID already exists' });
     }
@@ -1957,20 +1935,19 @@ const updateIncidentReviewStatusHandler = async (req, res) => {
 app.patch('/api/incidents/:id/review-status', authenticateToken, updateIncidentReviewStatusHandler);
 app.put('/api/incidents/:id/review-status', authenticateToken, updateIncidentReviewStatusHandler);
 
-// Update incident report with file uploads
-app.put('/api/incidents/:id', authenticateToken, upload.array('photos', 10), async (req, res) => {
+// Update incident report
+app.put('/api/incidents/:id', authenticateToken, async (req, res) => {
   try {
-    const { 
-      incident_id, 
-      ride_name, 
-      incident_type, 
-      severity, 
-      description, 
-      date_reported, 
-      time_reported, 
-      status, 
+    const {
+      incident_id,
+      ride_name,
+      incident_type,
+      severity,
+      description,
+      date_reported,
+      time_reported,
+      status,
       resolution,
-      existing_photos,
       involved_parties,
       injuries,
       property_damage,
@@ -1979,54 +1956,13 @@ app.put('/api/incidents/:id', authenticateToken, upload.array('photos', 10), asy
       actions_taken,
       follow_up,
       recommendations,
-      review_status
+      review_status,
+      photos
     } = req.body;
 
     const userRole = (req.user.role || '').toString();
     const isOperationsManager = userRole === 'Operations Manager';
-    
-    // Get existing photos from database
-    const [existingIncident] = await db.execute('SELECT photos FROM incident_reports WHERE id = ?', [req.params.id]);
-    let existingPhotos = [];
-    if (existingIncident && existingIncident[0] && existingIncident[0].photos) {
-      try {
-        existingPhotos = JSON.parse(existingIncident[0].photos);
-      } catch (e) {
-        existingPhotos = [];
-      }
-    }
-    
-    // Process new uploaded files
-    let newPhotosData = [];
-    if (req.files && req.files.length > 0) {
-      newPhotosData = req.files.map(file => ({
-        id: Date.now() + Math.random(),
-        filename: file.filename,
-        originalname: file.originalname,
-        path: `/uploads/images/${file.filename}`,
-        mimetype: file.mimetype,
-        size: file.size
-      }));
-    }
-    
-    // Combine existing photos (if provided) and new photos
-    let finalPhotos = [];
-    
-    // If existing_photos is provided, parse and use it, otherwise keep current photos
-    if (existing_photos) {
-      try {
-        const parsed = typeof existing_photos === 'string' ? JSON.parse(existing_photos) : existing_photos;
-        finalPhotos = Array.isArray(parsed) ? parsed : [];
-      } catch (e) {
-        finalPhotos = existingPhotos;
-      }
-    } else {
-      finalPhotos = existingPhotos;
-    }
-    
-    // Add new photos
-    finalPhotos = [...finalPhotos, ...newPhotosData];
-    
+
     // Parse involved_parties if it's a string
     let partiesJson = null;
     if (involved_parties) {
@@ -2037,10 +1973,10 @@ app.put('/api/incidents/:id', authenticateToken, upload.array('photos', 10), asy
         partiesJson = JSON.stringify([]);
       }
     }
-    
-    // Convert photos to JSON string
-    const photosJson = finalPhotos.length > 0 ? JSON.stringify(finalPhotos) : null;
-    
+
+    // Handle base64 photos - they're already in the correct format from frontend
+    const photosJson = photos && photos.length > 0 ? JSON.stringify(photos) : null;
+
     // Validate and normalize date_reported and time_reported
     const normalizedDateReported = date_reported && date_reported.trim() !== '' ? date_reported.trim() : null;
     const normalizedTimeReported = time_reported && time_reported.trim() !== '' ? time_reported.trim() : null;
@@ -2081,17 +2017,6 @@ app.put('/api/incidents/:id', authenticateToken, upload.array('photos', 10), asy
     res.json({ message: 'Incident report updated successfully' });
   } catch (error) {
     console.error('Update incident error:', error);
-    
-    // Delete uploaded files if there was an error
-    if (req.files && req.files.length > 0) {
-      req.files.forEach(file => {
-        const filePath = path.join(uploadsDir, file.filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      });
-    }
-    
     res.status(500).json({ error: error.message || 'Server error' });
   }
 });
