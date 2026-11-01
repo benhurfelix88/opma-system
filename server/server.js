@@ -738,18 +738,28 @@ async function ensurePartRemovals() {
   }
 }
 
-// Fix corrupted photos data in incident_reports
-async function fixCorruptedPhotos() {
+// Fix corrupted data in incident_reports (photos and involved_parties)
+async function fixCorruptedData() {
   try {
-    const [result] = await db.execute(
+    // Fix photos
+    const [photoResult] = await db.execute(
       'UPDATE incident_reports SET photos = NULL WHERE photos = ? OR photos LIKE ?',
       ['[object Object]', '%[object Object]%']
     );
-    if (result.affectedRows > 0) {
-      console.log(`✓ Fixed ${result.affectedRows} corrupted photo records`);
+    if (photoResult.affectedRows > 0) {
+      console.log(`✓ Fixed ${photoResult.affectedRows} corrupted photo records`);
+    }
+
+    // Fix involved_parties
+    const [partiesResult] = await db.execute(
+      'UPDATE incident_reports SET involved_parties = NULL WHERE involved_parties = ? OR involved_parties LIKE ?',
+      ['[object Object]', '%[object Object]%']
+    );
+    if (partiesResult.affectedRows > 0) {
+      console.log(`✓ Fixed ${partiesResult.affectedRows} corrupted involved_parties records`);
     }
   } catch (e) {
-    console.error('Fix corrupted photos failed:', e.message);
+    console.error('Fix corrupted data failed:', e.message);
   }
 }
 
@@ -766,7 +776,7 @@ ensureIncidentSchema();
 ensureUsersAndAdmin();
 ensureRides();
 ensureRideEntries();
-fixCorruptedPhotos();
+fixCorruptedData();
 ensureDailyRideSummary();
 ensurePasswordResetTokens();
 ensureSessions();
@@ -1843,8 +1853,15 @@ app.get('/api/incidents', authenticateToken, async (req, res) => {
       let involved_parties = [];
       if (incident.involved_parties) {
         try {
-          involved_parties = JSON.parse(incident.involved_parties);
+          // Handle case where involved_parties is already an object (not a string)
+          if (typeof incident.involved_parties === 'object') {
+            involved_parties = Array.isArray(incident.involved_parties) ? incident.involved_parties : [];
+          } else {
+            involved_parties = JSON.parse(incident.involved_parties);
+          }
         } catch (e) {
+          console.error('Error parsing involved_parties for incident', incident.id, ':', e);
+          console.error('Raw involved_parties value:', incident.involved_parties);
           involved_parties = [];
         }
       }
@@ -1959,7 +1976,9 @@ app.post('/api/incidents', authenticateToken, upload.array('photos', 10), async 
       try {
         const parties = typeof involved_parties === 'string' ? JSON.parse(involved_parties) : involved_parties;
         partiesJson = JSON.stringify(parties);
+        console.log('Saving involved_parties to database (partiesJson):', partiesJson);
       } catch (e) {
+        console.error('Error parsing involved_parties:', e);
         partiesJson = JSON.stringify([]);
       }
     }
@@ -2163,7 +2182,9 @@ app.put('/api/incidents/:id', authenticateToken, upload.array('photos', 10), asy
       try {
         const parties = typeof involved_parties === 'string' ? JSON.parse(involved_parties) : involved_parties;
         partiesJson = JSON.stringify(parties);
+        console.log('Updating involved_parties in database (partiesJson):', partiesJson);
       } catch (e) {
+        console.error('Error parsing involved_parties:', e);
         partiesJson = JSON.stringify([]);
       }
     }
