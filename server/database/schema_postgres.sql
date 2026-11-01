@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS incident_reports (
     status VARCHAR(50),
     review_status VARCHAR(50) DEFAULT 'Pending',
     resolution TEXT,
-    photos JSONB,
+    photos JSONB, -- Expected format: [{"id": 123, "filename": "...", "originalname": "...", "path": "https://...", "mimetype": "...", "size": 123}]
     involved_parties JSONB,
     injuries TEXT,
     property_damage TEXT,
@@ -444,3 +444,11 @@ INSERT INTO ticket_types (name, description, price, validity_days, ride_access, 
 ('Monthly Pass', 'Unlimited access for 30 days', 3000.00, 30, 'All rides', 'active'),
 ('VIP Pass', 'Priority access to all rides', 1000.00, 1, 'All rides + VIP areas', 'active')
 ON CONFLICT (name) DO NOTHING;
+
+-- ============================================
+-- IMPORTANT: Photo Data Fix
+-- ============================================
+-- If photos column contains corrupted data like "[object Object]",
+-- run the fix_corrupted_photos.sql migration script
+-- The server also automatically fixes this on startup
+-- ============================================
