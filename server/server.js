@@ -1788,23 +1788,31 @@ app.delete('/api/maintenance/:id', authenticateToken, async (req, res) => {
 app.get('/api/incidents', authenticateToken, async (req, res) => {
   try {
     const [incidents] = await db.execute('SELECT * FROM incident_reports ORDER BY created_at DESC');
+    console.log('Total incidents:', incidents.length);
+
     // Parse JSON fields and construct full image URLs
     const parsedIncidents = incidents.map(incident => {
       let photos = [];
       if (incident.photos) {
         try {
           photos = JSON.parse(incident.photos);
+          console.log('Incident', incident.id, 'photos:', JSON.stringify(photos, null, 2));
+
           // Convert file paths to full URLs if they're relative paths
-          photos = photos.map(photo => ({
-            ...photo,
-            path: photo.path && !photo.path.startsWith('http') 
-              ? `${req.protocol}://${req.get('host')}${photo.path}`
-              : photo.path,
-            preview: photo.path && !photo.path.startsWith('http')
-              ? `${req.protocol}://${req.get('host')}${photo.path}`
-              : (photo.preview || photo.path)
-          }));
+          photos = photos.map(photo => {
+            const isFullUrl = photo.path && photo.path.startsWith('http');
+            const finalPath = isFullUrl ? photo.path : `${req.protocol}://${req.get('host')}${photo.path}`;
+
+            console.log('Photo URL:', photo.originalname, '->', finalPath);
+
+            return {
+              ...photo,
+              path: finalPath,
+              preview: finalPath
+            };
+          });
         } catch (e) {
+          console.error('Error parsing photos for incident', incident.id, ':', e);
           photos = [];
         }
       }
@@ -1935,6 +1943,7 @@ app.post('/api/incidents', authenticateToken, upload.array('photos', 10), async 
 
     // Convert photos to JSON string
     const photosJson = photosData.length > 0 ? JSON.stringify(photosData) : null;
+    console.log('Saving photos to database (photosJson):', photosJson);
 
     // Validate and normalize date_reported and time_reported
     const normalizedDateReported = date_reported && date_reported.trim() !== '' ? date_reported.trim() : null;
@@ -2138,6 +2147,7 @@ app.put('/api/incidents/:id', authenticateToken, upload.array('photos', 10), asy
 
     // Convert photos to JSON string
     const photosJson = finalPhotos.length > 0 ? JSON.stringify(finalPhotos) : null;
+    console.log('Updating photos in database (photosJson):', photosJson);
 
     // Validate and normalize date_reported and time_reported
     const normalizedDateReported = date_reported && date_reported.trim() !== '' ? date_reported.trim() : null;
