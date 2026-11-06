@@ -283,60 +283,69 @@ const ReportGenerator = ({
       const tableRows = [];
 
       // Header row
-      const headerCells = columns.map(col =>
-        new DocxCell({
-          children: [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: col.header,
-                  bold: true,
-                }),
-              ],
-              alignment: AlignmentType.CENTER,
-            }),
-          ],
-          width: {
-            size: 20,
-            type: WidthType.PERCENTAGE,
-          },
-        })
-      );
-      tableRows.push(new DocxRow({ tableChildren: headerCells }));
+      const headerRow = new DocxRow({
+        children: columns.map(col =>
+          new DocxCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: col.header,
+                    bold: true,
+                  }),
+                ],
+                alignment: AlignmentType.CENTER,
+              }),
+            ],
+          })
+        ),
+      });
+      tableRows.push(headerRow);
 
       // Data rows
       filteredData.forEach(item => {
-        const cells = columns.map(col => {
-          let value = item[col.field] || '';
+        const dataRow = new DocxRow({
+          children: columns.map(col => {
+            let value = item[col.field] || '';
 
-          // Format dates
-          if (col.field === 'entry_timestamp' || col.field === 'entry_date' || col.field === 'date') {
-            if (value && typeof value === 'string' && value.includes('T')) {
-              value = new Date(value).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: '2-digit',
-                day: 'numeric'
-              });
+            // Format dates
+            if (col.field === 'entry_timestamp' || col.field === 'entry_date' || col.field === 'date') {
+              if (value && typeof value === 'string' && value.includes('T')) {
+                value = new Date(value).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: 'numeric'
+                });
+              }
             }
-          }
 
-          // Format times
-          if (col.field === 'entry_time') {
-            if (value && typeof value === 'string') {
-              const [hours, minutes] = value.split(':');
-              const hour = parseInt(hours, 10);
-              const ampm = hour >= 12 ? 'PM' : 'AM';
-              const hour12 = hour % 12 || 12;
-              value = `${hour12}:${minutes} ${ampm}`;
+            // Format times
+            if (col.field === 'entry_time') {
+              if (value && typeof value === 'string') {
+                const [hours, minutes] = value.split(':');
+                const hour = parseInt(hours, 10);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const hour12 = hour % 12 || 12;
+                value = `${hour12}:${minutes} ${ampm}`;
+              }
             }
-          }
 
-          // Format approval_date
-          if (col.field === 'approval_date') {
-            if (value && typeof value === 'string') {
-              const date = new Date(value);
-              if (!isNaN(date.getTime())) {
-                value = date.toLocaleString('en-US', {
+            // Format approval_date
+            if (col.field === 'approval_date') {
+              if (value && typeof value === 'string') {
+                const date = new Date(value);
+                if (!isNaN(date.getTime())) {
+                  value = date.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                  });
+                }
+              } else if (value instanceof Date) {
+                value = value.toLocaleString('en-US', {
                   year: 'numeric',
                   month: '2-digit',
                   day: 'numeric',
@@ -345,46 +354,28 @@ const ReportGenerator = ({
                   hour12: true
                 });
               }
-            } else if (value instanceof Date) {
-              value = value.toLocaleString('en-US', {
-                year: 'numeric',
-                month: '2-digit',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-              });
             }
-          }
 
-          return new DocxCell({
-            children: [
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: String(value),
-                  }),
-                ],
-                alignment: AlignmentType.CENTER,
-              }),
-            ],
-            width: {
-              size: 20,
-              type: WidthType.PERCENTAGE,
-            },
-          });
+            return new DocxCell({
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: String(value),
+                    }),
+                  ],
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            });
+          }),
         });
-
-        tableRows.push(new DocxRow({ tableChildren: cells }));
+        tableRows.push(dataRow);
       });
 
       // Create table
       const table = new DocxTable({
         rows: tableRows,
-        width: {
-          size: 100,
-          type: WidthType.PERCENTAGE,
-        },
       });
 
       // Create document
