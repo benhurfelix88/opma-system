@@ -607,45 +607,69 @@ const ManagerPartsInventory = () => {
                 variant="contained"
                 startIcon={<ReportIcon />}
                 onClick={() => setOpenReportDialog(true)}
+                sx={{ ml: 2 }}
               >
                 Export
               </Button>
             </Box>
+
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom>Ride Repairs</Typography>
-                <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Ride</TableCell>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Issue</TableCell>
-                      <TableCell>Technician</TableCell>
-                      <TableCell>Status</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredAndSortedRepairs.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} align="center">No ride repairs found</TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredAndSortedRepairs.map((repair) => (
-                        <TableRow key={repair.id}>
-                          <TableCell>{repair.ride}</TableCell>
-                          <TableCell>{new Date(repair.date).toLocaleDateString()}</TableCell>
-                          <TableCell>{repair.issue}</TableCell>
-                          <TableCell>{repair.technician}</TableCell>
-                          <TableCell>{repair.status}</TableCell>
+                <Box sx={{ maxHeight: '70vh', overflow: 'auto' }}>
+                  <TableContainer component={Paper} sx={{ maxHeight: '70vh' }}>
+                    <Table stickyHeader>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell align="center" sx={{ width: '20%' }}>Ride</TableCell>
+                          <TableCell align="center" sx={{ width: '15%' }}>Date</TableCell>
+                          <TableCell align="center" sx={{ width: '25%' }}>Issue</TableCell>
+                          <TableCell align="center" sx={{ width: '15%' }}>Technician</TableCell>
+                          <TableCell align="center" sx={{ width: '15%' }}>Status</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Cost</TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
+                      </TableHead>
+                      <TableBody>
+                        {filteredAndSortedRepairs.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={6} align="center">
+                              <Typography variant="body1" color="text.secondary">
+                                No ride repairs found
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          filteredAndSortedRepairs.map((repair) => (
+                            <TableRow key={repair.id}>
+                              <TableCell align="center">{repair.ride}</TableCell>
+                              <TableCell align="center">{new Date(repair.date).toLocaleDateString()}</TableCell>
+                              <TableCell align="center" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{repair.issue}</TableCell>
+                              <TableCell align="center">{repair.technician}</TableCell>
+                              <TableCell align="center">
+                                <Chip
+                                  label={repair.status}
+                                  variant="outlined"
+                                  size="small"
+                                  sx={{
+                                    color: repair.status === 'Completed' ? 'green' :
+                                           repair.status === 'In Progress' ? 'orange' :
+                                           repair.status === 'Pending' ? 'blue' : 'gray',
+                                    borderColor: repair.status === 'Completed' ? 'green' :
+                                                 repair.status === 'In Progress' ? 'orange' :
+                                                 repair.status === 'Pending' ? 'blue' : 'gray',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">₱{Number(repair.cost || 0).toFixed(2)}</TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              </CardContent>
+            </Card>
           </>
         )}
 
@@ -698,47 +722,69 @@ const ManagerPartsInventory = () => {
                 variant="contained"
                 startIcon={<ReportIcon />}
                 onClick={() => setOpenReportDialog(true)}
+                sx={{ ml: 2 }}
               >
                 Export
               </Button>
             </Box>
+
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom>Part Deployments</Typography>
-                <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Place</TableCell>
-                      <TableCell>Ride</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Missing Parts</TableCell>
-                      <TableCell>Encoded By</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredAndSortedDeployments.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} align="center">No deployments found</TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredAndSortedDeployments.map((deployment) => (
-                        <TableRow key={deployment.id}>
-                          <TableCell>{new Date(deployment.date).toLocaleDateString()}</TableCell>
-                          <TableCell>{deployment.place}</TableCell>
-                          <TableCell>{deployment.ride}</TableCell>
-                          <TableCell>{deployment.status}</TableCell>
-                          <TableCell>{deployment.missing_parts || '-'}</TableCell>
-                          <TableCell>{deployment.encoded_by}</TableCell>
+                <Box sx={{ maxHeight: '70vh', overflow: 'auto' }}>
+                  <TableContainer component={Paper} sx={{ maxHeight: '70vh' }}>
+                    <Table stickyHeader>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell align="center" sx={{ width: '15%' }}>Date</TableCell>
+                          <TableCell align="center" sx={{ width: '20%' }}>Place</TableCell>
+                          <TableCell align="center" sx={{ width: '15%' }}>Ride</TableCell>
+                          <TableCell align="center" sx={{ width: '15%' }}>Status</TableCell>
+                          <TableCell align="center" sx={{ width: '20%' }}>Missing Parts</TableCell>
+                          <TableCell align="center" sx={{ width: '15%' }}>Encoded By</TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
+                      </TableHead>
+                      <TableBody>
+                        {filteredAndSortedDeployments.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={6} align="center">
+                              <Typography variant="body1" color="text.secondary">
+                                No deployments found
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          filteredAndSortedDeployments.map((deployment) => (
+                            <TableRow key={deployment.id}>
+                              <TableCell align="center">{new Date(deployment.date).toLocaleDateString()}</TableCell>
+                              <TableCell align="center">{deployment.place}</TableCell>
+                              <TableCell align="center">{deployment.ride}</TableCell>
+                              <TableCell align="center">
+                                <Chip
+                                  label={deployment.status}
+                                  variant="outlined"
+                                  size="small"
+                                  sx={{
+                                    color: deployment.status === 'Complete' ? 'green' :
+                                           deployment.status === 'Defective' ? 'red' :
+                                           deployment.status === 'With missing parts' ? 'orange' : 'gray',
+                                    borderColor: deployment.status === 'Complete' ? 'green' :
+                                                 deployment.status === 'Defective' ? 'red' :
+                                                 deployment.status === 'With missing parts' ? 'orange' : 'gray',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{deployment.missing_parts || '-'}</TableCell>
+                              <TableCell align="center">{deployment.encoded_by}</TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              </CardContent>
+            </Card>
           </>
         )}
 
@@ -791,47 +837,69 @@ const ManagerPartsInventory = () => {
                 variant="contained"
                 startIcon={<ReportIcon />}
                 onClick={() => setOpenReportDialog(true)}
+                sx={{ ml: 2 }}
               >
                 Export
               </Button>
             </Box>
+
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom>Part Removals</Typography>
-                <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Place</TableCell>
-                      <TableCell>Ride</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Missing Parts</TableCell>
-                      <TableCell>Encoded By</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredAndSortedRemovals.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} align="center">No removals found</TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredAndSortedRemovals.map((removal) => (
-                        <TableRow key={removal.id}>
-                          <TableCell>{new Date(removal.date).toLocaleDateString()}</TableCell>
-                          <TableCell>{removal.place}</TableCell>
-                          <TableCell>{removal.ride}</TableCell>
-                          <TableCell>{removal.status}</TableCell>
-                          <TableCell>{removal.missing_parts || '-'}</TableCell>
-                          <TableCell>{removal.encoded_by}</TableCell>
+                <Box sx={{ maxHeight: '70vh', overflow: 'auto' }}>
+                  <TableContainer component={Paper} sx={{ maxHeight: '70vh' }}>
+                    <Table stickyHeader>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell align="center" sx={{ width: '15%' }}>Date</TableCell>
+                          <TableCell align="center" sx={{ width: '20%' }}>Place</TableCell>
+                          <TableCell align="center" sx={{ width: '15%' }}>Ride</TableCell>
+                          <TableCell align="center" sx={{ width: '15%' }}>Status</TableCell>
+                          <TableCell align="center" sx={{ width: '20%' }}>Missing Parts</TableCell>
+                          <TableCell align="center" sx={{ width: '15%' }}>Encoded By</TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
+                      </TableHead>
+                      <TableBody>
+                        {filteredAndSortedRemovals.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={6} align="center">
+                              <Typography variant="body1" color="text.secondary">
+                                No removals found
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          filteredAndSortedRemovals.map((removal) => (
+                            <TableRow key={removal.id}>
+                              <TableCell align="center">{new Date(removal.date).toLocaleDateString()}</TableCell>
+                              <TableCell align="center">{removal.place}</TableCell>
+                              <TableCell align="center">{removal.ride}</TableCell>
+                              <TableCell align="center">
+                                <Chip
+                                  label={removal.status}
+                                  variant="outlined"
+                                  size="small"
+                                  sx={{
+                                    color: removal.status === 'Complete' ? 'green' :
+                                           removal.status === 'Defective' ? 'red' :
+                                           removal.status === 'With missing parts' ? 'orange' : 'gray',
+                                    borderColor: removal.status === 'Complete' ? 'green' :
+                                                 removal.status === 'Defective' ? 'red' :
+                                                 removal.status === 'With missing parts' ? 'orange' : 'gray',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{removal.missing_parts || '-'}</TableCell>
+                              <TableCell align="center">{removal.encoded_by}</TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              </CardContent>
+            </Card>
           </>
         )}
 
