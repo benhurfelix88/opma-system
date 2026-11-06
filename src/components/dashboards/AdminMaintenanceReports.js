@@ -35,6 +35,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Schedule as ScheduleIcon,
   PictureAsPdf as ReportIcon,
+  Edit as EditIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -583,13 +584,13 @@ const AdminMaintenanceReports = () => {
                                   sx={{
                                     transition: 'all 0.2s ease',
                                     '&:hover': {
-                                      backgroundColor: 'success.main',
+                                      backgroundColor: 'primary.main',
                                       color: 'white',
                                       transform: 'scale(1.1)',
                                     },
                                   }}
                                 >
-                                  <CheckCircleIcon fontSize="small" />
+                                  <EditIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
                             )}
@@ -620,9 +621,6 @@ const AdminMaintenanceReports = () => {
         >
           <DialogTitle>Approve/Reject Maintenance Record</DialogTitle>
           <DialogContent>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              Ride: {approvalRecord?.ride}
-            </Typography>
             <FormControl fullWidth sx={{ mt: 2 }}>
               <InputLabel>Approval Status</InputLabel>
               <Select

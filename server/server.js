@@ -1809,10 +1809,10 @@ app.post('/api/maintenance', authenticateToken, async (req, res) => {
 // Update maintenance record
 app.put('/api/maintenance/:id', authenticateToken, async (req, res) => {
   try {
-    const { ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by, location } = req.body;
+    const { ride_name, maintenance_type, description, date_performed, next_maintenance_date, status, performed_by, location, approval_status, approval_date } = req.body;
     const performedByValue = String(performed_by || '').trim();
 
-    console.log('Updating maintenance record:', { id: req.params.id, location });
+    console.log('Updating maintenance record:', { id: req.params.id, location, approval_status });
 
     // Ensure location column exists
     try {
@@ -1822,10 +1822,70 @@ app.put('/api/maintenance/:id', authenticateToken, async (req, res) => {
       console.log('Note: Column alteration:', alterError.message);
     }
 
-    await db.execute(
-      'UPDATE maintenance_records SET ride_name = ?, maintenance_type = ?, description = ?, performed_by = ?, date_performed = ?, next_maintenance_date = ?, status = ?, location = ? WHERE id = ?',
-      [ride_name, maintenance_type, description, performedByValue, date_performed, next_maintenance_date, status, location || '', req.params.id]
-    );
+    // Ensure approval columns exist
+    try {
+      await db.execute('ALTER TABLE maintenance_records ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT "Pending"');
+      console.log('approval_status column ensured before update');
+    } catch (alterError) {
+      console.log('Note: Column alteration:', alterError.message);
+    }
+
+    try {
+      await db.execute('ALTER TABLE maintenance_records ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP');
+      console.log('approval_date column ensured before update');
+    } catch (alterError) {
+      console.log('Note: Column alteration:', alterError.message);
+    }
+
+    // Build dynamic update query based on provided fields
+    const updates = [];
+    const values = [];
+
+    if (ride_name !== undefined) {
+      updates.push('ride_name = ?');
+      values.push(ride_name);
+    }
+    if (maintenance_type !== undefined) {
+      updates.push('maintenance_type = ?');
+      values.push(maintenance_type);
+    }
+    if (description !== undefined) {
+      updates.push('description = ?');
+      values.push(description);
+    }
+    if (performed_by !== undefined) {
+      updates.push('performed_by = ?');
+      values.push(performedByValue);
+    }
+    if (date_performed !== undefined) {
+      updates.push('date_performed = ?');
+      values.push(date_performed);
+    }
+    if (next_maintenance_date !== undefined) {
+      updates.push('next_maintenance_date = ?');
+      values.push(next_maintenance_date);
+    }
+    if (status !== undefined) {
+      updates.push('status = ?');
+      values.push(status);
+    }
+    if (location !== undefined) {
+      updates.push('location = ?');
+      values.push(location || '');
+    }
+    if (approval_status !== undefined) {
+      updates.push('approval_status = ?');
+      values.push(approval_status);
+    }
+    if (approval_date !== undefined) {
+      updates.push('approval_date = ?');
+      values.push(approval_date);
+    }
+
+    values.push(req.params.id);
+
+    const query = `UPDATE maintenance_records SET ${updates.join(', ')} WHERE id = ?`;
+    await db.execute(query, values);
 
     res.json({ message: 'Maintenance record updated successfully' });
   } catch (error) {
