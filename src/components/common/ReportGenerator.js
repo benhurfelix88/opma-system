@@ -199,8 +199,8 @@ const ReportGenerator = ({
     try {
       const filteredData = getFilteredData();
 
-      // Prepare data for Excel
-      const worksheetData = columns.map(col => col.header);
+      // Prepare data for Excel - must be array of arrays
+      const worksheetData = [columns.map(col => col.header)];
 
       filteredData.forEach(item => {
         const row = columns.map(col => {
@@ -279,31 +279,30 @@ const ReportGenerator = ({
     try {
       const filteredData = getFilteredData();
 
-      // Create table rows
-      const tableRows = [
-        // Header row
-        new DocxRow({
-          tableChildren: columns.map(col =>
-            new DocxCell({
+      // Create table rows as an array
+      const tableRows = [];
+
+      // Header row
+      const headerCells = columns.map(col =>
+        new DocxCell({
+          children: [
+            new Paragraph({
               children: [
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: col.header,
-                      bold: true,
-                    }),
-                  ],
-                  alignment: AlignmentType.CENTER,
+                new TextRun({
+                  text: col.header,
+                  bold: true,
                 }),
               ],
-              width: {
-                size: 20,
-                type: WidthType.PERCENTAGE,
-              },
-            })
-          ),
-        }),
-      ];
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: {
+            size: 20,
+            type: WidthType.PERCENTAGE,
+          },
+        })
+      );
+      tableRows.push(new DocxRow({ tableChildren: headerCells }));
 
       // Data rows
       filteredData.forEach(item => {
@@ -376,11 +375,7 @@ const ReportGenerator = ({
           });
         });
 
-        tableRows.push(
-          new DocxRow({
-            tableChildren: cells,
-          })
-        );
+        tableRows.push(new DocxRow({ tableChildren: cells }));
       });
 
       // Create table
