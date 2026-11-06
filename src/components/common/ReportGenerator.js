@@ -21,6 +21,7 @@ import {
   IconButton,
   Tooltip,
   Grid,
+  Menu,
 } from '@mui/material';
 import {
   DateRange as DateRangeIcon,
@@ -31,7 +32,7 @@ import {
   ArrowRight as ArrowRightIcon,
   NavigateBefore as NavigateBeforeIcon,
   NavigateNext as NavigateNextIcon,
-  GridOn as ExcelIcon,
+  TableChart as ExcelIcon,
   Description as WordIcon,
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers';
@@ -76,6 +77,7 @@ const ReportGenerator = ({
   const [fullDataDialogOpen, setFullDataDialogOpen] = useState(false);
   const [descriptionDialogOpen, setDescriptionDialogOpen] = useState(false);
   const [selectedDescription, setSelectedDescription] = useState('');
+  const [downloadMenuAnchor, setDownloadMenuAnchor] = useState(null);
   const reportRef = useRef(null);
 
   const handleNavigateDate = (direction) => {
@@ -194,43 +196,54 @@ const ReportGenerator = ({
   };
 
   const handleExportExcel = () => {
-    const filteredData = getFilteredData();
+    try {
+      const filteredData = getFilteredData();
 
-    // Prepare data for Excel
-    const worksheetData = columns.map(col => col.header);
+      // Prepare data for Excel
+      const worksheetData = columns.map(col => col.header);
 
-    filteredData.forEach(item => {
-      const row = columns.map(col => {
-        let value = item[col.field] || '';
+      filteredData.forEach(item => {
+        const row = columns.map(col => {
+          let value = item[col.field] || '';
 
-        // Format dates
-        if (col.field === 'entry_timestamp' || col.field === 'entry_date' || col.field === 'date') {
-          if (value && typeof value === 'string' && value.includes('T')) {
-            value = new Date(value).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: '2-digit',
-              day: 'numeric'
-            });
+          // Format dates
+          if (col.field === 'entry_timestamp' || col.field === 'entry_date' || col.field === 'date') {
+            if (value && typeof value === 'string' && value.includes('T')) {
+              value = new Date(value).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: 'numeric'
+              });
+            }
           }
-        }
 
-        // Format times
-        if (col.field === 'entry_time') {
-          if (value && typeof value === 'string') {
-            const [hours, minutes] = value.split(':');
-            const hour = parseInt(hours, 10);
-            const ampm = hour >= 12 ? 'PM' : 'AM';
-            const hour12 = hour % 12 || 12;
-            value = `${hour12}:${minutes} ${ampm}`;
+          // Format times
+          if (col.field === 'entry_time') {
+            if (value && typeof value === 'string') {
+              const [hours, minutes] = value.split(':');
+              const hour = parseInt(hours, 10);
+              const ampm = hour >= 12 ? 'PM' : 'AM';
+              const hour12 = hour % 12 || 12;
+              value = `${hour12}:${minutes} ${ampm}`;
+            }
           }
-        }
 
-        // Format approval_date
-        if (col.field === 'approval_date') {
-          if (value && typeof value === 'string') {
-            const date = new Date(value);
-            if (!isNaN(date.getTime())) {
-              value = date.toLocaleString('en-US', {
+          // Format approval_date
+          if (col.field === 'approval_date') {
+            if (value && typeof value === 'string') {
+              const date = new Date(value);
+              if (!isNaN(date.getTime())) {
+                value = date.toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                });
+              }
+            } else if (value instanceof Date) {
+              value = value.toLocaleString('en-US', {
                 year: 'numeric',
                 month: '2-digit',
                 day: 'numeric',
@@ -239,48 +252,118 @@ const ReportGenerator = ({
                 hour12: true
               });
             }
-          } else if (value instanceof Date) {
-            value = value.toLocaleString('en-US', {
-              year: 'numeric',
-              month: '2-digit',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit',
-              hour12: true
-            });
           }
-        }
 
-        return value;
+          return value;
+        });
+        worksheetData.push(row);
       });
-      worksheetData.push(row);
-    });
 
-    // Create workbook
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+      // Create workbook
+      const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
 
-    // Generate filename with date
-    const dateStr = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(workbook, `${title.replace(/\s+/g, '_')}_${dateStr}.xlsx`);
+      // Generate filename with date
+      const dateStr = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(workbook, `${title.replace(/\s+/g, '_')}_${dateStr}.xlsx`);
+
+      setDownloadMenuAnchor(null);
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      alert('Failed to export to Excel. Please try again.');
+    }
   };
 
   const handleExportWord = async () => {
-    const filteredData = getFilteredData();
+    try {
+      const filteredData = getFilteredData();
 
-    // Create table rows
-    const tableRows = [
-      // Header row
-      new DocxRow({
-        tableChildren: columns.map(col =>
-          new DocxCell({
+      // Create table rows
+      const tableRows = [
+        // Header row
+        new DocxRow({
+          tableChildren: columns.map(col =>
+            new DocxCell({
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: col.header,
+                      bold: true,
+                    }),
+                  ],
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+              width: {
+                size: 20,
+                type: WidthType.PERCENTAGE,
+              },
+            })
+          ),
+        }),
+      ];
+
+      // Data rows
+      filteredData.forEach(item => {
+        const cells = columns.map(col => {
+          let value = item[col.field] || '';
+
+          // Format dates
+          if (col.field === 'entry_timestamp' || col.field === 'entry_date' || col.field === 'date') {
+            if (value && typeof value === 'string' && value.includes('T')) {
+              value = new Date(value).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: 'numeric'
+              });
+            }
+          }
+
+          // Format times
+          if (col.field === 'entry_time') {
+            if (value && typeof value === 'string') {
+              const [hours, minutes] = value.split(':');
+              const hour = parseInt(hours, 10);
+              const ampm = hour >= 12 ? 'PM' : 'AM';
+              const hour12 = hour % 12 || 12;
+              value = `${hour12}:${minutes} ${ampm}`;
+            }
+          }
+
+          // Format approval_date
+          if (col.field === 'approval_date') {
+            if (value && typeof value === 'string') {
+              const date = new Date(value);
+              if (!isNaN(date.getTime())) {
+                value = date.toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                });
+              }
+            } else if (value instanceof Date) {
+              value = value.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              });
+            }
+          }
+
+          return new DocxCell({
             children: [
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: col.header,
-                    bold: true,
+                    text: String(value),
                   }),
                 ],
                 alignment: AlignmentType.CENTER,
@@ -290,146 +373,79 @@ const ReportGenerator = ({
               size: 20,
               type: WidthType.PERCENTAGE,
             },
-          })
-        ),
-      }),
-    ];
-
-    // Data rows
-    filteredData.forEach(item => {
-      const cells = columns.map(col => {
-        let value = item[col.field] || '';
-
-        // Format dates
-        if (col.field === 'entry_timestamp' || col.field === 'entry_date' || col.field === 'date') {
-          if (value && typeof value === 'string' && value.includes('T')) {
-            value = new Date(value).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: '2-digit',
-              day: 'numeric'
-            });
-          }
-        }
-
-        // Format times
-        if (col.field === 'entry_time') {
-          if (value && typeof value === 'string') {
-            const [hours, minutes] = value.split(':');
-            const hour = parseInt(hours, 10);
-            const ampm = hour >= 12 ? 'PM' : 'AM';
-            const hour12 = hour % 12 || 12;
-            value = `${hour12}:${minutes} ${ampm}`;
-          }
-        }
-
-        // Format approval_date
-        if (col.field === 'approval_date') {
-          if (value && typeof value === 'string') {
-            const date = new Date(value);
-            if (!isNaN(date.getTime())) {
-              value = date.toLocaleString('en-US', {
-                year: 'numeric',
-                month: '2-digit',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-              });
-            }
-          } else if (value instanceof Date) {
-            value = value.toLocaleString('en-US', {
-              year: 'numeric',
-              month: '2-digit',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit',
-              hour12: true
-            });
-          }
-        }
-
-        return new DocxCell({
-          children: [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: String(value),
-                }),
-              ],
-              alignment: AlignmentType.CENTER,
-            }),
-          ],
-          width: {
-            size: 20,
-            type: WidthType.PERCENTAGE,
-          },
+          });
         });
+
+        tableRows.push(
+          new DocxRow({
+            tableChildren: cells,
+          })
+        );
       });
 
-      tableRows.push(
-        new DocxRow({
-          tableChildren: cells,
-        })
-      );
-    });
-
-    // Create table
-    const table = new DocxTable({
-      rows: tableRows,
-      width: {
-        size: 100,
-        type: WidthType.PERCENTAGE,
-      },
-    });
-
-    // Create document
-    const doc = new Document({
-      sections: [
-        {
-          properties: {},
-          children: [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: title,
-                  bold: true,
-                  size: 32,
-                }),
-              ],
-              alignment: AlignmentType.CENTER,
-              spacing: {
-                after: 400,
-              },
-            }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: `Generated on: ${new Date().toLocaleString()}`,
-                  size: 20,
-                }),
-              ],
-              alignment: AlignmentType.CENTER,
-              spacing: {
-                after: 400,
-              },
-            }),
-            table,
-          ],
+      // Create table
+      const table = new DocxTable({
+        rows: tableRows,
+        width: {
+          size: 100,
+          type: WidthType.PERCENTAGE,
         },
-      ],
-    });
+      });
 
-    // Generate and download
-    const blob = await Packer.toBlob(doc);
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const dateStr = new Date().toISOString().split('T')[0];
-    a.href = url;
-    a.download = `${title.replace(/\s+/g, '_')}_${dateStr}.docx`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+      // Create document
+      const doc = new Document({
+        sections: [
+          {
+            properties: {},
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: title,
+                    bold: true,
+                    size: 32,
+                  }),
+                ],
+                alignment: AlignmentType.CENTER,
+                spacing: {
+                  after: 400,
+                },
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `Generated on: ${new Date().toLocaleString()}`,
+                    size: 20,
+                  }),
+                ],
+                alignment: AlignmentType.CENTER,
+                spacing: {
+                  after: 400,
+                },
+              }),
+              table,
+            ],
+          },
+        ],
+      });
+
+      // Generate and download
+      const blob = await Packer.toBlob(doc);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `${title.replace(/\s+/g, '_')}_${dateStr}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      setDownloadMenuAnchor(null);
+    } catch (error) {
+      console.error('Error exporting to Word:', error);
+      alert('Failed to export to Word. Please try again.');
+    }
   };
 
   const handlePrint = () => {
@@ -906,12 +922,12 @@ const ReportGenerator = ({
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', mt: 1 }}>
-                    <Tooltip title="Download CSV">
+                    <Tooltip title="Download Options">
                       <IconButton
                         variant="outlined"
-                        onClick={handleDownload}
+                        onClick={(e) => setDownloadMenuAnchor(e.currentTarget)}
                         disabled={filteredData.length === 0}
-                        sx={{ 
+                        sx={{
                           border: '1px solid rgba(0, 0, 0, 0.23)',
                           '&:hover': {
                             border: '1px solid rgba(0, 0, 0, 0.87)',
@@ -926,6 +942,24 @@ const ReportGenerator = ({
                         <DownloadIcon />
                       </IconButton>
                     </Tooltip>
+                    <Menu
+                      anchorEl={downloadMenuAnchor}
+                      open={Boolean(downloadMenuAnchor)}
+                      onClose={() => setDownloadMenuAnchor(null)}
+                    >
+                      <MenuItem onClick={handleDownload}>
+                        <DownloadIcon sx={{ mr: 1 }} />
+                        Download CSV
+                      </MenuItem>
+                      <MenuItem onClick={handleExportExcel}>
+                        <ExcelIcon sx={{ mr: 1 }} />
+                        Export to Excel
+                      </MenuItem>
+                      <MenuItem onClick={handleExportWord}>
+                        <WordIcon sx={{ mr: 1 }} />
+                        Export to Word
+                      </MenuItem>
+                    </Menu>
                     <Tooltip title="View Full Data">
                       <Button
                         variant="outlined"
@@ -943,28 +977,6 @@ const ReportGenerator = ({
                         disabled={filteredData.length === 0}
                       >
                         Print
-                      </Button>
-                    </Tooltip>
-                    <Tooltip title="Export to Excel">
-                      <Button
-                        variant="contained"
-                        startIcon={<ExcelIcon />}
-                        onClick={handleExportExcel}
-                        disabled={filteredData.length === 0}
-                        sx={{ ml: 1 }}
-                      >
-                        Excel
-                      </Button>
-                    </Tooltip>
-                    <Tooltip title="Export to Word">
-                      <Button
-                        variant="contained"
-                        startIcon={<WordIcon />}
-                        onClick={handleExportWord}
-                        disabled={filteredData.length === 0}
-                        sx={{ ml: 1 }}
-                      >
-                        Word
                       </Button>
                     </Tooltip>
                   </Box>
@@ -1064,23 +1076,51 @@ const ReportGenerator = ({
                                       if (value && typeof value === 'string') {
                                         const date = new Date(value);
                                         if (!isNaN(date.getTime())) {
-                                          value = date.toLocaleString('en-US', { 
-                                            year: 'numeric', 
-                                            month: '2-digit', 
+                                          value = date.toLocaleString('en-US', {
+                                            year: 'numeric',
+                                            month: '2-digit',
                                             day: '2-digit',
-                                            hour: 'numeric', 
+                                            hour: 'numeric',
                                             minute: '2-digit',
-                                            hour12: true 
+                                            hour12: true
                                           });
                                         }
                                       } else if (value instanceof Date) {
-                                        value = value.toLocaleString('en-US', { 
-                                          year: 'numeric', 
-                                          month: '2-digit', 
-                                          day: '2-digit',
-                                          hour: 'numeric', 
-                                          minute: '2-digit',
-                                          hour12: true 
+                                        value = value.toLocaleString('en-US', {
+                                          year: 'numeric',
+                                            month: '2-digit',
+                                            day: '2-digit',
+                                            hour: 'numeric',
+                                            minute: '2-digit',
+                                            hour12: true
+                                        });
+                                      }
+                                      return value || 'N/A';
+                                    })() :
+                                  // Format approval_date field to show date and time with AM/PM
+                                  (column.field === 'approval_date') ?
+                                    (() => {
+                                      let value = item[column.field] || '';
+                                      if (value && typeof value === 'string') {
+                                        const date = new Date(value);
+                                        if (!isNaN(date.getTime())) {
+                                          value = date.toLocaleString('en-US', {
+                                            year: 'numeric',
+                                            month: '2-digit',
+                                            day: '2-digit',
+                                            hour: 'numeric',
+                                            minute: '2-digit',
+                                            hour12: true
+                                          });
+                                        }
+                                      } else if (value instanceof Date) {
+                                        value = value.toLocaleString('en-US', {
+                                          year: 'numeric',
+                                            month: '2-digit',
+                                            day: '2-digit',
+                                            hour: 'numeric',
+                                            minute: '2-digit',
+                                            hour12: true
                                         });
                                       }
                                       return value || 'N/A';
