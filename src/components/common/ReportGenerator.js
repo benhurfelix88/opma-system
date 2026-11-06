@@ -39,7 +39,7 @@ import { DatePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import * as XLSX from 'xlsx';
-import { Document, Packer, Paragraph, Table as DocxTable, TableRow as DocxRow, TableCell as DocxCell, AlignmentType, TextRun } from 'docx';
+import { Document, Packer, Paragraph, Table as DocxTable, TableRow as DocxRow, TableCell as DocxCell, AlignmentType, TextRun, PageOrientation } from 'docx';
 
 const getWeekNumber = (date) => {
   const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -254,6 +254,32 @@ const ReportGenerator = ({
             }
           }
 
+          // Format last_updated field
+          if (col.field === 'last_updated' || col.field === 'updated_at') {
+            if (value && typeof value === 'string') {
+              const date = new Date(value);
+              if (!isNaN(date.getTime())) {
+                value = date.toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                });
+              }
+            } else if (value instanceof Date) {
+              value = value.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              });
+            }
+          }
+
           return value;
         });
         worksheetData.push(row);
@@ -356,6 +382,32 @@ const ReportGenerator = ({
               }
             }
 
+            // Format last_updated field
+            if (col.field === 'last_updated' || col.field === 'updated_at') {
+              if (value && typeof value === 'string') {
+                const date = new Date(value);
+                if (!isNaN(date.getTime())) {
+                  value = date.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                  });
+                }
+              } else if (value instanceof Date) {
+                value = value.toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                });
+              }
+            }
+
             return new DocxCell({
               children: [
                 new Paragraph({
@@ -382,8 +434,27 @@ const ReportGenerator = ({
       const doc = new Document({
         sections: [
           {
-            properties: {},
+            properties: {
+              page: {
+                size: {
+                  orientation: PageOrientation.LANDSCAPE,
+                },
+              },
+            },
             children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: 'ARMS - Amusement Park Management System',
+                    bold: true,
+                    size: 28,
+                  }),
+                ],
+                alignment: AlignmentType.CENTER,
+                spacing: {
+                  after: 200,
+                },
+              }),
               new Paragraph({
                 children: [
                   new TextRun({
