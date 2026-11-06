@@ -42,6 +42,32 @@ import { maintenanceAPI, ridesAPI } from '../../services/api';
 const VISIBLE_RIDE_LIMIT = 8;
 const RIDE_LIST_ITEM_HEIGHT = 52;
 
+const getRideStatusColor = (status) => {
+  switch (status) {
+    case 'operational':
+      return 'success';
+    case 'maintenance':
+      return 'warning';
+    case 'malfunction':
+      return 'error';
+    default:
+      return 'default';
+  }
+};
+
+const getRideStatusLabel = (status) => {
+  switch (status) {
+    case 'operational':
+      return 'Operational';
+    case 'maintenance':
+      return 'Under Maintenance';
+    case 'malfunction':
+      return 'Malfunction';
+    default:
+      return status || 'Unknown';
+  }
+};
+
 const EncoderMaintenanceReports = () => {
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
   const [selectedRecord, setSelectedRecord] = useState(null);
