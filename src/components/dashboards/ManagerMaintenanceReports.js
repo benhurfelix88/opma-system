@@ -32,7 +32,6 @@ import {
   Close as CloseIcon,
   Info as InfoIcon,
   CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';

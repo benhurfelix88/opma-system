@@ -35,7 +35,6 @@ import {
   CheckCircle as CheckCircleIcon,
   Schedule as ScheduleIcon,
   PictureAsPdf as ReportIcon,
-  Cancel as CancelIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
