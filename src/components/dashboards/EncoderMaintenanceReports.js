@@ -535,14 +535,24 @@ const EncoderMaintenanceReports = () => {
                   </TableCell>
                   <TableCell align="center">
                     {record.approval_date
-                      ? new Date(record.approval_date).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                          hour: 'numeric',
-                          minute: '2-digit',
-                          hour12: true
-                        })
+                      ? (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                          <Typography variant="body2">
+                            {new Date(record.approval_date).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit'
+                            })}
+                          </Typography>
+                          <Typography variant="body2">
+                            {new Date(record.approval_date).toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true
+                            })}
+                          </Typography>
+                        </Box>
+                      )
                       : 'N/A'}
                   </TableCell>
                   <TableCell align="center">

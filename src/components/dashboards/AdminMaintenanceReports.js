@@ -25,7 +25,6 @@ import {
   Alert,
   Card,
   CardContent,
-  Snackbar,
 } from '@mui/material';
 import {
   Build as BuildIcon,
@@ -35,7 +34,6 @@ import {
   CheckCircle as CheckCircleIcon,
   Schedule as ScheduleIcon,
   PictureAsPdf as ReportIcon,
-  Edit as EditIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -55,9 +53,6 @@ const AdminMaintenanceReports = () => {
   const [openReportDialog, setOpenReportDialog] = useState(false);
   const [descriptionDialogOpen, setDescriptionDialogOpen] = useState(false);
   const [selectedDescription, setSelectedDescription] = useState('');
-  const [openApprovalDialog, setOpenApprovalDialog] = useState(false);
-  const [approvalRecord, setApprovalRecord] = useState(null);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const truncateText = (text, wordLimit = 5) => {
     if (!text) return 'No description';
@@ -281,24 +276,16 @@ const AdminMaintenanceReports = () => {
               />
             </Typography>
             <Typography><strong>Approval Date:</strong>
-              {viewRecord.approval_date ? (
-                <Box sx={{ mt: 1 }}>
-                  <Typography variant="body2">
-                    {new Date(viewRecord.approval_date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit'
-                    })}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {new Date(viewRecord.approval_date).toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true
-                    })}
-                  </Typography>
-                </Box>
-              ) : ' N/A'}
+              {viewRecord.approval_date
+                ? ` ${new Date(viewRecord.approval_date).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                  })}`
+                : ' N/A'}
             </Typography>
           </Box>
         </DialogContent>
@@ -552,65 +539,44 @@ const AdminMaintenanceReports = () => {
                           />
                         </TableCell>
                         <TableCell align="center">
-                          {report.approval_date ? (
-                            <Box>
-                              <Typography variant="body2">
-                                {new Date(report.approval_date).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: '2-digit',
-                                  day: '2-digit'
-                                })}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                {new Date(report.approval_date).toLocaleTimeString('en-US', {
-                                  hour: 'numeric',
-                                  minute: '2-digit',
-                                  hour12: true
-                                })}
-                              </Typography>
-                            </Box>
-                          ) : 'N/A'}
+                          {report.approval_date
+                            ? (
+                              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <Typography variant="body2">
+                                  {new Date(report.approval_date).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit'
+                                  })}
+                                </Typography>
+                                <Typography variant="body2">
+                                  {new Date(report.approval_date).toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true
+                                  })}
+                                </Typography>
+                              </Box>
+                            )
+                            : 'N/A'}
                         </TableCell>
                         <TableCell align="center">
-                          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                            <Tooltip title="View Details">
-                              <IconButton
-                                size="small"
-                                onClick={() => handleOpenViewDialog(report)}
-                                sx={{
-                                  transition: 'all 0.2s ease',
-                                  '&:hover': {
-                                    backgroundColor: 'info.main',
-                                    color: 'white',
-                                    transform: 'scale(1.1)',
-                                  },
-                                }}
-                              >
-                                <InfoIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            {report.approval_status !== 'Approved' && (
-                              <Tooltip title="Approve/Reject">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => {
-                                    setApprovalRecord(report);
-                                    setOpenApprovalDialog(true);
-                                  }}
-                                  sx={{
-                                    transition: 'all 0.2s ease',
-                                    '&:hover': {
-                                      backgroundColor: 'primary.main',
-                                      color: 'white',
-                                      transform: 'scale(1.1)',
-                                    },
-                                  }}
-                                >
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                          </Box>
+                          <Tooltip title="View Details">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleOpenViewDialog(report)}
+                              sx={{
+                                transition: 'all 0.2s ease',
+                                '&:hover': {
+                                  backgroundColor: 'info.main',
+                                  color: 'white',
+                                  transform: 'scale(1.1)',
+                                },
+                              }}
+                            >
+                              <InfoIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                         </TableCell>
                       </TableRow>
                     ))
@@ -627,82 +593,6 @@ const AdminMaintenanceReports = () => {
         
         {/* Description Dialog */}
         <DescriptionDialog />
-
-        {/* Approval Dialog */}
-        <Dialog
-          open={openApprovalDialog}
-          onClose={() => setOpenApprovalDialog(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>Approve/Reject Maintenance Record</DialogTitle>
-          <DialogContent>
-            <FormControl fullWidth sx={{ mt: 2 }}>
-              <InputLabel>Approval Status</InputLabel>
-              <Select
-                label="Approval Status"
-                value={approvalRecord?.approval_status || 'Pending'}
-                onChange={(e) => {
-                  setApprovalRecord(prev => ({ ...prev, approval_status: e.target.value }));
-                }}
-              >
-                <MenuItem value="Pending">Pending</MenuItem>
-                <MenuItem value="Approved">Approved</MenuItem>
-                <MenuItem value="Rejected">Rejected</MenuItem>
-              </Select>
-            </FormControl>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenApprovalDialog(false)}>Cancel</Button>
-            <Button
-              variant="contained"
-              onClick={async () => {
-                try {
-                  const updatedRecord = {
-                    ...approvalRecord,
-                    approval_date: approvalRecord.approval_status === 'Approved' ? new Date().toISOString() : null
-                  };
-                  await maintenanceAPI.update(approvalRecord.id, updatedRecord);
-                  setSnackbar({ open: true, message: 'Approval status updated successfully', severity: 'success' });
-                  setOpenApprovalDialog(false);
-                  // Reload data
-                  const rows = await maintenanceAPI.getAll();
-                  const mapped = (rows || []).map(r => ({
-                    ...r,
-                    id: r.id,
-                    ride: r.ride_name || r.ride || '',
-                    location: r.location || '',
-                    date: r.date_performed || r.date || new Date().toISOString(),
-                    status: r.status || '',
-                    description: r.description || '',
-                    technician: r.performed_by || r.technician || '',
-                    nextMaintenance: r.next_maintenance_date || r.nextMaintenance || null,
-                    approval_status: r.approval_status || 'Pending',
-                    approval_date: r.approval_date || null,
-                  }));
-                  const sortedReports = mapped.sort((a, b) => new Date(b.date) - new Date(a.date));
-                  setMaintenanceData(sortedReports);
-                  setFilteredData(sortedReports);
-                } catch (error) {
-                  console.error('Error updating approval status:', error);
-                  setSnackbar({ open: true, message: 'Failed to update approval status', severity: 'error' });
-                }
-              }}
-            >
-              Save
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-        >
-          <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
 
         {/* Ride Selection Modal */}
         <Dialog 
