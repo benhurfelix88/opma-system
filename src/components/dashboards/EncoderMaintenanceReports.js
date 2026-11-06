@@ -147,6 +147,8 @@ const EncoderMaintenanceReports = () => {
           technician: r.performed_by || r.technician || '',
           location: r.location || '',
           nextMaintenance: r.next_maintenance_date || r.nextMaintenance || null,
+          approval_status: r.approval_status || 'Pending',
+          approval_date: r.approval_date || null,
         }));
         setMaintenanceRecords(mapped);
         await loadRidesFromManager();
@@ -458,13 +460,15 @@ const EncoderMaintenanceReports = () => {
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Technician</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Location</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Status</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Date</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredAndSortedRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                  <TableCell colSpan={10} align="center">
                     <Typography variant="body1" color="text.secondary">
                       No maintenance records found
                     </Typography>
@@ -514,6 +518,32 @@ const EncoderMaintenanceReports = () => {
                           backgroundColor: 'transparent'
                         }}
                       />
+                  </TableCell>
+                  <TableCell align="center">
+                    <Chip
+                      label={record.approval_status || 'Pending'}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        color: record.approval_status === 'Approved' ? 'green' :
+                              record.approval_status === 'Rejected' ? 'red' : 'orange',
+                        borderColor: record.approval_status === 'Approved' ? 'green' :
+                                     record.approval_status === 'Rejected' ? 'red' : 'orange',
+                        backgroundColor: 'transparent'
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell align="center">
+                    {record.approval_date
+                      ? new Date(record.approval_date).toLocaleString('en-US', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true
+                        })
+                      : 'N/A'}
                   </TableCell>
                   <TableCell align="center">
                     <Tooltip title="View Details">

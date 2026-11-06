@@ -98,6 +98,8 @@ CREATE TABLE IF NOT EXISTS maintenance_records (
     next_maintenance_date DATE,
     status VARCHAR(50),
     location VARCHAR(255),
+    approval_status VARCHAR(50) DEFAULT 'Pending',
+    approval_date TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

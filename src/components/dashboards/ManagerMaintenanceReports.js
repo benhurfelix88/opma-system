@@ -23,12 +23,16 @@ import {
   DialogContent,
   DialogActions,
   IconButton,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import {
   PictureAsPdf as ReportIcon,
   ArrowRight as ArrowRightIcon,
   Close as CloseIcon,
   Info as InfoIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -47,6 +51,9 @@ const ManagerMaintenanceReports = () => {
   const [selectedDescription, setSelectedDescription] = useState('');
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [viewRecord, setViewRecord] = useState(null);
+  const [openApprovalDialog, setOpenApprovalDialog] = useState(false);
+  const [approvalRecord, setApprovalRecord] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const truncateText = (text, wordLimit = 5) => {
     if (!text) return 'No description';
@@ -69,6 +76,8 @@ const ManagerMaintenanceReports = () => {
           description: r.description || '',
           technician: r.performed_by || r.technician || '',
           nextMaintenance: r.next_maintenance_date || r.nextMaintenance || null,
+          approval_status: r.approval_status || 'Pending',
+          approval_date: r.approval_date || null,
         }));
         setMaintenanceRecords(mapped);
       } catch (e) {
@@ -233,13 +242,15 @@ const ManagerMaintenanceReports = () => {
                 <TableCell align="center">Description</TableCell>
                 <TableCell align="center">Technician</TableCell>
                 <TableCell align="center">Next Maintenance</TableCell>
+                <TableCell align="center">Approval Status</TableCell>
+                <TableCell align="center">Approval Date</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredAndSortedRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                  <TableCell colSpan={10} align="center">
                     <Typography variant="body1" color="text.secondary">
                       No maintenance records found
                     </Typography>
@@ -301,20 +312,64 @@ const ManagerMaintenanceReports = () => {
                       }
                     </TableCell>
                     <TableCell align="center">
-                      <IconButton
+                      <Chip
+                        label={record.approval_status || 'Pending'}
+                        variant="outlined"
                         size="small"
-                        onClick={() => {
-                          setViewRecord(record);
-                          setOpenViewDialog(true);
-                        }}
                         sx={{
-                          '&:hover': {
-                            backgroundColor: 'action.hover',
-                          },
+                          color: record.approval_status === 'Approved' ? 'green' :
+                                record.approval_status === 'Rejected' ? 'red' : 'orange',
+                          borderColor: record.approval_status === 'Approved' ? 'green' :
+                                       record.approval_status === 'Rejected' ? 'red' : 'orange',
+                          backgroundColor: 'transparent'
                         }}
-                      >
-                        <InfoIcon fontSize="small" color="primary" />
-                      </IconButton>
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      {record.approval_date
+                        ? new Date(record.approval_date).toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                          })
+                        : 'N/A'}
+                    </TableCell>
+                    <TableCell align="center">
+                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setViewRecord(record);
+                            setOpenViewDialog(true);
+                          }}
+                          sx={{
+                            '&:hover': {
+                              backgroundColor: 'action.hover',
+                            },
+                          }}
+                        >
+                          <InfoIcon fontSize="small" color="primary" />
+                        </IconButton>
+                        {record.approval_status !== 'Approved' && (
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setApprovalRecord(record);
+                              setOpenApprovalDialog(true);
+                            }}
+                            sx={{
+                              '&:hover': {
+                                backgroundColor: 'action.hover',
+                              },
+                            }}
+                          >
+                            <CheckCircleIcon fontSize="small" color="success" />
+                          </IconButton>
+                        )}
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))
@@ -403,7 +458,9 @@ const ManagerMaintenanceReports = () => {
             { header: 'Status', field: 'status' },
             { header: 'Technician', field: 'technician' },
             { header: 'Description', field: 'description' },
-            { header: 'Next Maintenance', field: 'nextMaintenance', render: (item) => item.nextMaintenance ? new Date(item.nextMaintenance).toLocaleDateString() : 'Not scheduled' }
+            { header: 'Next Maintenance', field: 'nextMaintenance', render: (item) => item.nextMaintenance ? new Date(item.nextMaintenance).toLocaleDateString() : 'Not scheduled' },
+            { header: 'Approval Status', field: 'approval_status' },
+            { header: 'Approval Date', field: 'approval_date' }
           ]}
         />
 
@@ -456,6 +513,33 @@ const ManagerMaintenanceReports = () => {
                     ? ` ${new Date(viewRecord.nextMaintenance).toLocaleString()}`
                     : ' Not scheduled'}
                 </Typography>
+                <Typography><strong>Approval Status:</strong>
+                  <Chip
+                    label={viewRecord.approval_status || 'Pending'}
+                    variant="outlined"
+                    size="small"
+                    sx={{
+                      ml: 1,
+                      color: viewRecord.approval_status === 'Approved' ? 'green' :
+                            viewRecord.approval_status === 'Rejected' ? 'red' : 'orange',
+                      borderColor: viewRecord.approval_status === 'Approved' ? 'green' :
+                                   viewRecord.approval_status === 'Rejected' ? 'red' : 'orange',
+                      backgroundColor: 'transparent',
+                    }}
+                  />
+                </Typography>
+                <Typography><strong>Approval Date:</strong>
+                  {viewRecord.approval_date
+                    ? ` ${new Date(viewRecord.approval_date).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}`
+                    : ' N/A'}
+                </Typography>
               </Box>
             )}
           </DialogContent>
@@ -466,6 +550,83 @@ const ManagerMaintenanceReports = () => {
             }}>Close</Button>
           </DialogActions>
         </Dialog>
+
+        {/* Approval Dialog */}
+        <Dialog
+          open={openApprovalDialog}
+          onClose={() => setOpenApprovalDialog(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Approve/Reject Maintenance Record</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Ride: {approvalRecord?.ride}
+            </Typography>
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <InputLabel>Approval Status</InputLabel>
+              <Select
+                label="Approval Status"
+                value={approvalRecord?.approval_status || 'Pending'}
+                onChange={(e) => {
+                  setApprovalRecord(prev => ({ ...prev, approval_status: e.target.value }));
+                }}
+              >
+                <MenuItem value="Pending">Pending</MenuItem>
+                <MenuItem value="Approved">Approved</MenuItem>
+                <MenuItem value="Rejected">Rejected</MenuItem>
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenApprovalDialog(false)}>Cancel</Button>
+            <Button
+              variant="contained"
+              onClick={async () => {
+                try {
+                  const updatedRecord = {
+                    ...approvalRecord,
+                    approval_date: approvalRecord.approval_status === 'Approved' ? new Date().toISOString() : null
+                  };
+                  await maintenanceAPI.update(approvalRecord.id, updatedRecord);
+                  setSnackbar({ open: true, message: 'Approval status updated successfully', severity: 'success' });
+                  setOpenApprovalDialog(false);
+                  // Reload data
+                  const rows = await maintenanceAPI.getAll();
+                  const mapped = (rows || []).map(r => ({
+                    ...r,
+                    id: r.id,
+                    ride: r.ride_name || r.ride || '',
+                    location: r.location || '',
+                    date: r.date_performed || r.date || new Date().toISOString(),
+                    status: r.status || '',
+                    description: r.description || '',
+                    technician: r.performed_by || r.technician || '',
+                    nextMaintenance: r.next_maintenance_date || r.nextMaintenance || null,
+                    approval_status: r.approval_status || 'Pending',
+                    approval_date: r.approval_date || null,
+                  }));
+                  setMaintenanceRecords(mapped);
+                } catch (error) {
+                  console.error('Error updating approval status:', error);
+                  setSnackbar({ open: true, message: 'Failed to update approval status', severity: 'error' });
+                }
+              }}
+            >
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        >
+          <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
 
       {/* Description Dialog */}
       <Dialog 

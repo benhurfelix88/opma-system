@@ -645,6 +645,8 @@ async function ensureMaintenanceRecords() {
         next_maintenance_date DATE,
         status VARCHAR(50),
         location VARCHAR(255),
+        approval_status VARCHAR(50) DEFAULT 'Pending',
+        approval_date TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -658,6 +660,26 @@ async function ensureMaintenanceRecords() {
       console.log('✓ Location column ensured in maintenance_records');
     } catch (alterError) {
       console.log('Note: Could not add location column (may already exist):', alterError.message);
+    }
+
+    // Add approval_status column if it doesn't exist (for existing tables)
+    try {
+      await db.execute(`
+        ALTER TABLE maintenance_records ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'Pending'
+      `);
+      console.log('✓ approval_status column ensured in maintenance_records');
+    } catch (alterError) {
+      console.log('Note: Could not add approval_status column (may already exist):', alterError.message);
+    }
+
+    // Add approval_date column if it doesn't exist (for existing tables)
+    try {
+      await db.execute(`
+        ALTER TABLE maintenance_records ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP
+      `);
+      console.log('✓ approval_date column ensured in maintenance_records');
+    } catch (alterError) {
+      console.log('Note: Could not add approval_date column (may already exist):', alterError.message);
     }
 
     console.log('✓ Maintenance records table ensured');
