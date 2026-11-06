@@ -281,16 +281,24 @@ const AdminMaintenanceReports = () => {
               />
             </Typography>
             <Typography><strong>Approval Date:</strong>
-              {viewRecord.approval_date
-                ? ` ${new Date(viewRecord.approval_date).toLocaleString('en-US', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
-                  })}`
-                : ' N/A'}
+              {viewRecord.approval_date ? (
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="body2">
+                    {new Date(viewRecord.approval_date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit'
+                    })}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {new Date(viewRecord.approval_date).toLocaleTimeString('en-US', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                  </Typography>
+                </Box>
+              ) : ' N/A'}
             </Typography>
           </Box>
         </DialogContent>
@@ -544,16 +552,24 @@ const AdminMaintenanceReports = () => {
                           />
                         </TableCell>
                         <TableCell align="center">
-                          {report.approval_date
-                            ? new Date(report.approval_date).toLocaleString('en-US', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: 'numeric',
-                                minute: '2-digit',
-                                hour12: true
-                              })
-                            : 'N/A'}
+                          {report.approval_date ? (
+                            <Box>
+                              <Typography variant="body2">
+                                {new Date(report.approval_date).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: '2-digit',
+                                  day: '2-digit'
+                                })}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {new Date(report.approval_date).toLocaleTimeString('en-US', {
+                                  hour: 'numeric',
+                                  minute: '2-digit',
+                                  hour12: true
+                                })}
+                              </Typography>
+                            </Box>
+                          ) : 'N/A'}
                         </TableCell>
                         <TableCell align="center">
                           <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>

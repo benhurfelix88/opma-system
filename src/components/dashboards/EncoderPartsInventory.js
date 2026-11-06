@@ -1086,9 +1086,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           </TableCell>
                           <TableCell align="center">
                             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                            <IconButton onClick={() => handleOpenDialog(part)}>
-                              <EditIcon />
-                            </IconButton>
                             <IconButton onClick={() => handleDelete(part.id)}>
                               <DeleteIcon />
                             </IconButton>
@@ -1238,14 +1235,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                     onClick={() => handleOpenDetailsDialog(repair, stats)}
                                   >
                                     <InfoIcon />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Edit">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleOpenRepairDialog(repair)}
-                                  >
-                                    <EditIcon />
                                   </IconButton>
                                 </Tooltip>
                                 <Tooltip title="Delete">
