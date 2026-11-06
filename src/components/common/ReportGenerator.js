@@ -31,10 +31,14 @@ import {
   ArrowRight as ArrowRightIcon,
   NavigateBefore as NavigateBeforeIcon,
   NavigateNext as NavigateNextIcon,
+  GridOn as ExcelIcon,
+  Description as WordIcon,
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import * as XLSX from 'xlsx';
+import { Document, Packer, Paragraph, Table as DocxTable, TableRow as DocxRow, TableCell as DocxCell, WidthType, AlignmentType, TextRun } from 'docx';
 
 const getWeekNumber = (date) => {
   const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -187,6 +191,245 @@ const ReportGenerator = ({
       
       return true;
     });
+  };
+
+  const handleExportExcel = () => {
+    const filteredData = getFilteredData();
+
+    // Prepare data for Excel
+    const worksheetData = columns.map(col => col.header);
+
+    filteredData.forEach(item => {
+      const row = columns.map(col => {
+        let value = item[col.field] || '';
+
+        // Format dates
+        if (col.field === 'entry_timestamp' || col.field === 'entry_date' || col.field === 'date') {
+          if (value && typeof value === 'string' && value.includes('T')) {
+            value = new Date(value).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: '2-digit',
+              day: 'numeric'
+            });
+          }
+        }
+
+        // Format times
+        if (col.field === 'entry_time') {
+          if (value && typeof value === 'string') {
+            const [hours, minutes] = value.split(':');
+            const hour = parseInt(hours, 10);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            value = `${hour12}:${minutes} ${ampm}`;
+          }
+        }
+
+        // Format approval_date
+        if (col.field === 'approval_date') {
+          if (value && typeof value === 'string') {
+            const date = new Date(value);
+            if (!isNaN(date.getTime())) {
+              value = date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              });
+            }
+          } else if (value instanceof Date) {
+            value = value.toLocaleString('en-US', {
+              year: 'numeric',
+              month: '2-digit',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+          }
+        }
+
+        return value;
+      });
+      worksheetData.push(row);
+    });
+
+    // Create workbook
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+
+    // Generate filename with date
+    const dateStr = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `${title.replace(/\s+/g, '_')}_${dateStr}.xlsx`);
+  };
+
+  const handleExportWord = async () => {
+    const filteredData = getFilteredData();
+
+    // Create table rows
+    const tableRows = [
+      // Header row
+      new DocxRow({
+        tableChildren: columns.map(col =>
+          new DocxCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: col.header,
+                    bold: true,
+                  }),
+                ],
+                alignment: AlignmentType.CENTER,
+              }),
+            ],
+            width: {
+              size: 20,
+              type: WidthType.PERCENTAGE,
+            },
+          })
+        ),
+      }),
+    ];
+
+    // Data rows
+    filteredData.forEach(item => {
+      const cells = columns.map(col => {
+        let value = item[col.field] || '';
+
+        // Format dates
+        if (col.field === 'entry_timestamp' || col.field === 'entry_date' || col.field === 'date') {
+          if (value && typeof value === 'string' && value.includes('T')) {
+            value = new Date(value).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: '2-digit',
+              day: 'numeric'
+            });
+          }
+        }
+
+        // Format times
+        if (col.field === 'entry_time') {
+          if (value && typeof value === 'string') {
+            const [hours, minutes] = value.split(':');
+            const hour = parseInt(hours, 10);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            value = `${hour12}:${minutes} ${ampm}`;
+          }
+        }
+
+        // Format approval_date
+        if (col.field === 'approval_date') {
+          if (value && typeof value === 'string') {
+            const date = new Date(value);
+            if (!isNaN(date.getTime())) {
+              value = date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              });
+            }
+          } else if (value instanceof Date) {
+            value = value.toLocaleString('en-US', {
+              year: 'numeric',
+              month: '2-digit',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+          }
+        }
+
+        return new DocxCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: String(value),
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: {
+            size: 20,
+            type: WidthType.PERCENTAGE,
+          },
+        });
+      });
+
+      tableRows.push(
+        new DocxRow({
+          tableChildren: cells,
+        })
+      );
+    });
+
+    // Create table
+    const table = new DocxTable({
+      rows: tableRows,
+      width: {
+        size: 100,
+        type: WidthType.PERCENTAGE,
+      },
+    });
+
+    // Create document
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: title,
+                  bold: true,
+                  size: 32,
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+              spacing: {
+                after: 400,
+              },
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `Generated on: ${new Date().toLocaleString()}`,
+                  size: 20,
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+              spacing: {
+                after: 400,
+              },
+            }),
+            table,
+          ],
+        },
+      ],
+    });
+
+    // Generate and download
+    const blob = await Packer.toBlob(doc);
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().split('T')[0];
+    a.href = url;
+    a.download = `${title.replace(/\s+/g, '_')}_${dateStr}.docx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
   const handlePrint = () => {
@@ -700,6 +943,28 @@ const ReportGenerator = ({
                         disabled={filteredData.length === 0}
                       >
                         Print
+                      </Button>
+                    </Tooltip>
+                    <Tooltip title="Export to Excel">
+                      <Button
+                        variant="contained"
+                        startIcon={<ExcelIcon />}
+                        onClick={handleExportExcel}
+                        disabled={filteredData.length === 0}
+                        sx={{ ml: 1 }}
+                      >
+                        Excel
+                      </Button>
+                    </Tooltip>
+                    <Tooltip title="Export to Word">
+                      <Button
+                        variant="contained"
+                        startIcon={<WordIcon />}
+                        onClick={handleExportWord}
+                        disabled={filteredData.length === 0}
+                        sx={{ ml: 1 }}
+                      >
+                        Word
                       </Button>
                     </Tooltip>
                   </Box>
