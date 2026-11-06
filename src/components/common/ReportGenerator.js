@@ -39,7 +39,7 @@ import { DatePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import * as XLSX from 'xlsx';
-import { Document, Packer, Paragraph, Table as DocxTable, TableRow as DocxRow, TableCell as DocxCell, WidthType, AlignmentType, TextRun } from 'docx';
+import { Document, Packer, Paragraph, Table as DocxTable, TableRow as DocxRow, TableCell as DocxCell, AlignmentType, TextRun } from 'docx';
 
 const getWeekNumber = (date) => {
   const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
