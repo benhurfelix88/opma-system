@@ -130,7 +130,11 @@ const ManagerPartsInventory = () => {
   const loadPartDeployments = async () => {
     try {
       const deployments = await partDeploymentsAPI.getAll();
-      setPartDeployments(deployments || []);
+      const mappedDeployments = deployments.map(deployment => ({
+        ...deployment,
+        missing_parts: deployment.missing_parts || ''
+      }));
+      setPartDeployments(mappedDeployments || []);
     } catch (error) {
       console.error('Error loading part deployments:', error);
     }
@@ -139,7 +143,11 @@ const ManagerPartsInventory = () => {
   const loadPartRemovals = async () => {
     try {
       const removals = await partRemovalsAPI.getAll();
-      setPartRemovals(removals || []);
+      const mappedRemovals = removals.map(removal => ({
+        ...removal,
+        missing_parts: removal.missing_parts || ''
+      }));
+      setPartRemovals(mappedRemovals || []);
     } catch (error) {
       console.error('Error loading part removals:', error);
     }
@@ -279,7 +287,8 @@ const ManagerPartsInventory = () => {
         deployment.place?.toLowerCase().includes(q) ||
         deployment.ride?.toLowerCase().includes(q) ||
         deployment.encoded_by?.toLowerCase().includes(q) ||
-        deployment.status?.toLowerCase().includes(q)
+        deployment.status?.toLowerCase().includes(q) ||
+        deployment.missing_parts?.toLowerCase().includes(q)
       );
     })
     .sort((a, b) => {
@@ -296,7 +305,8 @@ const ManagerPartsInventory = () => {
         removal.place?.toLowerCase().includes(q) ||
         removal.ride?.toLowerCase().includes(q) ||
         removal.encoded_by?.toLowerCase().includes(q) ||
-        removal.status?.toLowerCase().includes(q)
+        removal.status?.toLowerCase().includes(q) ||
+        removal.missing_parts?.toLowerCase().includes(q)
       );
     })
     .sort((a, b) => {
@@ -703,13 +713,14 @@ const ManagerPartsInventory = () => {
                       <TableCell>Place</TableCell>
                       <TableCell>Ride</TableCell>
                       <TableCell>Status</TableCell>
+                      <TableCell>Missing Parts</TableCell>
                       <TableCell>Encoded By</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {filteredAndSortedDeployments.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} align="center">No deployments found</TableCell>
+                        <TableCell colSpan={6} align="center">No deployments found</TableCell>
                       </TableRow>
                     ) : (
                       filteredAndSortedDeployments.map((deployment) => (
@@ -718,6 +729,7 @@ const ManagerPartsInventory = () => {
                           <TableCell>{deployment.place}</TableCell>
                           <TableCell>{deployment.ride}</TableCell>
                           <TableCell>{deployment.status}</TableCell>
+                          <TableCell>{deployment.missing_parts || '-'}</TableCell>
                           <TableCell>{deployment.encoded_by}</TableCell>
                         </TableRow>
                       ))
@@ -794,13 +806,14 @@ const ManagerPartsInventory = () => {
                       <TableCell>Place</TableCell>
                       <TableCell>Ride</TableCell>
                       <TableCell>Status</TableCell>
+                      <TableCell>Missing Parts</TableCell>
                       <TableCell>Encoded By</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {filteredAndSortedRemovals.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} align="center">No removals found</TableCell>
+                        <TableCell colSpan={6} align="center">No removals found</TableCell>
                       </TableRow>
                     ) : (
                       filteredAndSortedRemovals.map((removal) => (
@@ -809,6 +822,7 @@ const ManagerPartsInventory = () => {
                           <TableCell>{removal.place}</TableCell>
                           <TableCell>{removal.ride}</TableCell>
                           <TableCell>{removal.status}</TableCell>
+                          <TableCell>{removal.missing_parts || '-'}</TableCell>
                           <TableCell>{removal.encoded_by}</TableCell>
                         </TableRow>
                       ))
@@ -927,6 +941,7 @@ const ManagerPartsInventory = () => {
               { header: 'Place', field: 'place' },
               { header: 'Ride', field: 'ride' },
               { header: 'Status', field: 'status' },
+              { header: 'Missing Parts', field: 'missing_parts' },
               { header: 'Encoded By', field: 'encoded_by' }
             ]}
           />
@@ -944,6 +959,7 @@ const ManagerPartsInventory = () => {
               { header: 'Place', field: 'place' },
               { header: 'Ride', field: 'ride' },
               { header: 'Status', field: 'status' },
+              { header: 'Missing Parts', field: 'missing_parts' },
               { header: 'Encoded By', field: 'encoded_by' }
             ]}
           />

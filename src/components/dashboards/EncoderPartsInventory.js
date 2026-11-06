@@ -134,6 +134,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     place: '',
     ride: '',
     status: 'Complete',
+    missingParts: '',
     encodedBy: '',
   });
   const [removalData, setRemovalData] = useState({
@@ -141,6 +142,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     place: '',
     ride: '',
     status: 'Complete',
+    missingParts: '',
     encodedBy: '',
   });
   const [summaryMode, setSummaryMode] = useState('deployment');
@@ -199,6 +201,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           place: deployment.place,
           ride: deployment.ride,
           status: deployment.status,
+          missingParts: deployment.missing_parts || '',
           encodedBy: deployment.encoded_by,
         }));
         setDeployments(mappedDeployments);
@@ -211,6 +214,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           place: removal.place,
           ride: removal.ride,
           status: removal.status,
+          missingParts: removal.missing_parts || '',
           encodedBy: removal.encoded_by,
         }));
         setRemovals(mappedRemovals);
@@ -600,6 +604,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         parts: deployment.parts,
         quantity: Number(deployment.quantity),
         status: newStatus,
+        missing_parts: deployment.missingParts,
         encoded_by: deployment.encodedBy,
       });
       setDeployments((prev) =>
@@ -623,6 +628,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         parts: removal.parts,
         quantity: Number(removal.quantity),
         status: newStatus,
+        missing_parts: removal.missingParts,
         encoded_by: removal.encodedBy,
       });
       setRemovals((prev) =>
@@ -642,12 +648,14 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       place: deployment.place,
       ride: deployment.ride,
       status: deployment.status,
+      missingParts: deployment.missing_parts || '',
       encodedBy: deployment.encodedBy
     } : {
       date: new Date().toISOString().split('T')[0],
       place: '',
       ride: '',
       status: 'Complete',
+      missingParts: '',
       encodedBy: ''
     });
     setOpenDialog(true);
@@ -660,6 +668,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       place: '',
       ride: '',
       status: 'Complete',
+      missingParts: '',
       encodedBy: ''
     });
     setOpenDialog(false);
@@ -672,13 +681,14 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       setOpenWarningModal(true);
       return;
     }
-    
+
     try {
       const deploymentPayload = {
         date: deploymentData.date,
         place: deploymentData.place,
         ride: deploymentData.ride,
         status: deploymentData.status,
+        missing_parts: deploymentData.missingParts,
         encoded_by: deploymentData.encodedBy,
       };
 
@@ -696,6 +706,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         place: deployment.place,
         ride: deployment.ride,
         status: deployment.status,
+        missingParts: deployment.missing_parts || '',
         encodedBy: deployment.encoded_by,
       }));
       setDeployments(mappedDeployments);
@@ -710,7 +721,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   const handleDeleteDeployment = (id) => {
     const deploymentToDelete = deployments.find(deployment => deployment.id === id);
     const deploymentDate = deploymentToDelete?.date ? new Date(deploymentToDelete.date).toLocaleDateString() : 'N/A';
-    setWarningMessage(`Are you sure you want to delete this deployment record?\n\nRide: ${deploymentToDelete?.ride || 'N/A'}\nDate: ${deploymentDate}\nParts: ${deploymentToDelete?.parts || 'N/A'}\nQuantity: ${deploymentToDelete?.quantity || 'N/A'}\nPlace: ${deploymentToDelete?.place || 'N/A'}`);
+    setWarningMessage(`Are you sure you want to delete this deployment record?\n\nRide: ${deploymentToDelete?.ride || 'N/A'}\nDate: ${deploymentDate}\nPlace: ${deploymentToDelete?.place || 'N/A'}\nStatus: ${deploymentToDelete?.status || 'N/A'}`);
     setWarningAction(async () => {
       try {
         await partDeploymentsAPI.delete(id);
@@ -721,9 +732,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           date: deployment.date,
           place: deployment.place,
           ride: deployment.ride,
-          parts: deployment.parts,
-          quantity: deployment.quantity,
           status: deployment.status,
+          missingParts: deployment.missing_parts || '',
           encodedBy: deployment.encoded_by,
         }));
         setDeployments(mappedDeployments);
@@ -745,12 +755,14 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       place: removal.place,
       ride: removal.ride,
       status: removal.status,
+      missingParts: removal.missing_parts || '',
       encodedBy: removal.encoded_by
     } : {
       date: new Date().toISOString().split('T')[0],
       place: '',
       ride: '',
       status: 'Complete',
+      missingParts: '',
       encodedBy: ''
     });
     setOpenDialog(true);
@@ -763,6 +775,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       place: '',
       ride: '',
       status: 'Complete',
+      missingParts: '',
       encodedBy: ''
     });
     setOpenDialog(false);
@@ -775,13 +788,14 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       setOpenWarningModal(true);
       return;
     }
-    
+
     try {
       const removalPayload = {
         date: removalData.date,
         place: removalData.place,
         ride: removalData.ride,
         status: removalData.status,
+        missing_parts: removalData.missingParts,
         encoded_by: removalData.encodedBy,
       };
 
@@ -799,6 +813,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         place: removal.place,
         ride: removal.ride,
         status: removal.status,
+        missingParts: removal.missing_parts || '',
         encodedBy: removal.encoded_by,
       }));
       setRemovals(mappedRemovals);
@@ -813,7 +828,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   const handleDeleteRemoval = (id) => {
     const removalToDelete = removals.find(removal => removal.id === id);
     const removalDate = removalToDelete?.date ? new Date(removalToDelete.date).toLocaleDateString() : 'N/A';
-    setWarningMessage(`Are you sure you want to delete this removal record?\n\nRide: ${removalToDelete?.ride || 'N/A'}\nDate: ${removalDate}\nParts: ${removalToDelete?.parts || 'N/A'}\nQuantity: ${removalToDelete?.quantity || 'N/A'}\nPlace: ${removalToDelete?.place || 'N/A'}`);
+    setWarningMessage(`Are you sure you want to delete this removal record?\n\nRide: ${removalToDelete?.ride || 'N/A'}\nDate: ${removalDate}\nPlace: ${removalToDelete?.place || 'N/A'}\nStatus: ${removalToDelete?.status || 'N/A'}`);
     setWarningAction(async () => {
       try {
         await partRemovalsAPI.delete(id);
@@ -824,9 +839,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           date: removal.date,
           place: removal.place,
           ride: removal.ride,
-          parts: removal.parts,
-          quantity: removal.quantity,
           status: removal.status,
+          missingParts: removal.missing_parts || '',
           encodedBy: removal.encoded_by,
         }));
         setRemovals(mappedRemovals);
@@ -1300,13 +1314,14 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Place of Installation</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Name of Ride</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {deployments.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={5} align="center">
+                            <TableCell colSpan={6} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No deployment records found
                               </Typography>
@@ -1330,6 +1345,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                   </Select>
                                 </FormControl>
                               </TableCell>
+                              <TableCell align="center">{deployment.missingParts || '-'}</TableCell>
                               <TableCell align="center">
                                 <Tooltip title="Edit">
                                   <IconButton size="small" onClick={() => handleOpenDeploymentDialog(deployment)}>
@@ -1355,13 +1371,14 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Place</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {removals.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={5} align="center">
+                            <TableCell colSpan={6} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No removal records found
                               </Typography>
@@ -1385,6 +1402,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                   </Select>
                                 </FormControl>
                               </TableCell>
+                              <TableCell align="center">{removal.missingParts || '-'}</TableCell>
                               <TableCell align="center">
                                 <Tooltip title="Edit">
                                   <IconButton size="small" onClick={() => handleOpenRemovalDialog(removal)}>
@@ -1847,6 +1865,19 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     </Select>
                   </FormControl>
                 </Grid>
+                {deploymentData.status === 'With missing parts' && (
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Missing Parts"
+                      value={deploymentData.missingParts}
+                      onChange={(e) => setDeploymentData({ ...deploymentData, missingParts: e.target.value })}
+                      multiline
+                      rows={2}
+                      placeholder="List the missing parts..."
+                    />
+                  </Grid>
+                )}
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
@@ -1901,6 +1932,19 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     </Select>
                   </FormControl>
                 </Grid>
+                {removalData.status === 'With missing parts' && (
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Missing Parts"
+                      value={removalData.missingParts}
+                      onChange={(e) => setRemovalData({ ...removalData, missingParts: e.target.value })}
+                      multiline
+                      rows={2}
+                      placeholder="List the missing parts..."
+                    />
+                  </Grid>
+                )}
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
