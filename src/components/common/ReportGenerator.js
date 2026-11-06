@@ -445,7 +445,7 @@ const ReportGenerator = ({
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: 'ARMS - Amusement Park Management System',
+                    text: 'OPMA - Operations and Maintenance Management System',
                     bold: true,
                     size: 28,
                   }),
@@ -551,6 +551,32 @@ const ReportGenerator = ({
 
           // Format approval_date (timestamp with date and time)
           if (col.field === 'approval_date') {
+            if (value && typeof value === 'string') {
+              const date = new Date(value);
+              if (!isNaN(date.getTime())) {
+                value = date.toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                });
+              }
+            } else if (value instanceof Date) {
+              value = value.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              });
+            }
+          }
+
+          // Format last_updated/updated_at fields
+          if (col.field === 'last_updated' || col.field === 'updated_at') {
             if (value && typeof value === 'string') {
               const date = new Date(value);
               if (!isNaN(date.getTime())) {
@@ -1253,10 +1279,11 @@ const ReportGenerator = ({
               <TableHead>
                 <TableRow>
                   {columns.map((column, index) => (
-                    <TableCell 
+                    <TableCell
                       key={index}
-                      sx={{ 
-                        fontWeight: 'bold', 
+                      align="center"
+                      sx={{
+                        fontWeight: 'bold',
                         bgcolor: 'grey.100',
                         position: 'sticky',
                         top: 0,
@@ -1281,22 +1308,22 @@ const ReportGenerator = ({
                   filteredData.map((item, index) => (
                     <TableRow key={index} hover>
                       {columns.map((column, colIndex) => (
-                        <TableCell key={colIndex}>
+                        <TableCell key={colIndex} align="center">
                           {column.render ? 
                             column.render(item) : 
                             (column.field === 'description' || column.header?.toLowerCase().includes('description')) ?
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
                                 <Typography variant="body2" sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {truncateText(item[column.field] || 'N/A', 10)}
                                 </Typography>
                                 {item[column.field] && item[column.field].split(' ').length > 10 && (
-                                  <IconButton 
-                                    size="small" 
+                                  <IconButton
+                                    size="small"
                                     onClick={() => {
                                       setSelectedDescription(item[column.field] || 'No description available');
                                       setDescriptionDialogOpen(true);
                                     }}
-                                    sx={{ 
+                                    sx={{
                                       p: 0.5,
                                       '&:hover': {
                                         backgroundColor: 'action.hover'
@@ -1326,23 +1353,51 @@ const ReportGenerator = ({
                                   if (value && typeof value === 'string') {
                                     const date = new Date(value);
                                     if (!isNaN(date.getTime())) {
-                                      value = date.toLocaleString('en-US', { 
-                                        year: 'numeric', 
-                                        month: '2-digit', 
+                                      value = date.toLocaleString('en-US', {
+                                        year: 'numeric',
+                                        month: '2-digit',
                                         day: '2-digit',
-                                        hour: 'numeric', 
+                                        hour: 'numeric',
                                         minute: '2-digit',
-                                        hour12: true 
+                                        hour12: true
                                       });
                                     }
                                   } else if (value instanceof Date) {
-                                    value = value.toLocaleString('en-US', { 
-                                      year: 'numeric', 
-                                      month: '2-digit', 
+                                    value = value.toLocaleString('en-US', {
+                                      year: 'numeric',
+                                      month: '2-digit',
                                       day: '2-digit',
-                                      hour: 'numeric', 
+                                      hour: 'numeric',
                                       minute: '2-digit',
-                                      hour12: true 
+                                      hour12: true
+                                    });
+                                  }
+                                  return value || 'N/A';
+                                })() :
+                              // Format approval_date field to show date and time with AM/PM
+                              (column.field === 'approval_date') ?
+                                (() => {
+                                  let value = item[column.field] || '';
+                                  if (value && typeof value === 'string') {
+                                    const date = new Date(value);
+                                    if (!isNaN(date.getTime())) {
+                                      value = date.toLocaleString('en-US', {
+                                        year: 'numeric',
+                                        month: '2-digit',
+                                        day: '2-digit',
+                                        hour: 'numeric',
+                                        minute: '2-digit',
+                                        hour12: true
+                                      });
+                                    }
+                                  } else if (value instanceof Date) {
+                                    value = value.toLocaleString('en-US', {
+                                      year: 'numeric',
+                                      month: '2-digit',
+                                      day: '2-digit',
+                                      hour: 'numeric',
+                                      minute: '2-digit',
+                                      hour12: true
                                     });
                                   }
                                   return value || 'N/A';
