@@ -25,9 +25,6 @@ import {
   Tooltip,
   Snackbar,
   Alert,
-  List,
-  ListItem,
-  ListItemText,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers';
@@ -38,35 +35,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import InfoIcon from '@mui/icons-material/Info';
 import { maintenanceAPI, ridesAPI } from '../../services/api';
-
-const VISIBLE_RIDE_LIMIT = 8;
-const RIDE_LIST_ITEM_HEIGHT = 52;
-
-const getRideStatusColor = (status) => {
-  switch (status) {
-    case 'operational':
-      return 'success';
-    case 'maintenance':
-      return 'warning';
-    case 'malfunction':
-      return 'error';
-    default:
-      return 'default';
-  }
-};
-
-const getRideStatusLabel = (status) => {
-  switch (status) {
-    case 'operational':
-      return 'Operational';
-    case 'maintenance':
-      return 'Under Maintenance';
-    case 'malfunction':
-      return 'Malfunction';
-    default:
-      return status || 'Unknown';
-  }
-};
 
 const EncoderMaintenanceReports = () => {
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
@@ -191,11 +159,10 @@ const EncoderMaintenanceReports = () => {
   };
 
   const handleRideChange = (rideName) => {
-    const selectedRide = availableRides.find((r) => r.name === rideName);
     setFormData({
       ...formData,
       ride: rideName,
-      location: selectedRide?.location || '',
+      location: '',
     });
   };
 
@@ -667,69 +634,66 @@ const EncoderMaintenanceReports = () => {
                         {errors.ride}
                       </Typography>
                     )}
-                    <Paper
-                      variant="outlined"
-                      sx={{
-                        maxHeight: VISIBLE_RIDE_LIMIT * RIDE_LIST_ITEM_HEIGHT,
-                        overflowY: 'auto',
-                        '&::-webkit-scrollbar': { width: 6 },
-                        '&::-webkit-scrollbar-thumb': {
-                          backgroundColor: 'rgba(0,0,0,0.2)',
-                          borderRadius: 3,
-                        },
-                      }}
-                    >
-                      {availableRides.length > 0 ? (
-                        <List dense disablePadding>
-                          {availableRides.map((ride) => (
-                            <ListItem
-                              key={ride.id}
-                              button
-                              selected={formData.ride === ride.name}
-                              onClick={() => {
-                                handleRideChange(ride.name);
-                                if (errors.ride) {
-                                  setErrors((prev) => ({ ...prev, ride: undefined }));
-                                }
-                              }}
-                              sx={{
-                                minHeight: RIDE_LIST_ITEM_HEIGHT,
-                                borderBottom: '1px solid',
-                                borderColor: 'divider',
-                                '&.Mui-selected': {
-                                  bgcolor: 'primary.lighter',
-                                },
-                              }}
-                            >
-                              <ListItemText
-                                primary={ride.name}
-                                primaryTypographyProps={{ noWrap: true, fontWeight: formData.ride === ride.name ? 600 : 400 }}
-                              />
-                              <Chip
-                                size="small"
-                                label={getRideStatusLabel(ride.status)}
-                                color={getRideStatusColor(ride.status)}
-                                variant="outlined"
-                                sx={{ flexShrink: 0, ml: 1 }}
-                              />
-                            </ListItem>
-                          ))}
-                        </List>
-                      ) : (
-                        <Box sx={{ p: 2, textAlign: 'center' }}>
-                          <Typography variant="body2" color="text.secondary">
-                            No rides available. Ask a manager to add rides in Ride Status.
-                          </Typography>
-                        </Box>
-                      )}
-                    </Paper>
-                    {formData.ride && (
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                        Selected: {formData.ride}
-                      </Typography>
-                    )}
+                    <FormControl fullWidth>
+                      <InputLabel>Ride</InputLabel>
+                      <Select
+                        label="Ride"
+                        value={formData.ride}
+                        onChange={(e) => {
+                          handleRideChange(e.target.value);
+                          if (errors.ride) {
+                            setErrors((prev) => ({ ...prev, ride: undefined }));
+                          }
+                        }}
+                      >
+                        <MenuItem value="">Select a ride</MenuItem>
+                        {[...new Set(availableRides.map(r => r.name))].sort().map((rideName) => (
+                          <MenuItem key={rideName} value={rideName}>
+                            {rideName}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
                   </Box>
                 )}
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                  Location *
+                </Typography>
+                {errors.location && (
+                  <Typography variant="caption" color="error" display="block" sx={{ mb: 1 }}>
+                    {errors.location}
+                  </Typography>
+                )}
+                <FormControl fullWidth disabled={!formData.ride}>
+                  <InputLabel>Location</InputLabel>
+                  <Select
+                    label="Location"
+                    value={formData.location}
+                    onChange={(e) => {
+                      setFormData({ ...formData, location: e.target.value });
+                      if (errors.location) {
+                        setErrors((prev) => ({ ...prev, location: undefined }));
+                      }
+                    }}
+                  >
+                    {formData.ride ? (
+                      [...new Set(availableRides
+                        .filter(r => r.name === formData.ride)
+                        .map(r => r.location)
+                        .filter(Boolean)
+                      )].sort().map((location) => (
+                        <MenuItem key={location} value={location}>
+                          {location}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem value="">Select a ride first</MenuItem>
+                    )}
+                  </Select>
+                </FormControl>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
