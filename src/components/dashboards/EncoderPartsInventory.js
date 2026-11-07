@@ -2396,7 +2396,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     </Box>
                   );
                 })
-                ))
               )}
             </Box>
           </DialogContent>
