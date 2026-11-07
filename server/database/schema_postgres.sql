@@ -312,27 +312,21 @@ INSERT INTO users (username, password, email, full_name, role, status) VALUES
 ('admin4', 'admin123', 'admin4@gmail.com', 'admin4', 'Amusement Park Personnel', 'approved')
 ON CONFLICT (username) DO NOTHING;
 
--- Insert default rides with locations
-INSERT INTO rides (name, status, location) VALUES
-('Moon Rocket', 'operational', 'Zone A'),
-('Flash Dance', 'operational', 'Zone B'),
-('Viking', 'operational', 'Zone C'),
-('Caterpillar', 'operational', 'Zone A'),
-('Ferris Wheel', 'operational', 'Zone B'),
-('Balloon Wheel', 'operational', 'Zone C'),
-('Horror Cab', 'operational', 'Zone A'),
-('Freesbee', 'operational', 'Zone B'),
-('Funslides', 'operational', 'Zone C')
-ON CONFLICT (name) DO NOTHING;
+-- Note: Rides should be added through the Manager's Ride Status interface
+-- where the manager can specify the ride name and location.
+-- No default rides are inserted here to avoid conflicts with user-defined rides.
+
+-- Query to view existing rides and their locations:
+-- SELECT id, name, status, location FROM rides ORDER BY name;
 
 -- Note: Spare parts should be added through the Manager's Ride Status interface
 -- or manually using the query below. Each part must have ride and ride_location
 -- matching the actual rides in the rides table.
 --
--- Example query to add parts for a specific ride:
+-- Example query to add parts for a specific ride (replace ride_name and ride_location with actual values from your database):
 -- INSERT INTO spare_parts (part_name, part_number, category, quantity, unit, location, supplier, cost, status, ride, ride_location)
 -- VALUES
--- ('Part Name', 'PART-001', 'Category', 10, 'pcs', 'Warehouse A', 'Supplier Name', 1000.00, 'In Stock', 'Moon Rocket', 'Zone A');
+-- ('Part Name', 'PART-001', 'Category', 10, 'pcs', 'Warehouse A', 'Supplier Name', 1000.00, 'In Stock', 'ACTUAL_RIDE_NAME', 'ACTUAL_RIDE_LOCATION');
 
 -- Insert sample maintenance records
 INSERT INTO maintenance_records (
