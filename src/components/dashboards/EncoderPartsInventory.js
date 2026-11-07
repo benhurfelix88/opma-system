@@ -87,7 +87,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [selectedRide, setSelectedRide] = useState('');
   const [rides, setRides] = useState([]);
-  const [ridesWithLocation, setRidesWithLocation] = useState([]);
   const [spareParts, setSpareParts] = useState([]);
   const [filteredParts, setFilteredParts] = useState([]);
   const [repairs, setRepairs] = useState([]);
@@ -134,7 +133,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     date: '',
     place: '',
     ride: '',
-    rideLocation: '',
     status: 'Complete',
     missingParts: '',
     encodedBy: '',
@@ -143,7 +141,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     date: '',
     place: '',
     ride: '',
-    rideLocation: '',
     status: 'Complete',
     missingParts: '',
     encodedBy: '',
@@ -161,10 +158,17 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   const loadRidesFromManager = async () => {
     try {
       const list = await ridesAPI.getAll();
-      const names = (list || []).map((r) => r.name).filter(Boolean);
-      setRides(names);
-      setRidesWithLocation(list || []);
-      setSelectedRide((prev) => (prev && !names.includes(prev) ? '' : prev));
+      const rideObjects = (list || []).map((r) => ({
+        id: r.id,
+        name: r.name,
+        location: r.location || '',
+      })).filter(Boolean);
+      setRides(rideObjects);
+      setSelectedRide((prev) => {
+        if (!prev) return '';
+        const stillExists = rideObjects.some((r) => r.name === prev);
+        return stillExists ? prev : '';
+      });
     } catch (e) {
       console.error('Error loading rides:', e);
     }
@@ -204,7 +208,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           date: deployment.date,
           place: deployment.place,
           ride: deployment.ride,
-          rideLocation: deployment.ride_location || '',
           status: deployment.status,
           missingParts: deployment.missing_parts || '',
           encodedBy: deployment.encoded_by,
@@ -218,7 +221,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           date: removal.date,
           place: removal.place,
           ride: removal.ride,
-          rideLocation: removal.ride_location || '',
           status: removal.status,
           missingParts: removal.missing_parts || '',
           encodedBy: removal.encoded_by,
@@ -272,34 +274,11 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     if (selectedRide) {
       setFilteredParts(spareParts.filter((part) => part.ride === selectedRide));
     } else {
-      // When no ride selected, combine parts by ride name and ride location from ride status
-      const rideLocationMap = new Map();
-      spareParts.forEach((part) => {
-        if (part.ride && rideSet.has(part.ride)) {
-          // Get ride location from ridesWithLocation
-          const rideData = ridesWithLocation.find(r => r.name === part.ride);
-          const rideLocation = rideData?.location || 'N/A';
-          const key = `${part.ride}-${rideLocation}`;
-
-          if (!rideLocationMap.has(key)) {
-            rideLocationMap.set(key, {
-              id: key,
-              ride: part.ride,
-              location: rideLocation,
-              totalQuantity: 0,
-              totalAmount: 0,
-              partCount: 0,
-            });
-          }
-          const combined = rideLocationMap.get(key);
-          combined.totalQuantity += Number(part.quantity) || 0;
-          combined.totalAmount += Number(part.totalAmount) || 0;
-          combined.partCount += 1;
-        }
-      });
-      setFilteredParts(Array.from(rideLocationMap.values()));
+      setFilteredParts(
+        spareParts.filter((part) => part.ride && rideSet.has(part.ride))
+      );
     }
-  }, [selectedRide, spareParts, rides, ridesWithLocation]);
+  }, [selectedRide, spareParts, rides]);
 
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);
@@ -676,7 +655,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       date: deployment.date,
       place: deployment.place,
       ride: deployment.ride,
-      rideLocation: deployment.rideLocation || '',
       status: deployment.status,
       missingParts: deployment.missing_parts || '',
       encodedBy: deployment.encodedBy
@@ -684,7 +662,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       date: new Date().toISOString().split('T')[0],
       place: '',
       ride: '',
-      rideLocation: '',
       status: 'Complete',
       missingParts: '',
       encodedBy: ''
@@ -718,7 +695,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         date: deploymentData.date,
         place: deploymentData.place,
         ride: deploymentData.ride,
-        ride_location: deploymentData.rideLocation,
         status: deploymentData.status,
         missing_parts: deploymentData.missingParts,
         encoded_by: deploymentData.encodedBy,
@@ -737,7 +713,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         date: deployment.date,
         place: deployment.place,
         ride: deployment.ride,
-        rideLocation: deployment.ride_location || '',
         status: deployment.status,
         missingParts: deployment.missing_parts || '',
         encodedBy: deployment.encoded_by,
@@ -787,7 +762,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       date: removal.date,
       place: removal.place,
       ride: removal.ride,
-      rideLocation: removal.rideLocation || '',
       status: removal.status,
       missingParts: removal.missing_parts || '',
       encodedBy: removal.encoded_by
@@ -795,7 +769,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       date: new Date().toISOString().split('T')[0],
       place: '',
       ride: '',
-      rideLocation: '',
       status: 'Complete',
       missingParts: '',
       encodedBy: ''
@@ -829,7 +802,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         date: removalData.date,
         place: removalData.place,
         ride: removalData.ride,
-        ride_location: removalData.rideLocation,
         status: removalData.status,
         missing_parts: removalData.missingParts,
         encoded_by: removalData.encodedBy,
@@ -848,7 +820,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         date: removal.date,
         place: removal.place,
         ride: removal.ride,
-        rideLocation: removal.ride_location || '',
         status: removal.status,
         missingParts: removal.missing_parts || '',
         encodedBy: removal.encoded_by,
@@ -942,13 +913,18 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   </ListItem>
                   {rides.map((ride) => (
                     <ListItem
-                      key={ride}
+                      key={ride.id}
                       button
-                      selected={selectedRide === ride}
-                      onClick={() => handleRideSelect(ride)}
+                      selected={selectedRide === ride.name}
+                      onClick={() => handleRideSelect(ride.name)}
                       sx={{ minHeight: RIDE_LIST_ITEM_HEIGHT }}
                     >
-                      <ListItemText primary={ride} primaryTypographyProps={{ noWrap: true }} />
+                      <ListItemText
+                        primary={ride.name}
+                        secondary={ride.location}
+                        primaryTypographyProps={{ noWrap: true, fontWeight: 600 }}
+                        secondaryTypographyProps={{ noWrap: true, fontSize: '0.85rem' }}
+                      />
                     </ListItem>
                   ))}
                 </List>
@@ -1027,54 +1003,27 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow sx={{ backgroundColor: '#f3f0f7' }}>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Part Name</TableCell>
                       {!selectedRide && (
                         <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
                       )}
-                      {!selectedRide && (
-                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Location</TableCell>
-                      )}
-                      {selectedRide && (
-                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Part Name</TableCell>
-                      )}
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>
-                        {selectedRide ? 'Quantity' : 'Total Parts'}
-                      </TableCell>
-                      {selectedRide && (
-                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Unit</TableCell>
-                      )}
-                      {selectedRide && (
-                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Price</TableCell>
-                      )}
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>
-                        {selectedRide ? 'Total Amount' : 'Total Value'}
-                      </TableCell>
-                      {selectedRide && (
-                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
-                      )}
-                      {selectedRide && (
-                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Location</TableCell>
-                      )}
-                      {selectedRide && (
-                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Supplier</TableCell>
-                      )}
-                      {selectedRide && (
-                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Last Updated</TableCell>
-                      )}
-                      {selectedRide && (
-                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Status</TableCell>
-                      )}
-                      {selectedRide && (
-                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Date</TableCell>
-                      )}
-                      {selectedRide && (
-                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
-                      )}
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Quantity</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Unit</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Price</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Total Amount</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Location</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Supplier</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Last Updated</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Status</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Date</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {filteredParts.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={selectedRide ? 12 : 4} align="center">
+                        <TableCell colSpan={selectedRide ? 12 : 13} align="center">
                           <Typography variant="body1" color="text.secondary">
                             No parts found
                           </Typography>
@@ -1083,32 +1032,15 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     ) : (
                       filteredParts.map((part) => (
                         <TableRow key={part.id}>
+                          <TableCell align="center">{part.name}</TableCell>
                           {!selectedRide && (
                             <TableCell align="center">{part.ride}</TableCell>
                           )}
-                          {!selectedRide && (
-                            <TableCell align="center">{part.location}</TableCell>
-                          )}
-                          {selectedRide && (
-                            <TableCell align="center">{part.name}</TableCell>
-                          )}
+                          <TableCell align="center">{part.quantity}</TableCell>
+                          <TableCell align="center">{part.unit || 'N/A'}</TableCell>
+                          <TableCell align="center">₱{Number(part.price).toFixed(2)}</TableCell>
+                          <TableCell align="center">₱{part.totalAmount ? Number(part.totalAmount).toFixed(2) : (Number(part.price) * Number(part.quantity)).toFixed(2)}</TableCell>
                           <TableCell align="center">
-                            {selectedRide ? part.quantity : part.partCount}
-                          </TableCell>
-                          {selectedRide && (
-                            <TableCell align="center">{part.unit || 'N/A'}</TableCell>
-                          )}
-                          {selectedRide && (
-                            <TableCell align="center">₱{Number(part.price).toFixed(2)}</TableCell>
-                          )}
-                          <TableCell align="center">
-                            ₱{selectedRide
-                              ? (part.totalAmount ? Number(part.totalAmount).toFixed(2) : (Number(part.price) * Number(part.quantity)).toFixed(2))
-                              : Number(part.totalAmount).toFixed(2)
-                            }
-                          </TableCell>
-                          {selectedRide && (
-                            <TableCell align="center">
                               <Chip
                                 label={part.status}
                                 variant="outlined"
@@ -1125,66 +1057,53 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                   backgroundColor: 'transparent'
                                 }}
                               />
-                            </TableCell>
-                          )}
-                          {selectedRide && (
-                            <TableCell align="center">{part.location}</TableCell>
-                          )}
-                          {selectedRide && (
-                            <TableCell align="center">{part.supplier}</TableCell>
-                          )}
-                          {selectedRide && (
-                            <TableCell align="center">{new Date(part.lastUpdated).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</TableCell>
-                          )}
-                          {selectedRide && (
-                            <TableCell align="center">
-                              <Chip
-                                label={part.approvalStatus || 'Pending'}
-                                variant="outlined"
-                                size="small"
-                                sx={{
-                                  color: getApprovalColor(part.approvalStatus) === 'success' ? 'green' :
-                                        getApprovalColor(part.approvalStatus) === 'warning' ? 'orange' :
-                                        getApprovalColor(part.approvalStatus) === 'error' ? 'red' : 'gray',
-                                  borderColor: getApprovalColor(part.approvalStatus) === 'success' ? 'green' :
-                                               getApprovalColor(part.approvalStatus) === 'warning' ? 'orange' :
-                                               getApprovalColor(part.approvalStatus) === 'error' ? 'red' : 'gray',
-                                  backgroundColor: 'transparent',
-                                }}
-                              />
-                            </TableCell>
-                          )}
-                          {selectedRide && (
-                            <TableCell align="center">
-                              {part.approval_date ? (
-                                <Box>
-                                  <Typography variant="body2">
-                                    {new Date(part.approval_date).toLocaleDateString('en-US', {
-                                      year: 'numeric',
-                                      month: '2-digit',
-                                      day: '2-digit'
-                                    })}
-                                  </Typography>
-                                  <Typography variant="body2" color="text.secondary">
-                                    {new Date(part.approval_date).toLocaleTimeString('en-US', {
-                                      hour: 'numeric',
-                                      minute: '2-digit',
-                                      hour12: true
-                                    })}
-                                  </Typography>
-                                </Box>
-                              ) : 'N/A'}
-                            </TableCell>
-                          )}
-                          {selectedRide && (
-                            <TableCell align="center">
-                              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                              <IconButton onClick={() => handleDelete(part.id)}>
-                                <DeleteIcon />
-                              </IconButton>
+                          </TableCell>
+                          <TableCell align="center">{part.location}</TableCell>
+                          <TableCell align="center">{part.supplier}</TableCell>
+                          <TableCell align="center">{new Date(part.lastUpdated).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</TableCell>
+                          <TableCell align="center">
+                            <Chip
+                              label={part.approvalStatus || 'Pending'}
+                              variant="outlined"
+                              size="small"
+                              sx={{
+                                color: getApprovalColor(part.approvalStatus) === 'success' ? 'green' :
+                                      getApprovalColor(part.approvalStatus) === 'warning' ? 'orange' :
+                                      getApprovalColor(part.approvalStatus) === 'error' ? 'red' : 'gray',
+                                borderColor: getApprovalColor(part.approvalStatus) === 'success' ? 'green' :
+                                             getApprovalColor(part.approvalStatus) === 'warning' ? 'orange' :
+                                             getApprovalColor(part.approvalStatus) === 'error' ? 'red' : 'gray',
+                                backgroundColor: 'transparent',
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell align="center">
+                            {part.approval_date ? (
+                              <Box>
+                                <Typography variant="body2">
+                                  {new Date(part.approval_date).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit'
+                                  })}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  {new Date(part.approval_date).toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true
+                                  })}
+                                </Typography>
                               </Box>
-                            </TableCell>
-                          )}
+                            ) : 'N/A'}
+                          </TableCell>
+                          <TableCell align="center">
+                            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                            <IconButton onClick={() => handleDelete(part.id)}>
+                              <DeleteIcon />
+                            </IconButton>
+                            </Box>
+                          </TableCell>
                         </TableRow>
                       ))
                     )}
@@ -1396,7 +1315,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date of Deployment</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Place of Installation</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Name of Ride</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride Location</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
@@ -1405,7 +1323,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableBody>
                         {deployments.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={7} align="center">
+                            <TableCell colSpan={6} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No deployment records found
                               </Typography>
@@ -1417,7 +1335,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               <TableCell align="center">{new Date(deployment.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{deployment.place}</TableCell>
                               <TableCell align="center">{deployment.ride}</TableCell>
-                              <TableCell align="center">{deployment.rideLocation || '-'}</TableCell>
                               <TableCell align="center">
                                 <FormControl size="small" sx={{ minWidth: 130 }}>
                                   <Select
@@ -1455,7 +1372,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date of Removal</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Place</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride Location</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
@@ -1464,7 +1380,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableBody>
                         {removals.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={7} align="center">
+                            <TableCell colSpan={6} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No removal records found
                               </Typography>
@@ -1476,7 +1392,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               <TableCell align="center">{new Date(removal.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{removal.place}</TableCell>
                               <TableCell align="center">{removal.ride}</TableCell>
-                              <TableCell align="center">{removal.rideLocation || '-'}</TableCell>
                               <TableCell align="center">
                                 <FormControl size="small" sx={{ minWidth: 130 }}>
                                   <Select
@@ -1939,15 +1854,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   </Button>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Ride Location"
-                    value={deploymentData.rideLocation}
-                    onChange={(e) => setDeploymentData({ ...deploymentData, rideLocation: e.target.value })}
-                    placeholder="Location from Ride Status"
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
                   <FormControl fullWidth>
                     <InputLabel>Status</InputLabel>
                     <Select
@@ -2013,15 +1919,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   >
                     {removalData.ride || 'Select Ride'}
                   </Button>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Ride Location"
-                    value={removalData.rideLocation}
-                    onChange={(e) => setRemovalData({ ...removalData, rideLocation: e.target.value })}
-                    placeholder="Location from Ride Status"
-                  />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <FormControl fullWidth>
@@ -2247,34 +2144,39 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           <DialogContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, pt: 1 }}>
               {rides.map((ride) => {
-                const rideStatus = rideStatusMap[ride] || 'operational';
-                const statusColor = rideStatus === 'operational' ? 'green' : 
-                                   rideStatus === 'maintenance' ? 'orange' : 
+                const rideStatus = rideStatusMap[ride.name] || 'operational';
+                const statusColor = rideStatus === 'operational' ? 'green' :
+                                   rideStatus === 'maintenance' ? 'orange' :
                                    rideStatus === 'malfunction' ? 'red' : 'gray';
                 return (
                   <Box
-                    key={ride}
+                    key={ride.id}
                     onClick={() => {
-                      setRepairData({ ...repairData, ride: ride, partsReplaced: '' });
+                      setRepairData({ ...repairData, ride: ride.name, partsReplaced: '' });
                       setRideSelectionModalOpen(false);
                     }}
                     sx={{
                       p: 2,
                       borderRadius: 1,
-                      border: repairData.ride === ride ? '2px solid' : '1px solid',
-                      borderColor: repairData.ride === ride ? 'primary.main' : 'divider',
-                      backgroundColor: repairData.ride === ride ? 'primary.50' : 'background.paper',
+                      border: repairData.ride === ride.name ? '2px solid' : '1px solid',
+                      borderColor: repairData.ride === ride.name ? 'primary.main' : 'divider',
+                      backgroundColor: repairData.ride === ride.name ? 'primary.50' : 'background.paper',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
                       '&:hover': {
-                        backgroundColor: repairData.ride === ride ? 'primary.100' : 'action.hover',
+                        backgroundColor: repairData.ride === ride.name ? 'primary.100' : 'action.hover',
                       },
                     }}
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="subtitle2" fontWeight="bold">
-                        {ride}
-                      </Typography>
+                      <Box>
+                        <Typography variant="subtitle2" fontWeight="bold">
+                          {ride.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {ride.location}
+                        </Typography>
+                      </Box>
                       <Chip
                         label={rideStatus}
                         size="small"
@@ -2363,39 +2265,36 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   No rides available
                 </Typography>
               ) : (
-                rides.map((ride) => {
-                  const rideData = ridesWithLocation.find(r => r.name === ride);
-                  return (
-                    <Box
-                      key={ride}
-                      onClick={() => {
-                        setDeploymentData({ ...deploymentData, ride: ride, rideLocation: rideData?.location || '' });
-                        setDeploymentRideModalOpen(false);
-                      }}
-                      sx={{
-                        p: 2,
-                        borderRadius: 1,
-                        border: deploymentData.ride === ride ? '2px solid' : '1px solid',
-                        borderColor: deploymentData.ride === ride ? 'primary.main' : 'divider',
-                        backgroundColor: deploymentData.ride === ride ? 'primary.50' : 'background.paper',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: deploymentData.ride === ride ? 'primary.100' : 'action.hover',
-                        },
-                      }}
-                    >
+                rides.map((ride) => (
+                  <Box
+                    key={ride.id}
+                    onClick={() => {
+                      setDeploymentData({ ...deploymentData, ride: ride.name });
+                      setDeploymentRideModalOpen(false);
+                    }}
+                    sx={{
+                      p: 2,
+                      borderRadius: 1,
+                      border: deploymentData.ride === ride.name ? '2px solid' : '1px solid',
+                      borderColor: deploymentData.ride === ride.name ? 'primary.main' : 'divider',
+                      backgroundColor: deploymentData.ride === ride.name ? 'primary.50' : 'background.paper',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        backgroundColor: deploymentData.ride === ride.name ? 'primary.100' : 'action.hover',
+                      },
+                    }}
+                  >
+                    <Box>
                       <Typography variant="subtitle2" fontWeight="bold">
-                        {ride}
+                        {ride.name}
                       </Typography>
-                      {rideData?.location && (
-                        <Typography variant="caption" color="text.secondary">
-                          Location: {rideData.location}
-                        </Typography>
-                      )}
+                      <Typography variant="caption" color="text.secondary">
+                        {ride.location}
+                      </Typography>
                     </Box>
-                  );
-                })
+                  </Box>
+                ))
               )}
             </Box>
           </DialogContent>
@@ -2419,39 +2318,36 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   No rides available
                 </Typography>
               ) : (
-                rides.map((ride) => {
-                  const rideData = ridesWithLocation.find(r => r.name === ride);
-                  return (
-                    <Box
-                      key={ride}
-                      onClick={() => {
-                        setRemovalData({ ...removalData, ride: ride, rideLocation: rideData?.location || '' });
-                        setRemovalRideModalOpen(false);
-                      }}
-                      sx={{
-                        p: 2,
-                        borderRadius: 1,
-                        border: removalData.ride === ride ? '2px solid' : '1px solid',
-                        borderColor: removalData.ride === ride ? 'primary.main' : 'divider',
-                        backgroundColor: removalData.ride === ride ? 'primary.50' : 'background.paper',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: removalData.ride === ride ? 'primary.100' : 'action.hover',
-                        },
-                      }}
-                    >
+                rides.map((ride) => (
+                  <Box
+                    key={ride.id}
+                    onClick={() => {
+                      setRemovalData({ ...removalData, ride: ride.name });
+                      setRemovalRideModalOpen(false);
+                    }}
+                    sx={{
+                      p: 2,
+                      borderRadius: 1,
+                      border: removalData.ride === ride.name ? '2px solid' : '1px solid',
+                      borderColor: removalData.ride === ride.name ? 'primary.main' : 'divider',
+                      backgroundColor: removalData.ride === ride.name ? 'primary.50' : 'background.paper',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        backgroundColor: removalData.ride === ride.name ? 'primary.100' : 'action.hover',
+                      },
+                    }}
+                  >
+                    <Box>
                       <Typography variant="subtitle2" fontWeight="bold">
-                        {ride}
+                        {ride.name}
                       </Typography>
-                      {rideData?.location && (
-                        <Typography variant="caption" color="text.secondary">
-                          Location: {rideData.location}
-                        </Typography>
-                      )}
+                      <Typography variant="caption" color="text.secondary">
+                        {ride.location}
+                      </Typography>
                     </Box>
-                  );
-                })
+                  </Box>
+                ))
               )}
             </Box>
           </DialogContent>
