@@ -169,6 +169,8 @@ CREATE TABLE IF NOT EXISTS spare_parts (
 CREATE INDEX IF NOT EXISTS idx_part_name ON spare_parts(part_name);
 CREATE INDEX IF NOT EXISTS idx_part_category ON spare_parts(category);
 CREATE INDEX IF NOT EXISTS idx_part_ride ON spare_parts(ride);
+CREATE INDEX IF NOT EXISTS idx_part_ride_location ON spare_parts(ride_location);
+CREATE INDEX IF NOT EXISTS idx_part_ride_location_combo ON spare_parts(ride, ride_location);
 
 CREATE TRIGGER update_spare_parts_updated_at BEFORE UPDATE ON spare_parts
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
