@@ -69,6 +69,7 @@ const EncoderMaintenanceReports = () => {
   const [viewRecord, setViewRecord] = useState(null);
   const [rideSelectionModalOpen, setRideSelectionModalOpen] = useState(false);
   const [rideSelectModalOpen, setRideSelectModalOpen] = useState(false);
+  const [locationSelectModalOpen, setLocationSelectModalOpen] = useState(false);
 
   const loadRidesFromManager = async () => {
     try {
@@ -663,54 +664,18 @@ const EncoderMaintenanceReports = () => {
                     {errors.location}
                   </Typography>
                 )}
-                {formData.ride ? (
-                  <Paper
-                    variant="outlined"
-                    sx={{
-                      maxHeight: 200,
-                      overflowY: 'auto',
-                      '&::-webkit-scrollbar': { width: 6 },
-                      '&::-webkit-scrollbar-thumb': {
-                        backgroundColor: 'rgba(0,0,0,0.2)',
-                        borderRadius: 3,
-                      },
-                    }}
-                  >
-                    <List dense disablePadding>
-                      {[...new Set(availableRides
-                        .filter(r => r.name === formData.ride)
-                        .map(r => r.location)
-                        .filter(Boolean)
-                      )].sort().map((location) => (
-                        <ListItem
-                          key={location}
-                          button
-                          selected={formData.location === location}
-                          onClick={() => {
-                            setFormData({ ...formData, location });
-                            if (errors.location) {
-                              setErrors((prev) => ({ ...prev, location: undefined }));
-                            }
-                          }}
-                          sx={{
-                            borderBottom: '1px solid',
-                            borderColor: 'divider',
-                            '&.Mui-selected': {
-                              bgcolor: 'primary.lighter',
-                            },
-                          }}
-                        >
-                          <ListItemText
-                            primary={location}
-                            primaryTypographyProps={{ fontWeight: formData.location === location ? 600 : 400 }}
-                          />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Paper>
-                ) : (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                    Select a ride first to see available locations
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => setLocationSelectModalOpen(true)}
+                  disabled={!formData.ride}
+                  sx={{ height: 56, textTransform: 'none' }}
+                >
+                  {formData.location ? formData.location : (formData.ride ? 'Select a location' : 'Select a ride first')}
+                </Button>
+                {formData.location && (
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                    Selected: {formData.location}
                   </Typography>
                 )}
               </Grid>
@@ -915,7 +880,9 @@ const EncoderMaintenanceReports = () => {
 
         {/* Ride Selection Modal for Add/Edit Dialog */}
         <Dialog open={rideSelectModalOpen} onClose={() => setRideSelectModalOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Select Ride</DialogTitle>
+          <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.25rem' }}>
+            Select Ride
+          </DialogTitle>
           <DialogContent>
             <Box
               sx={{
@@ -949,22 +916,117 @@ const EncoderMaintenanceReports = () => {
                     sx={{
                       borderBottom: '1px solid',
                       borderColor: 'divider',
+                      py: 2,
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                      },
                       '&.Mui-selected': {
-                        bgcolor: 'primary.lighter',
+                        backgroundColor: 'primary.light',
+                        '&:hover': {
+                          backgroundColor: 'primary.light',
+                        },
                       },
                     }}
                   >
                     <ListItemText
                       primary={rideName}
-                      primaryTypographyProps={{ fontWeight: formData.ride === rideName ? 600 : 400 }}
+                      primaryTypographyProps={{
+                        fontWeight: formData.ride === rideName ? 600 : 400,
+                        textAlign: 'center',
+                        fontSize: '1rem',
+                      }}
                     />
                   </ListItem>
                 ))}
               </List>
             </Box>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setRideSelectModalOpen(false)}>Cancel</Button>
+          <DialogActions sx={{ justifyContent: 'center', p: 2 }}>
+            <Button
+              onClick={() => setRideSelectModalOpen(false)}
+              variant="outlined"
+              sx={{ minWidth: 120 }}
+            >
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Location Selection Modal */}
+        <Dialog open={locationSelectModalOpen} onClose={() => setLocationSelectModalOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.25rem' }}>
+            Select Location for {formData.ride}
+          </DialogTitle>
+          <DialogContent>
+            <Box
+              sx={{
+                maxHeight: 400,
+                overflowY: 'auto',
+                '&::-webkit-scrollbar': {
+                  width: '8px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  borderRadius: '4px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                },
+              }}
+            >
+              <List dense disablePadding>
+                {[...new Set(availableRides
+                  .filter(r => r.name === formData.ride)
+                  .map(r => r.location)
+                  .filter(Boolean)
+                )].sort().map((location) => (
+                  <ListItem
+                    key={location}
+                    button
+                    selected={formData.location === location}
+                    onClick={() => {
+                      setFormData({ ...formData, location });
+                      setLocationSelectModalOpen(false);
+                      if (errors.location) {
+                        setErrors((prev) => ({ ...prev, location: undefined }));
+                      }
+                    }}
+                    sx={{
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                      py: 2,
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                      },
+                      '&.Mui-selected': {
+                        backgroundColor: 'primary.light',
+                        '&:hover': {
+                          backgroundColor: 'primary.light',
+                        },
+                      },
+                    }}
+                  >
+                    <ListItemText
+                      primary={location}
+                      primaryTypographyProps={{
+                        fontWeight: formData.location === location ? 600 : 400,
+                        textAlign: 'center',
+                        fontSize: '1rem',
+                      }}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: 'center', p: 2 }}>
+            <Button
+              onClick={() => setLocationSelectModalOpen(false)}
+              variant="outlined"
+              sx={{ minWidth: 120 }}
+            >
+              Cancel
+            </Button>
           </DialogActions>
         </Dialog>
       </Box>
