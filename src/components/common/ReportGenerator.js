@@ -39,7 +39,7 @@ import { DatePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import * as XLSX from 'xlsx';
-import { Document, Packer, Paragraph, Table as DocxTable, TableRow as DocxRow, TableCell as DocxCell, AlignmentType, TextRun, PageOrientation } from 'docx';
+import { Document, Packer, Paragraph, Table as DocxTable, TableRow as DocxRow, TableCell as DocxCell, AlignmentType, TextRun, PageOrientation, WidthType } from 'docx';
 
 const getWeekNumber = (date) => {
   const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -323,6 +323,10 @@ const ReportGenerator = ({
                 alignment: AlignmentType.CENTER,
               }),
             ],
+            width: {
+              size: 100 / columns.length,
+              type: WidthType.PERCENTAGE,
+            },
           })
         ),
       });
@@ -419,6 +423,10 @@ const ReportGenerator = ({
                   alignment: AlignmentType.CENTER,
                 }),
               ],
+              width: {
+                size: 100 / columns.length,
+                type: WidthType.PERCENTAGE,
+              },
             });
           }),
         });
@@ -428,6 +436,11 @@ const ReportGenerator = ({
       // Create table
       const table = new DocxTable({
         rows: tableRows,
+        width: {
+          size: 100,
+          type: WidthType.PERCENTAGE,
+        },
+        alignment: AlignmentType.CENTER,
       });
 
       // Create document
@@ -438,6 +451,12 @@ const ReportGenerator = ({
               page: {
                 size: {
                   orientation: PageOrientation.LANDSCAPE,
+                },
+                margin: {
+                  top: 1440,
+                  bottom: 1440,
+                  left: 1440,
+                  right: 1440,
                 },
               },
             },
