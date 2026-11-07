@@ -106,6 +106,7 @@ const ManagerPartsInventory = () => {
           location: part.location || '',
           supplier: part.supplier || '',
           ride: part.ride || '', // Use actual ride field from database
+          ride_location: part.ride_location || '', // Add ride_location field
           totalAmount: (part.cost || 0) * (part.quantity || 0),
           approvalStatus: approvalStatus,
           notes: notes,
@@ -200,6 +201,7 @@ const ManagerPartsInventory = () => {
         location: originalPart?.location || selectedPart.location || '',
         supplier: originalPart?.supplier || selectedPart.supplier || '',
         ride: originalPart?.ride || selectedPart.ride || '',
+        ride_location: originalPart?.ride_location || selectedPart.ride_location || '',
         approval_status: formData.approvalStatus, // Store approval status directly in database column
         notes: formData.notes || '', // Store notes separately
       };
@@ -427,6 +429,7 @@ const ManagerPartsInventory = () => {
               <TableRow>
                 <TableCell align="center">Part Name</TableCell>
                 <TableCell align="center">Ride</TableCell>
+                <TableCell align="center">Ride Location</TableCell>
                 <TableCell align="center">Quantity</TableCell>
                 <TableCell align="center">Unit</TableCell>
                 <TableCell align="center">Price</TableCell>
@@ -443,7 +446,7 @@ const ManagerPartsInventory = () => {
             <TableBody>
               {filteredAndSortedParts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={13} align="center">
+                  <TableCell colSpan={14} align="center">
                     <Typography variant="body1" color="text.secondary">
                       No parts found
                     </Typography>
@@ -454,6 +457,7 @@ const ManagerPartsInventory = () => {
                   <TableRow key={part.id}>
                     <TableCell align="center">{part.name}</TableCell>
                     <TableCell align="center">{part.ride || 'N/A'}</TableCell>
+                    <TableCell align="center">{part.ride_location || 'N/A'}</TableCell>
                     <TableCell align="center">{part.quantity}</TableCell>
                     <TableCell align="center">{part.unit || 'N/A'}</TableCell>
                     <TableCell align="center">₱{Number(part.price).toFixed(2)}</TableCell>
