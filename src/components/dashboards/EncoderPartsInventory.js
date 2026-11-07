@@ -87,6 +87,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [selectedRide, setSelectedRide] = useState('');
   const [rides, setRides] = useState([]);
+  const [ridesWithLocation, setRidesWithLocation] = useState([]);
   const [spareParts, setSpareParts] = useState([]);
   const [filteredParts, setFilteredParts] = useState([]);
   const [repairs, setRepairs] = useState([]);
@@ -160,6 +161,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       const list = await ridesAPI.getAll();
       const names = (list || []).map((r) => r.name).filter(Boolean);
       setRides(names);
+      setRidesWithLocation(list || []);
       setSelectedRide((prev) => (prev && !names.includes(prev) ? '' : prev));
     } catch (e) {
       console.error('Error loading rides:', e);
@@ -266,9 +268,28 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     if (selectedRide) {
       setFilteredParts(spareParts.filter((part) => part.ride === selectedRide));
     } else {
-      setFilteredParts(
-        spareParts.filter((part) => part.ride && rideSet.has(part.ride))
-      );
+      // When no ride selected, combine parts by ride name and location
+      const rideLocationMap = new Map();
+      spareParts.forEach((part) => {
+        if (part.ride && rideSet.has(part.ride)) {
+          const key = `${part.ride}-${part.location || ''}`;
+          if (!rideLocationMap.has(key)) {
+            rideLocationMap.set(key, {
+              id: key,
+              ride: part.ride,
+              location: part.location || 'N/A',
+              totalQuantity: 0,
+              totalAmount: 0,
+              partCount: 0,
+            });
+          }
+          const combined = rideLocationMap.get(key);
+          combined.totalQuantity += Number(part.quantity) || 0;
+          combined.totalAmount += Number(part.totalAmount) || 0;
+          combined.partCount += 1;
+        }
+      });
+      setFilteredParts(Array.from(rideLocationMap.values()));
     }
   }, [selectedRide, spareParts, rides]);
 
@@ -990,27 +1011,54 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow sx={{ backgroundColor: '#f3f0f7' }}>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Part Name</TableCell>
                       {!selectedRide && (
                         <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
                       )}
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Quantity</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Unit</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Price</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Total Amount</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Location</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Supplier</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Last Updated</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Status</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Date</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
+                      {!selectedRide && (
+                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Location</TableCell>
+                      )}
+                      {selectedRide && (
+                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Part Name</TableCell>
+                      )}
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>
+                        {selectedRide ? 'Quantity' : 'Total Parts'}
+                      </TableCell>
+                      {selectedRide && (
+                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Unit</TableCell>
+                      )}
+                      {selectedRide && (
+                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Price</TableCell>
+                      )}
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>
+                        {selectedRide ? 'Total Amount' : 'Total Value'}
+                      </TableCell>
+                      {selectedRide && (
+                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
+                      )}
+                      {selectedRide && (
+                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Location</TableCell>
+                      )}
+                      {selectedRide && (
+                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Supplier</TableCell>
+                      )}
+                      {selectedRide && (
+                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Last Updated</TableCell>
+                      )}
+                      {selectedRide && (
+                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Status</TableCell>
+                      )}
+                      {selectedRide && (
+                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Date</TableCell>
+                      )}
+                      {selectedRide && (
+                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
+                      )}
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {filteredParts.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={selectedRide ? 12 : 13} align="center">
+                        <TableCell colSpan={selectedRide ? 12 : 4} align="center">
                           <Typography variant="body1" color="text.secondary">
                             No parts found
                           </Typography>
@@ -1019,15 +1067,32 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     ) : (
                       filteredParts.map((part) => (
                         <TableRow key={part.id}>
-                          <TableCell align="center">{part.name}</TableCell>
                           {!selectedRide && (
                             <TableCell align="center">{part.ride}</TableCell>
                           )}
-                          <TableCell align="center">{part.quantity}</TableCell>
-                          <TableCell align="center">{part.unit || 'N/A'}</TableCell>
-                          <TableCell align="center">₱{Number(part.price).toFixed(2)}</TableCell>
-                          <TableCell align="center">₱{part.totalAmount ? Number(part.totalAmount).toFixed(2) : (Number(part.price) * Number(part.quantity)).toFixed(2)}</TableCell>
+                          {!selectedRide && (
+                            <TableCell align="center">{part.location}</TableCell>
+                          )}
+                          {selectedRide && (
+                            <TableCell align="center">{part.name}</TableCell>
+                          )}
                           <TableCell align="center">
+                            {selectedRide ? part.quantity : part.partCount}
+                          </TableCell>
+                          {selectedRide && (
+                            <TableCell align="center">{part.unit || 'N/A'}</TableCell>
+                          )}
+                          {selectedRide && (
+                            <TableCell align="center">₱{Number(part.price).toFixed(2)}</TableCell>
+                          )}
+                          <TableCell align="center">
+                            ₱{selectedRide
+                              ? (part.totalAmount ? Number(part.totalAmount).toFixed(2) : (Number(part.price) * Number(part.quantity)).toFixed(2))
+                              : Number(part.totalAmount).toFixed(2)
+                            }
+                          </TableCell>
+                          {selectedRide && (
+                            <TableCell align="center">
                               <Chip
                                 label={part.status}
                                 variant="outlined"
@@ -1045,52 +1110,64 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                 }}
                               />
                           </TableCell>
-                          <TableCell align="center">{part.location}</TableCell>
-                          <TableCell align="center">{part.supplier}</TableCell>
-                          <TableCell align="center">{new Date(part.lastUpdated).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</TableCell>
-                          <TableCell align="center">
-                            <Chip
-                              label={part.approvalStatus || 'Pending'}
-                              variant="outlined"
-                              size="small"
-                              sx={{
-                                color: getApprovalColor(part.approvalStatus) === 'success' ? 'green' :
-                                      getApprovalColor(part.approvalStatus) === 'warning' ? 'orange' :
-                                      getApprovalColor(part.approvalStatus) === 'error' ? 'red' : 'gray',
-                                borderColor: getApprovalColor(part.approvalStatus) === 'success' ? 'green' :
-                                             getApprovalColor(part.approvalStatus) === 'warning' ? 'orange' :
-                                             getApprovalColor(part.approvalStatus) === 'error' ? 'red' : 'gray',
-                                backgroundColor: 'transparent',
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell align="center">
-                            {part.approval_date ? (
-                              <Box>
-                                <Typography variant="body2">
-                                  {new Date(part.approval_date).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: '2-digit',
-                                    day: '2-digit'
-                                  })}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  {new Date(part.approval_date).toLocaleTimeString('en-US', {
-                                    hour: 'numeric',
-                                    minute: '2-digit',
-                                    hour12: true
-                                  })}
-                                </Typography>
+                          {selectedRide && (
+                            <TableCell align="center">{part.location}</TableCell>
+                          )}
+                          {selectedRide && (
+                            <TableCell align="center">{part.supplier}</TableCell>
+                          )}
+                          {selectedRide && (
+                            <TableCell align="center">{new Date(part.lastUpdated).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</TableCell>
+                          )}
+                          {selectedRide && (
+                            <TableCell align="center">
+                              <Chip
+                                label={part.approvalStatus || 'Pending'}
+                                variant="outlined"
+                                size="small"
+                                sx={{
+                                  color: getApprovalColor(part.approvalStatus) === 'success' ? 'green' :
+                                        getApprovalColor(part.approvalStatus) === 'warning' ? 'orange' :
+                                        getApprovalColor(part.approvalStatus) === 'error' ? 'red' : 'gray',
+                                  borderColor: getApprovalColor(part.approvalStatus) === 'success' ? 'green' :
+                                               getApprovalColor(part.approvalStatus) === 'warning' ? 'orange' :
+                                               getApprovalColor(part.approvalStatus) === 'error' ? 'red' : 'gray',
+                                  backgroundColor: 'transparent',
+                                }}
+                              />
+                            </TableCell>
+                          )}
+                          {selectedRide && (
+                            <TableCell align="center">
+                              {part.approval_date ? (
+                                <Box>
+                                  <Typography variant="body2">
+                                    {new Date(part.approval_date).toLocaleDateString('en-US', {
+                                      year: 'numeric',
+                                      month: '2-digit',
+                                      day: '2-digit'
+                                    })}
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    {new Date(part.approval_date).toLocaleTimeString('en-US', {
+                                      hour: 'numeric',
+                                      minute: '2-digit',
+                                      hour12: true
+                                    })}
+                                  </Typography>
+                                </Box>
+                              ) : 'N/A'}
+                            </TableCell>
+                          )}
+                          {selectedRide && (
+                            <TableCell align="center">
+                              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                              <IconButton onClick={() => handleDelete(part.id)}>
+                                <DeleteIcon />
+                              </IconButton>
                               </Box>
-                            ) : 'N/A'}
-                          </TableCell>
-                          <TableCell align="center">
-                            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                            <IconButton onClick={() => handleDelete(part.id)}>
-                              <DeleteIcon />
-                            </IconButton>
-                            </Box>
-                          </TableCell>
+                            </TableCell>
+                          )}
                         </TableRow>
                       ))
                     )}
