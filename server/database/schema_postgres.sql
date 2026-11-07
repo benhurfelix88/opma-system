@@ -328,14 +328,80 @@ INSERT INTO rides (name, status, location) VALUES
 ('Viking', 'operational', 'Sta.Rosa, Laguna')
 ON CONFLICT (name, location) DO NOTHING;
 
--- Note: Spare parts should be added through the Manager's Ride Status interface
--- or manually using the query below. Each part must have ride and ride_location
--- matching the actual rides in the rides table.
---
--- Example query to add parts for a specific ride (replace ride_name and ride_location with actual values from your database):
--- INSERT INTO spare_parts (part_name, part_number, category, quantity, unit, location, supplier, cost, status, ride, ride_location)
--- VALUES
--- ('Part Name', 'PART-001', 'Category', 10, 'pcs', 'Warehouse A', 'Supplier Name', 1000.00, 'In Stock', 'Moon Rocket', 'Sta.Rosa, Laguna');
+-- Insert spare parts for each ride with their actual locations
+INSERT INTO spare_parts (part_name, part_number, category, quantity, unit, location, supplier, cost, status, ride, ride_location) VALUES
+-- Moon Rocket (Sta.Rosa, Laguna)
+('Rocket Motor', 'MR-M-001', 'Motor System', 2, 'pcs', 'Warehouse A', 'Motor Solutions', 4500.00, 'In Stock', 'Moon Rocket', 'Sta.Rosa, Laguna'),
+('Launch Control Board', 'MR-LCB-002', 'Electronics', 1, 'pcs', 'Warehouse A', 'Electronics Corp', 5500.00, 'In Stock', 'Moon Rocket', 'Sta.Rosa, Laguna'),
+('Safety Harness', 'MR-SH-003', 'Safety Equipment', 8, 'pcs', 'Warehouse A', 'Safety Systems Inc.', 4000.00, 'In Stock', 'Moon Rocket', 'Sta.Rosa, Laguna'),
+('Sensor Set', 'MR-SS-004', 'Electronics', 6, 'pcs', 'Warehouse A', 'Sensor Solutions', 1500.00, 'In Stock', 'Moon Rocket', 'Sta.Rosa, Laguna'),
+
+-- Balloon Wheel (Langkiwa)
+('Balloon Motor', 'BW-BM-001', 'Motor System', 2, 'pcs', 'Warehouse A', 'Motor Solutions', 4500.00, 'In Stock', 'Balloon Wheel', 'Langkiwa'),
+('Lifting Mechanism', 'BW-LM-001', 'Mechanical', 1, 'set', 'Warehouse A', 'Lift Solutions', 8000.00, 'In Stock', 'Balloon Wheel', 'Langkiwa'),
+('Basket Safety Net', 'BW-BSN-001', 'Safety Equipment', 2, 'pcs', 'Warehouse A', 'Safety Systems Inc.', 1800.00, 'In Stock', 'Balloon Wheel', 'Langkiwa'),
+('Control System', 'BW-CS-001', 'Electronics', 1, 'pcs', 'Warehouse A', 'Electronics Corp', 3500.00, 'In Stock', 'Balloon Wheel', 'Langkiwa'),
+
+-- Baloon Wheel (Sta.Rosa, Laguna)
+('Balloon Motor', 'BW-BM-002', 'Motor System', 2, 'pcs', 'Warehouse B', 'Motor Solutions', 4500.00, 'In Stock', 'Baloon Wheel', 'Sta.Rosa, Laguna'),
+('Lifting Mechanism', 'BW-LM-002', 'Mechanical', 1, 'set', 'Warehouse B', 'Lift Solutions', 8000.00, 'In Stock', 'Baloon Wheel', 'Sta.Rosa, Laguna'),
+('Basket Safety Net', 'BW-BSN-002', 'Safety Equipment', 2, 'pcs', 'Warehouse B', 'Safety Systems Inc.', 1800.00, 'In Stock', 'Baloon Wheel', 'Sta.Rosa, Laguna'),
+('Control System', 'BW-CS-002', 'Electronics', 1, 'pcs', 'Warehouse B', 'Electronics Corp', 3500.00, 'In Stock', 'Baloon Wheel', 'Sta.Rosa, Laguna'),
+
+-- Caterpillar (Sta.Rosa)
+('Track Motor', 'C-TM-001', 'Motor System', 4, 'pcs', 'Warehouse A', 'Motor Solutions', 800.00, 'In Stock', 'Caterpillar', 'Sta.Rosa'),
+('Track Bearings', 'C-TB-001', 'Mechanical', 16, 'pcs', 'Warehouse A', 'Bearing Masters', 800.00, 'In Stock', 'Caterpillar', 'Sta.Rosa'),
+('Controller', 'C-C-001', 'Electronics', 20, 'pcs', 'Warehouse A', 'Electronics Corp', 400.00, 'In Stock', 'Caterpillar', 'Sta.Rosa'),
+('Wheel', 'C-W-001', 'Mechanical', 48, 'pcs', 'Warehouse A', 'Wheel Masters', 250.00, 'In Stock', 'Caterpillar', 'Sta.Rosa'),
+
+-- Caterpillar (Cavite)
+('Track Motor', 'C-TM-002', 'Motor System', 4, 'pcs', 'Warehouse B', 'Motor Solutions', 800.00, 'In Stock', 'Caterpillar', 'Cavite'),
+('Track Bearings', 'C-TB-002', 'Mechanical', 16, 'pcs', 'Warehouse B', 'Bearing Masters', 800.00, 'In Stock', 'Caterpillar', 'Cavite'),
+('Controller', 'C-C-002', 'Electronics', 20, 'pcs', 'Warehouse B', 'Electronics Corp', 400.00, 'In Stock', 'Caterpillar', 'Cavite'),
+('Wheel', 'C-W-002', 'Mechanical', 48, 'pcs', 'Warehouse B', 'Wheel Masters', 250.00, 'In Stock', 'Caterpillar', 'Cavite'),
+
+-- Ferris Wheel (Manila)
+('Motor Gear', 'FW-MG-001', 'Motor System', 6, 'pcs', 'Warehouse A', 'Gear Works', 1800.00, 'In Stock', 'Ferris Wheel', 'Manila'),
+('Cabin Door Latch', 'FW-CD-001', 'Safety Equipment', 20, 'pcs', 'Warehouse A', 'Safety Systems Inc.', 400.00, 'In Stock', 'Ferris Wheel', 'Manila'),
+('Structural Bolts', 'FW-SB-001', 'Structural', 100, 'pcs', 'Warehouse A', 'Fastener Supply', 200.00, 'In Stock', 'Ferris Wheel', 'Manila'),
+('Drive Chain', 'FW-DC-001', 'Mechanical', 8, 'pcs', 'Warehouse A', 'Chain Masters', 900.00, 'In Stock', 'Ferris Wheel', 'Manila'),
+
+-- Ferris Wheel (Carmona)
+('Motor Gear', 'FW-MG-002', 'Motor System', 6, 'pcs', 'Warehouse B', 'Gear Works', 1800.00, 'In Stock', 'Ferris Wheel', 'Carmona'),
+('Cabin Door Latch', 'FW-CD-002', 'Safety Equipment', 20, 'pcs', 'Warehouse B', 'Safety Systems Inc.', 400.00, 'In Stock', 'Ferris Wheel', 'Carmona'),
+('Structural Bolts', 'FW-SB-002', 'Structural', 100, 'pcs', 'Warehouse B', 'Fastener Supply', 200.00, 'In Stock', 'Ferris Wheel', 'Carmona'),
+('Drive Chain', 'FW-DC-002', 'Mechanical', 8, 'pcs', 'Warehouse B', 'Chain Masters', 900.00, 'In Stock', 'Ferris Wheel', 'Carmona'),
+
+-- Flash Dance (Calabuso)
+('Rotation Motor', 'FD-RM-001', 'Motor System', 3, 'pcs', 'Warehouse A', 'Motor Solutions', 3800.00, 'In Stock', 'Flash Dance', 'Calabuso'),
+('LED Lights', 'FD-LED-001', 'Lighting', 40, 'm', 'Warehouse A', 'Lighting Solutions', 500.00, 'In Stock', 'Flash Dance', 'Calabuso'),
+('Control Panel', 'FD-CP-001', 'Electronics', 1, 'pcs', 'Warehouse A', 'Electronics Corp', 3200.00, 'In Stock', 'Flash Dance', 'Calabuso'),
+('Platform Bearings', 'FD-PB-001', 'Mechanical', 12, 'pcs', 'Warehouse A', 'Bearing Masters', 1600.00, 'In Stock', 'Flash Dance', 'Calabuso'),
+
+-- Freesbee (Sta.Rosa, Laguna)
+('Rotation Bearings', 'FR-RB-001', 'Mechanical', 12, 'pcs', 'Warehouse A', 'Bearing Masters', 1600.00, 'In Stock', 'Freesbee', 'Sta.Rosa, Laguna'),
+('Drive Belt', 'FR-DB-001', 'Mechanical', 6, 'pcs', 'Warehouse A', 'Belt Masters', 600.00, 'In Stock', 'Freesbee', 'Sta.Rosa, Laguna'),
+('Control Panel', 'FR-CP-001', 'Electronics', 1, 'pcs', 'Warehouse A', 'Electronics Corp', 3200.00, 'In Stock', 'Freesbee', 'Sta.Rosa, Laguna'),
+('Safety System', 'FR-SS-001', 'Safety Equipment', 8, 'pcs', 'Warehouse A', 'Safety Systems Inc.', 1200.00, 'In Stock', 'Freesbee', 'Sta.Rosa, Laguna'),
+
+-- Funslides (Sta.Rosa, Laguna)
+('Pump', 'FS-P-001', 'Pumping System', 4, 'pcs', 'Warehouse A', 'Pump Solutions', 3500.00, 'In Stock', 'Funslides', 'Sta.Rosa, Laguna'),
+('Filter', 'FS-F-001', 'Filtration', 8, 'pcs', 'Warehouse A', 'Filter Masters', 1200.00, 'In Stock', 'Funslides', 'Sta.Rosa, Laguna'),
+('Surface Sealant', 'FS-SS-001', 'Maintenance', 20, 'gal', 'Warehouse A', 'Chemical Supply', 400.00, 'In Stock', 'Funslides', 'Sta.Rosa, Laguna'),
+('Flow Meter', 'FS-FM-001', 'Electronics', 4, 'pcs', 'Warehouse A', 'Flow Solutions', 900.00, 'In Stock', 'Funslides', 'Sta.Rosa, Laguna'),
+
+-- Gwapo Ako (Manila)
+('Motor', 'GA-M-001', 'Motor System', 2, 'pcs', 'Warehouse A', 'Motor Solutions', 4500.00, 'In Stock', 'Gwapo Ako', 'Manila'),
+('Control Panel', 'GA-CP-001', 'Electronics', 1, 'pcs', 'Warehouse A', 'Electronics Corp', 3200.00, 'In Stock', 'Gwapo Ako', 'Manila'),
+('Safety Restraints', 'GA-SR-001', 'Safety Equipment', 20, 'pcs', 'Warehouse A', 'Safety Systems Inc.', 450.00, 'In Stock', 'Gwapo Ako', 'Manila'),
+('Structural Frame', 'GA-SF-001', 'Structural', 8, 'pcs', 'Warehouse A', 'Frame Masters', 2500.00, 'In Stock', 'Gwapo Ako', 'Manila'),
+
+-- Viking (Sta.Rosa, Laguna)
+('Swing Motor', 'V-SM-001', 'Motor System', 2, 'pcs', 'Warehouse A', 'Motor Solutions', 4200.00, 'In Stock', 'Viking', 'Sta.Rosa, Laguna'),
+('Safety Restraints', 'V-SR-001', 'Safety Equipment', 20, 'pcs', 'Warehouse A', 'Safety Systems Inc.', 450.00, 'In Stock', 'Viking', 'Sta.Rosa, Laguna'),
+('Cables', 'V-C-001', 'Structural', 24, 'pcs', 'Warehouse A', 'Cable Masters', 600.00, 'In Stock', 'Viking', 'Sta.Rosa, Laguna'),
+('Control Board', 'V-CB-001', 'Electronics', 1, 'pcs', 'Warehouse A', 'Electronics Corp', 5500.00, 'In Stock', 'Viking', 'Sta.Rosa, Laguna')
+ON CONFLICT (part_name, part_number) DO NOTHING;
 
 -- Insert sample maintenance records
 INSERT INTO maintenance_records (
