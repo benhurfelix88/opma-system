@@ -113,6 +113,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     location: '',
     supplier: '',
     ride: '',
+    ride_location: '',
   });
   const [repairData, setRepairData] = useState({
     ride: '',
@@ -255,6 +256,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           location: part.location || '',
           supplier: part.supplier || '',
           ride: part.ride || '', // Use actual ride field from database
+          ride_location: part.ride_location || '', // Ride location from Manager's Ride Status
           category: part.category || '',
           approvalStatus,
           approval_date: part.approval_date,
@@ -270,7 +272,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   };
 
   useEffect(() => {
-    const rideSet = new Set(rides);
+    const rideSet = new Set(rides.map(r => r.name));
     if (selectedRide) {
       setFilteredParts(spareParts.filter((part) => part.ride === selectedRide));
     } else {
@@ -296,6 +298,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         ...item,
         totalAmount,
         ride: item.ride || selectedRide,
+        ride_location: item.ride_location || '',
         status: computeStockStatus(item.quantity || 0),
       });
     } else {
@@ -310,6 +313,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         location: '',
         supplier: '',
         ride: selectedRide || '',
+        ride_location: rides.find(r => r.name === selectedRide)?.location || '',
       });
     }
     setOpenDialog(true);
@@ -328,6 +332,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       location: '',
       supplier: '',
       ride: selectedRide,
+      ride_location: rides.find(r => r.name === selectedRide)?.location || '',
     });
   };
 
@@ -351,6 +356,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         part_number: formData.part_number || '',
         category: formData.category || '',
         ride: selectedRide || '', // Use selectedRide from the filter
+        ride_location: rides.find(r => r.name === selectedRide)?.location || '',
         quantity: Number(formData.quantity) || 0,
         unit: formData.unit || '',
         location: formData.location || '',
@@ -1007,6 +1013,9 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       {!selectedRide && (
                         <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
                       )}
+                      {!selectedRide && (
+                        <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride Location</TableCell>
+                      )}
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Quantity</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Unit</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Price</TableCell>
@@ -1023,7 +1032,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   <TableBody>
                     {filteredParts.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={selectedRide ? 12 : 13} align="center">
+                        <TableCell colSpan={selectedRide ? 12 : 14} align="center">
                           <Typography variant="body1" color="text.secondary">
                             No parts found
                           </Typography>
@@ -1035,6 +1044,9 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center">{part.name}</TableCell>
                           {!selectedRide && (
                             <TableCell align="center">{part.ride}</TableCell>
+                          )}
+                          {!selectedRide && (
+                            <TableCell align="center">{part.ride_location || '-'}</TableCell>
                           )}
                           <TableCell align="center">{part.quantity}</TableCell>
                           <TableCell align="center">{part.unit || 'N/A'}</TableCell>
@@ -1099,9 +1111,12 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           </TableCell>
                           <TableCell align="center">
                             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                            <IconButton onClick={() => handleDelete(part.id)}>
-                              <DeleteIcon />
-                            </IconButton>
+                              <IconButton onClick={() => handleOpenDialog(part)}>
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton onClick={() => handleDelete(part.id)}>
+                                <DeleteIcon />
+                              </IconButton>
                             </Box>
                           </TableCell>
                         </TableRow>
