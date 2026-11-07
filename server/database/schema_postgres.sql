@@ -312,12 +312,21 @@ INSERT INTO users (username, password, email, full_name, role, status) VALUES
 ('admin4', 'admin123', 'admin4@gmail.com', 'admin4', 'Amusement Park Personnel', 'approved')
 ON CONFLICT (username) DO NOTHING;
 
--- Note: Rides should be added through the Manager's Ride Status interface
--- where the manager can specify the ride name and location.
--- No default rides are inserted here to avoid conflicts with user-defined rides.
-
--- Query to view existing rides and their locations:
--- SELECT id, name, status, location FROM rides ORDER BY name;
+-- Insert actual rides with their locations from Manager's Ride Status
+INSERT INTO rides (name, status, location) VALUES
+('Balloon Wheel', 'operational', 'Langkiwa'),
+('Baloon Wheel', 'operational', 'Sta.Rosa, Laguna'),
+('Caterpillar', 'operational', 'Sta.Rosa'),
+('Caterpillar', 'operational', 'Cavite'),
+('Ferris Wheel', 'operational', 'Manila'),
+('Ferris Wheel', 'operational', 'Carmona'),
+('Flash Dance', 'operational', 'Calabuso'),
+('Freesbee', 'operational', 'Sta.Rosa, Laguna'),
+('Funslides', 'operational', 'Sta.Rosa, Laguna'),
+('Gwapo Ako', 'operational', 'Manila'),
+('Moon Rocket', 'operational', 'Sta.Rosa, Laguna'),
+('Viking', 'operational', 'Sta.Rosa, Laguna')
+ON CONFLICT (name, location) DO NOTHING;
 
 -- Note: Spare parts should be added through the Manager's Ride Status interface
 -- or manually using the query below. Each part must have ride and ride_location
@@ -326,7 +335,7 @@ ON CONFLICT (username) DO NOTHING;
 -- Example query to add parts for a specific ride (replace ride_name and ride_location with actual values from your database):
 -- INSERT INTO spare_parts (part_name, part_number, category, quantity, unit, location, supplier, cost, status, ride, ride_location)
 -- VALUES
--- ('Part Name', 'PART-001', 'Category', 10, 'pcs', 'Warehouse A', 'Supplier Name', 1000.00, 'In Stock', 'ACTUAL_RIDE_NAME', 'ACTUAL_RIDE_LOCATION');
+-- ('Part Name', 'PART-001', 'Category', 10, 'pcs', 'Warehouse A', 'Supplier Name', 1000.00, 'In Stock', 'Moon Rocket', 'Sta.Rosa, Laguna');
 
 -- Insert sample maintenance records
 INSERT INTO maintenance_records (
