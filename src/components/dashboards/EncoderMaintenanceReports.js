@@ -65,6 +65,7 @@ const EncoderMaintenanceReports = () => {
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [viewRecord, setViewRecord] = useState(null);
   const [rideSelectionModalOpen, setRideSelectionModalOpen] = useState(false);
+  const [rideSelectModalOpen, setRideSelectModalOpen] = useState(false);
 
   const loadRidesFromManager = async () => {
     try {
@@ -80,9 +81,8 @@ const EncoderMaintenanceReports = () => {
         if (!prev.ride) return prev;
         const stillExists = list.some((r) => r.name === prev.ride);
         if (!stillExists) return { ...prev, ride: '', location: '' };
-        // Update location based on selected ride
-        const selectedRide = list.find((r) => r.name === prev.ride);
-        return { ...prev, location: selectedRide?.location || '' };
+        // Don't auto-update location - let user select it manually
+        return prev;
       });
       setRideFilter((prev) => {
         if (prev === 'all') return prev;
@@ -634,26 +634,19 @@ const EncoderMaintenanceReports = () => {
                         {errors.ride}
                       </Typography>
                     )}
-                    <FormControl fullWidth>
-                      <InputLabel>Ride</InputLabel>
-                      <Select
-                        label="Ride"
-                        value={formData.ride}
-                        onChange={(e) => {
-                          handleRideChange(e.target.value);
-                          if (errors.ride) {
-                            setErrors((prev) => ({ ...prev, ride: undefined }));
-                          }
-                        }}
-                      >
-                        <MenuItem value="">Select a ride</MenuItem>
-                        {[...new Set(availableRides.map(r => r.name))].sort().map((rideName) => (
-                          <MenuItem key={rideName} value={rideName}>
-                            {rideName}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      onClick={() => setRideSelectModalOpen(true)}
+                      sx={{ height: 56, textTransform: 'none' }}
+                    >
+                      {formData.ride ? formData.ride : 'Select a ride'}
+                    </Button>
+                    {formData.ride && (
+                      <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                        Selected: {formData.ride}
+                      </Typography>
+                    )}
                   </Box>
                 )}
               </Grid>
@@ -667,33 +660,56 @@ const EncoderMaintenanceReports = () => {
                     {errors.location}
                   </Typography>
                 )}
-                <FormControl fullWidth disabled={!formData.ride}>
-                  <InputLabel>Location</InputLabel>
-                  <Select
-                    label="Location"
-                    value={formData.location}
-                    onChange={(e) => {
-                      setFormData({ ...formData, location: e.target.value });
-                      if (errors.location) {
-                        setErrors((prev) => ({ ...prev, location: undefined }));
-                      }
+                {formData.ride ? (
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      maxHeight: 200,
+                      overflowY: 'auto',
+                      '&::-webkit-scrollbar': { width: 6 },
+                      '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: 'rgba(0,0,0,0.2)',
+                        borderRadius: 3,
+                      },
                     }}
                   >
-                    {formData.ride ? (
-                      [...new Set(availableRides
+                    <List dense disablePadding>
+                      {[...new Set(availableRides
                         .filter(r => r.name === formData.ride)
                         .map(r => r.location)
                         .filter(Boolean)
                       )].sort().map((location) => (
-                        <MenuItem key={location} value={location}>
-                          {location}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem value="">Select a ride first</MenuItem>
-                    )}
-                  </Select>
-                </FormControl>
+                        <ListItem
+                          key={location}
+                          button
+                          selected={formData.location === location}
+                          onClick={() => {
+                            setFormData({ ...formData, location });
+                            if (errors.location) {
+                              setErrors((prev) => ({ ...prev, location: undefined }));
+                            }
+                          }}
+                          sx={{
+                            borderBottom: '1px solid',
+                            borderColor: 'divider',
+                            '&.Mui-selected': {
+                              bgcolor: 'primary.lighter',
+                            },
+                          }}
+                        >
+                          <ListItemText
+                            primary={location}
+                            primaryTypographyProps={{ fontWeight: formData.location === location ? 600 : 400 }}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Paper>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                    Select a ride first to see available locations
+                  </Typography>
+                )}
               </Grid>
               <Grid item xs={12} sm={6}>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -891,6 +907,61 @@ const EncoderMaintenanceReports = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setRideSelectionModalOpen(false)}>Cancel</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Ride Selection Modal for Add/Edit Dialog */}
+        <Dialog open={rideSelectModalOpen} onClose={() => setRideSelectModalOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>Select Ride</DialogTitle>
+          <DialogContent>
+            <Box
+              sx={{
+                maxHeight: 400,
+                overflowY: 'auto',
+                '&::-webkit-scrollbar': {
+                  width: '8px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  borderRadius: '4px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                },
+              }}
+            >
+              <List dense disablePadding>
+                {[...new Set(availableRides.map(r => r.name))].sort().map((rideName) => (
+                  <ListItem
+                    key={rideName}
+                    button
+                    selected={formData.ride === rideName}
+                    onClick={() => {
+                      handleRideChange(rideName);
+                      setRideSelectModalOpen(false);
+                      if (errors.ride) {
+                        setErrors((prev) => ({ ...prev, ride: undefined }));
+                      }
+                    }}
+                    sx={{
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                      '&.Mui-selected': {
+                        bgcolor: 'primary.lighter',
+                      },
+                    }}
+                  >
+                    <ListItemText
+                      primary={rideName}
+                      primaryTypographyProps={{ fontWeight: formData.ride === rideName ? 600 : 400 }}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setRideSelectModalOpen(false)}>Cancel</Button>
           </DialogActions>
         </Dialog>
       </Box>
