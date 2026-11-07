@@ -134,6 +134,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     date: '',
     place: '',
     ride: '',
+    rideLocation: '',
     status: 'Complete',
     missingParts: '',
     encodedBy: '',
@@ -142,6 +143,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     date: '',
     place: '',
     ride: '',
+    rideLocation: '',
     status: 'Complete',
     missingParts: '',
     encodedBy: '',
@@ -202,6 +204,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           date: deployment.date,
           place: deployment.place,
           ride: deployment.ride,
+          rideLocation: deployment.ride_location || '',
           status: deployment.status,
           missingParts: deployment.missing_parts || '',
           encodedBy: deployment.encoded_by,
@@ -215,6 +218,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           date: removal.date,
           place: removal.place,
           ride: removal.ride,
+          rideLocation: removal.ride_location || '',
           status: removal.status,
           missingParts: removal.missing_parts || '',
           encodedBy: removal.encoded_by,
@@ -268,16 +272,20 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     if (selectedRide) {
       setFilteredParts(spareParts.filter((part) => part.ride === selectedRide));
     } else {
-      // When no ride selected, combine parts by ride name and location
+      // When no ride selected, combine parts by ride name and ride location from ride status
       const rideLocationMap = new Map();
       spareParts.forEach((part) => {
         if (part.ride && rideSet.has(part.ride)) {
-          const key = `${part.ride}-${part.location || ''}`;
+          // Get ride location from ridesWithLocation
+          const rideData = ridesWithLocation.find(r => r.name === part.ride);
+          const rideLocation = rideData?.location || 'N/A';
+          const key = `${part.ride}-${rideLocation}`;
+
           if (!rideLocationMap.has(key)) {
             rideLocationMap.set(key, {
               id: key,
               ride: part.ride,
-              location: part.location || 'N/A',
+              location: rideLocation,
               totalQuantity: 0,
               totalAmount: 0,
               partCount: 0,
@@ -291,7 +299,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       });
       setFilteredParts(Array.from(rideLocationMap.values()));
     }
-  }, [selectedRide, spareParts, rides]);
+  }, [selectedRide, spareParts, rides, ridesWithLocation]);
 
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);
@@ -668,6 +676,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       date: deployment.date,
       place: deployment.place,
       ride: deployment.ride,
+      rideLocation: deployment.rideLocation || '',
       status: deployment.status,
       missingParts: deployment.missing_parts || '',
       encodedBy: deployment.encodedBy
@@ -675,6 +684,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       date: new Date().toISOString().split('T')[0],
       place: '',
       ride: '',
+      rideLocation: '',
       status: 'Complete',
       missingParts: '',
       encodedBy: ''
@@ -708,6 +718,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         date: deploymentData.date,
         place: deploymentData.place,
         ride: deploymentData.ride,
+        ride_location: deploymentData.rideLocation,
         status: deploymentData.status,
         missing_parts: deploymentData.missingParts,
         encoded_by: deploymentData.encodedBy,
@@ -726,6 +737,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         date: deployment.date,
         place: deployment.place,
         ride: deployment.ride,
+        rideLocation: deployment.ride_location || '',
         status: deployment.status,
         missingParts: deployment.missing_parts || '',
         encodedBy: deployment.encoded_by,
@@ -775,6 +787,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       date: removal.date,
       place: removal.place,
       ride: removal.ride,
+      rideLocation: removal.rideLocation || '',
       status: removal.status,
       missingParts: removal.missing_parts || '',
       encodedBy: removal.encoded_by
@@ -782,6 +795,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       date: new Date().toISOString().split('T')[0],
       place: '',
       ride: '',
+      rideLocation: '',
       status: 'Complete',
       missingParts: '',
       encodedBy: ''
@@ -815,6 +829,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         date: removalData.date,
         place: removalData.place,
         ride: removalData.ride,
+        ride_location: removalData.rideLocation,
         status: removalData.status,
         missing_parts: removalData.missingParts,
         encoded_by: removalData.encodedBy,
@@ -833,6 +848,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         date: removal.date,
         place: removal.place,
         ride: removal.ride,
+        rideLocation: removal.ride_location || '',
         status: removal.status,
         missingParts: removal.missing_parts || '',
         encodedBy: removal.encoded_by,
@@ -1109,7 +1125,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                   backgroundColor: 'transparent'
                                 }}
                               />
-                          </TableCell>
+                            </TableCell>
+                          )}
                           {selectedRide && (
                             <TableCell align="center">{part.location}</TableCell>
                           )}
@@ -1379,6 +1396,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date of Deployment</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Place of Installation</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Name of Ride</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride Location</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
@@ -1387,7 +1405,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableBody>
                         {deployments.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={6} align="center">
+                            <TableCell colSpan={7} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No deployment records found
                               </Typography>
@@ -1399,6 +1417,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               <TableCell align="center">{new Date(deployment.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{deployment.place}</TableCell>
                               <TableCell align="center">{deployment.ride}</TableCell>
+                              <TableCell align="center">{deployment.rideLocation || '-'}</TableCell>
                               <TableCell align="center">
                                 <FormControl size="small" sx={{ minWidth: 130 }}>
                                   <Select
@@ -1436,6 +1455,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date of Removal</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Place</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride Location</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
@@ -1444,7 +1464,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableBody>
                         {removals.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={6} align="center">
+                            <TableCell colSpan={7} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No removal records found
                               </Typography>
@@ -1456,6 +1476,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               <TableCell align="center">{new Date(removal.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{removal.place}</TableCell>
                               <TableCell align="center">{removal.ride}</TableCell>
+                              <TableCell align="center">{removal.rideLocation || '-'}</TableCell>
                               <TableCell align="center">
                                 <FormControl size="small" sx={{ minWidth: 130 }}>
                                   <Select
@@ -1918,6 +1939,15 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   </Button>
                 </Grid>
                 <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Ride Location"
+                    value={deploymentData.rideLocation}
+                    onChange={(e) => setDeploymentData({ ...deploymentData, rideLocation: e.target.value })}
+                    placeholder="Location from Ride Status"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <FormControl fullWidth>
                     <InputLabel>Status</InputLabel>
                     <Select
@@ -1983,6 +2013,15 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   >
                     {removalData.ride || 'Select Ride'}
                   </Button>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Ride Location"
+                    value={removalData.rideLocation}
+                    onChange={(e) => setRemovalData({ ...removalData, rideLocation: e.target.value })}
+                    placeholder="Location from Ride Status"
+                  />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <FormControl fullWidth>
@@ -2324,30 +2363,39 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   No rides available
                 </Typography>
               ) : (
-                rides.map((ride) => (
-                  <Box
-                    key={ride}
-                    onClick={() => {
-                      setDeploymentData({ ...deploymentData, ride: ride });
-                      setDeploymentRideModalOpen(false);
-                    }}
-                    sx={{
-                      p: 2,
-                      borderRadius: 1,
-                      border: deploymentData.ride === ride ? '2px solid' : '1px solid',
-                      borderColor: deploymentData.ride === ride ? 'primary.main' : 'divider',
-                      backgroundColor: deploymentData.ride === ride ? 'primary.50' : 'background.paper',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        backgroundColor: deploymentData.ride === ride ? 'primary.100' : 'action.hover',
-                      },
-                    }}
-                  >
-                    <Typography variant="subtitle2" fontWeight="bold">
-                      {ride}
-                    </Typography>
-                  </Box>
+                rides.map((ride) => {
+                  const rideData = ridesWithLocation.find(r => r.name === ride);
+                  return (
+                    <Box
+                      key={ride}
+                      onClick={() => {
+                        setDeploymentData({ ...deploymentData, ride: ride, rideLocation: rideData?.location || '' });
+                        setDeploymentRideModalOpen(false);
+                      }}
+                      sx={{
+                        p: 2,
+                        borderRadius: 1,
+                        border: deploymentData.ride === ride ? '2px solid' : '1px solid',
+                        borderColor: deploymentData.ride === ride ? 'primary.main' : 'divider',
+                        backgroundColor: deploymentData.ride === ride ? 'primary.50' : 'background.paper',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          backgroundColor: deploymentData.ride === ride ? 'primary.100' : 'action.hover',
+                        },
+                      }}
+                    >
+                      <Typography variant="subtitle2" fontWeight="bold">
+                        {ride}
+                      </Typography>
+                      {rideData?.location && (
+                        <Typography variant="caption" color="text.secondary">
+                          Location: {rideData.location}
+                        </Typography>
+                      )}
+                    </Box>
+                  );
+                })
                 ))
               )}
             </Box>
@@ -2372,31 +2420,39 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   No rides available
                 </Typography>
               ) : (
-                rides.map((ride) => (
-                  <Box
-                    key={ride}
-                    onClick={() => {
-                      setRemovalData({ ...removalData, ride: ride });
-                      setRemovalRideModalOpen(false);
-                    }}
-                    sx={{
-                      p: 2,
-                      borderRadius: 1,
-                      border: removalData.ride === ride ? '2px solid' : '1px solid',
-                      borderColor: removalData.ride === ride ? 'primary.main' : 'divider',
-                      backgroundColor: removalData.ride === ride ? 'primary.50' : 'background.paper',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        backgroundColor: removalData.ride === ride ? 'primary.100' : 'action.hover',
-                      },
-                    }}
-                  >
-                    <Typography variant="subtitle2" fontWeight="bold">
-                      {ride}
-                    </Typography>
-                  </Box>
-                ))
+                rides.map((ride) => {
+                  const rideData = ridesWithLocation.find(r => r.name === ride);
+                  return (
+                    <Box
+                      key={ride}
+                      onClick={() => {
+                        setRemovalData({ ...removalData, ride: ride, rideLocation: rideData?.location || '' });
+                        setRemovalRideModalOpen(false);
+                      }}
+                      sx={{
+                        p: 2,
+                        borderRadius: 1,
+                        border: removalData.ride === ride ? '2px solid' : '1px solid',
+                        borderColor: removalData.ride === ride ? 'primary.main' : 'divider',
+                        backgroundColor: removalData.ride === ride ? 'primary.50' : 'background.paper',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          backgroundColor: removalData.ride === ride ? 'primary.100' : 'action.hover',
+                        },
+                      }}
+                    >
+                      <Typography variant="subtitle2" fontWeight="bold">
+                        {ride}
+                      </Typography>
+                      {rideData?.location && (
+                        <Typography variant="caption" color="text.secondary">
+                          Location: {rideData.location}
+                        </Typography>
+                      )}
+                    </Box>
+                  );
+                })
               )}
             </Box>
           </DialogContent>

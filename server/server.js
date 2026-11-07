@@ -723,6 +723,7 @@ async function ensurePartDeployments() {
         date DATE NOT NULL,
         place VARCHAR(255) NOT NULL,
         ride VARCHAR(255) NOT NULL,
+        ride_location VARCHAR(255),
         status VARCHAR(50) DEFAULT 'Complete',
         missing_parts TEXT,
         encoded_by VARCHAR(255) NOT NULL,
@@ -736,6 +737,13 @@ async function ensurePartDeployments() {
     try {
       await db.execute('ALTER TABLE part_deployments ADD COLUMN IF NOT EXISTS missing_parts TEXT');
       console.log('✓ missing_parts column ensured in part_deployments');
+    } catch (e) {
+      // Column may already exist
+    }
+    // Add ride_location column if it doesn't exist
+    try {
+      await db.execute('ALTER TABLE part_deployments ADD COLUMN IF NOT EXISTS ride_location VARCHAR(255)');
+      console.log('✓ ride_location column ensured in part_deployments');
     } catch (e) {
       console.log('Note: Column alteration:', e.message);
     }
@@ -754,6 +762,7 @@ async function ensurePartRemovals() {
         date DATE NOT NULL,
         place VARCHAR(255) NOT NULL,
         ride VARCHAR(255) NOT NULL,
+        ride_location VARCHAR(255),
         status VARCHAR(50) DEFAULT 'Complete',
         missing_parts TEXT,
         encoded_by VARCHAR(255) NOT NULL,
@@ -769,6 +778,12 @@ async function ensurePartRemovals() {
       console.log('✓ missing_parts column ensured in part_removals');
     } catch (e) {
       console.log('Note: Column alteration:', e.message);
+    }
+    // Add ride_location column if it doesn't exist
+    try {
+      await db.execute('ALTER TABLE part_removals ADD COLUMN IF NOT EXISTS ride_location VARCHAR(255)');
+      console.log('✓ ride_location column ensured in part_removals');
+    } catch (e) {
     }
     console.log('✓ Part removals table ensured');
   } catch (e) {
@@ -2583,14 +2598,14 @@ app.get('/api/part-deployments', authenticateToken, async (req, res) => {
 // Create part deployment
 app.post('/api/part-deployments', authenticateToken, async (req, res) => {
   try {
-    const { date, place, ride, status, missing_parts, encoded_by } = req.body;
+    const { date, place, ride, ride_location, status, missing_parts, encoded_by } = req.body;
     const userId = req.user?.id || null;
 
-    console.log('Creating deployment:', { date, place, ride, status, missing_parts, encoded_by, userId });
+    console.log('Creating deployment:', { date, place, ride, ride_location, status, missing_parts, encoded_by, userId });
 
     const [result] = await db.execute(
-      'INSERT INTO part_deployments (date, place, ride, status, missing_parts, encoded_by, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [date, place, ride, status || 'Complete', missing_parts || null, encoded_by, userId]
+      'INSERT INTO part_deployments (date, place, ride, ride_location, status, missing_parts, encoded_by, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [date, place, ride, ride_location || null, status || 'Complete', missing_parts || null, encoded_by, userId]
     );
 
     res.json({ id: result.insertId, message: 'Part deployment created successfully' });
@@ -2604,11 +2619,11 @@ app.post('/api/part-deployments', authenticateToken, async (req, res) => {
 // Update part deployment
 app.put('/api/part-deployments/:id', authenticateToken, async (req, res) => {
   try {
-    const { date, place, ride, status, missing_parts, encoded_by } = req.body;
+    const { date, place, ride, ride_location, status, missing_parts, encoded_by } = req.body;
 
     await db.execute(
-      'UPDATE part_deployments SET date = ?, place = ?, ride = ?, status = ?, missing_parts = ?, encoded_by = ? WHERE id = ?',
-      [date, place, ride, status, missing_parts || null, encoded_by, req.params.id]
+      'UPDATE part_deployments SET date = ?, place = ?, ride = ?, ride_location = ?, status = ?, missing_parts = ?, encoded_by = ? WHERE id = ?',
+      [date, place, ride, ride_location || null, status, missing_parts || null, encoded_by, req.params.id]
     );
 
     res.json({ message: 'Part deployment updated successfully' });
@@ -2645,14 +2660,14 @@ app.get('/api/part-removals', authenticateToken, async (req, res) => {
 // Create part removal
 app.post('/api/part-removals', authenticateToken, async (req, res) => {
   try {
-    const { date, place, ride, status, missing_parts, encoded_by } = req.body;
+    const { date, place, ride, ride_location, status, missing_parts, encoded_by } = req.body;
     const userId = req.user?.id || null;
 
-    console.log('Creating removal:', { date, place, ride, status, missing_parts, encoded_by, userId });
+    console.log('Creating removal:', { date, place, ride, ride_location, status, missing_parts, encoded_by, userId });
 
     const [result] = await db.execute(
-      'INSERT INTO part_removals (date, place, ride, status, missing_parts, encoded_by, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [date, place, ride, status || 'Complete', missing_parts || null, encoded_by, userId]
+      'INSERT INTO part_removals (date, place, ride, ride_location, status, missing_parts, encoded_by, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [date, place, ride, ride_location || null, status || 'Complete', missing_parts || null, encoded_by, userId]
     );
 
     res.json({ id: result.insertId, message: 'Part removal created successfully' });
@@ -2666,11 +2681,11 @@ app.post('/api/part-removals', authenticateToken, async (req, res) => {
 // Update part removal
 app.put('/api/part-removals/:id', authenticateToken, async (req, res) => {
   try {
-    const { date, place, ride, status, missing_parts, encoded_by } = req.body;
+    const { date, place, ride, ride_location, status, missing_parts, encoded_by } = req.body;
 
     await db.execute(
-      'UPDATE part_removals SET date = ?, place = ?, ride = ?, status = ?, missing_parts = ?, encoded_by = ? WHERE id = ?',
-      [date, place, ride, status, missing_parts || null, encoded_by, req.params.id]
+      'UPDATE part_removals SET date = ?, place = ?, ride = ?, ride_location = ?, status = ?, missing_parts = ?, encoded_by = ? WHERE id = ?',
+      [date, place, ride, ride_location || null, status, missing_parts || null, encoded_by, req.params.id]
     );
 
     res.json({ message: 'Part removal updated successfully' });
