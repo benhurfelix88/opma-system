@@ -952,7 +952,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   variant="contained"
                   startIcon={<AddIcon />}
                   onClick={() => {
-                    if (!selectedRide) {
+                    if (!selectedRideId) {
                       setWarningMessage('Please select a ride first before adding parts.');
                       setWarningAction(() => () => {
                         setOpenWarningModal(false);
