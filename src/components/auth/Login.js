@@ -138,7 +138,7 @@ const Login = () => {
                 mt: 1,
               }}
             >
-              Operations And Maintenance Management System
+              Operations and Maintenance Management System
             </Typography>
           </Box>
 

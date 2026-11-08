@@ -59,12 +59,12 @@ const ForgotPassword = () => {
             Password Reset Request
           </Typography>
 
-          <Alert 
-            severity="warning" 
+          <Alert
+            severity="warning"
             sx={{ width: '100%', mb: 4, textAlign: 'center' }}
           >
-            <Typography variant="body1" sx={{ fontWeight: 600 }}>
-              PLEASE CONTACT YOUR "IT ADMINISTRATOR"
+            <Typography variant="body1" sx={{ fontWeight: 600, textAlign: 'center' }}>
+              PLEASE CONTACT YOUR IT ADMINISTRATOR
             </Typography>
           </Alert>
 
