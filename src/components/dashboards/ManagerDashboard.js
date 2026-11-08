@@ -39,6 +39,7 @@ import {
 import DashboardLayout from '../layout/DashboardLayout';
 import ManagerPartsInventory from './ManagerPartsInventory';
 import { incidentsAPI } from '../../services/api';
+import { getSocket } from '../../utils/socket';
 
 const fadeIn = keyframes`
   from {
@@ -109,6 +110,20 @@ const ManagerDashboard = () => {
       navigate('/login');
       return;
     }
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for incidents updates
+    socket.on('incidents-updated', (data) => {
+      console.log('Incidents updated via WebSocket:', data);
+      loadIncidents();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('incidents-updated');
+    };
   }, [navigate]);
 
   const loadIncidents = async () => {

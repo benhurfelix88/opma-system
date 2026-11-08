@@ -1817,6 +1817,9 @@ app.post('/api/maintenance', authenticateToken, async (req, res) => {
       [ride_name, maintenance_type, description, date_performed, next_maintenance_date, status || 'Completed', performedByValue, location || '']
     );
 
+    // Emit maintenance-updated event
+    io.emit('maintenance-updated', { action: 'create', id: result.insertId });
+
     res.json({ id: result.insertId, message: 'Maintenance record created successfully' });
   } catch (error) {
     console.error('Create maintenance error:', error.message);
@@ -1906,6 +1909,9 @@ app.put('/api/maintenance/:id', authenticateToken, async (req, res) => {
     const query = `UPDATE maintenance_records SET ${updates.join(', ')} WHERE id = ?`;
     await db.execute(query, values);
 
+    // Emit maintenance-updated event
+    io.emit('maintenance-updated', { action: 'update', id: req.params.id });
+
     res.json({ message: 'Maintenance record updated successfully' });
   } catch (error) {
     console.error('Update maintenance error:', error.message);
@@ -1918,6 +1924,10 @@ app.put('/api/maintenance/:id', authenticateToken, async (req, res) => {
 app.delete('/api/maintenance/:id', authenticateToken, async (req, res) => {
   try {
     await db.execute('DELETE FROM maintenance_records WHERE id = ?', [req.params.id]);
+
+    // Emit maintenance-updated event
+    io.emit('maintenance-updated', { action: 'delete', id: req.params.id });
+
     res.json({ message: 'Maintenance record deleted successfully' });
   } catch (error) {
     console.error('Delete maintenance error:', error);
@@ -2136,6 +2146,9 @@ app.post('/api/incidents', authenticateToken, upload.array('photos', 10), async 
       ]
     );
 
+    // Emit incidents-updated event
+    io.emit('incidents-updated', { action: 'create', id: result.insertId });
+
     res.json({ id: result.insertId, message: 'Incident report created successfully' });
   } catch (error) {
     console.error('Create incident error:', error);
@@ -2347,6 +2360,9 @@ app.put('/api/incidents/:id', authenticateToken, upload.array('photos', 10), asy
       updateValues
     );
 
+    // Emit incidents-updated event
+    io.emit('incidents-updated', { action: 'update', id: req.params.id });
+
     res.json({ message: 'Incident report updated successfully' });
   } catch (error) {
     console.error('Update incident error:', error);
@@ -2373,7 +2389,10 @@ app.delete('/api/incidents/:id', authenticateToken, async (req, res) => {
     
     // Delete the incident from database
     await db.execute('DELETE FROM incident_reports WHERE id = ?', [req.params.id]);
-    
+
+    // Emit incidents-updated event
+    io.emit('incidents-updated', { action: 'delete', id: req.params.id });
+
     // Delete associated image files
     if (incident && incident[0] && incident[0].photos) {
       try {

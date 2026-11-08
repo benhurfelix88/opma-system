@@ -36,6 +36,7 @@ import {
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
 import { maintenanceAPI } from '../../services/api';
+import { getSocket } from '../../utils/socket';
 
 const ManagerMaintenanceReports = () => {
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
@@ -84,6 +85,20 @@ const ManagerMaintenanceReports = () => {
       }
     };
     load();
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for maintenance updates
+    socket.on('maintenance-updated', (data) => {
+      console.log('Maintenance updated via WebSocket:', data);
+      load();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('maintenance-updated');
+    };
   }, []);
 
   const getStatusColor = (status) => {

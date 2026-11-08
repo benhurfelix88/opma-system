@@ -42,6 +42,7 @@ import {
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
 import { ridesAPI, rideStatusAPI, sparePartsAPI } from '../../services/api';
+import { getSocket } from '../../utils/socket';
 
 const ManagerRideStatus = () => {
   const [rides, setRides] = useState([]);
@@ -65,6 +66,20 @@ const ManagerRideStatus = () => {
 
   useEffect(() => {
     loadData();
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for rides updates
+    socket.on('rides-updated', (data) => {
+      console.log('Rides updated via WebSocket:', data);
+      loadData();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('rides-updated');
+    };
   }, []);
 
   const loadData = async () => {

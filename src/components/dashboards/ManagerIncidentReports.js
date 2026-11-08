@@ -48,6 +48,7 @@ import ReportGenerator from '../common/ReportGenerator';
 import { incidentsAPI } from '../../services/api';
 import { Snackbar } from '@mui/material';
 import { REVIEW_STATUS_OPTIONS, getReviewStatusChipSx, normalizeReviewStatus } from '../../utils/incidentReviewStatus';
+import { getSocket } from '../../utils/socket';
 
 const ManagerIncidentReports = () => {
   const [incidents, setIncidents] = useState([]);
@@ -208,6 +209,20 @@ const ManagerIncidentReports = () => {
 
   useEffect(() => {
     loadIncidents();
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for incident updates
+    socket.on('incidents-updated', (data) => {
+      console.log('Incidents updated via WebSocket:', data);
+      loadIncidents();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('incidents-updated');
+    };
   }, []);
 
   const loadIncidents = async () => {
