@@ -201,66 +201,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       socket.off('rides-updated');
     };
   }, []);
-    const loadData = async () => {
-      try {
-        await loadRidesFromManager();
-
-        // Load repairs from API
-        const repairsList = await rideRepairsAPI.getAll();
-        const mappedRepairs = repairsList.map(repair => ({
-          id: repair.id,
-          ride: repair.ride,
-          date: repair.date,
-          issue: repair.issue,
-          partsReplaced: repair.parts_replaced || '',
-          cost: repair.cost || 0,
-          technician: repair.technician,
-          status: repair.status,
-          notes: repair.notes || '',
-          timestamp: repair.created_at || new Date().toISOString(),
-        }));
-        setRepairs(mappedRepairs);
-        
-        // Load ride statuses
-        const statuses = await rideStatusAPI.get();
-        setRideStatusMap(statuses || {});
-        
-        // Load deployments from API
-        const deploymentsList = await partDeploymentsAPI.getAll();
-        const mappedDeployments = deploymentsList.map(deployment => ({
-          id: deployment.id,
-          date: deployment.date,
-          place: deployment.place,
-          ride: deployment.ride,
-          status: deployment.status,
-          missingParts: deployment.missing_parts || '',
-          encodedBy: deployment.encoded_by,
-        }));
-        setDeployments(mappedDeployments);
-
-        // Load removals from API
-        const removalsList = await partRemovalsAPI.getAll();
-        const mappedRemovals = removalsList.map(removal => ({
-          id: removal.id,
-          date: removal.date,
-          place: removal.place,
-          ride: removal.ride,
-          status: removal.status,
-          missingParts: removal.missing_parts || '',
-          encodedBy: removal.encoded_by,
-        }));
-        setRemovals(mappedRemovals);
-      } catch (e) {
-        console.error('Error loading data:', e);
-      }
-    };
-    loadData();
-    const syncInterval = setInterval(() => {
-      loadRidesFromManager();
-      loadParts();
-    }, 300000);
-    return () => clearInterval(syncInterval);
-  }, []);
 
   const loadParts = async () => {
     try {
