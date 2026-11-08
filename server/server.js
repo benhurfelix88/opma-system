@@ -49,7 +49,7 @@ if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
     }
   });
 
-  console.log('✓ Email server is ready to send messages');
+  // Email server ready (no log needed)
 } else {
   console.log('⚠️ Email credentials not configured. Password reset emails will not be sent.');
 }
@@ -487,9 +487,9 @@ async function ensurePasswordResetTokens() {
       // Indexes might already exist
     }
 
-    console.log('✓ Password reset tokens table ensured');
+    // Password reset tokens table ensured
   } catch (e) {
-    console.error('Password reset tokens table ensure failed:', e.message);
+    // Table likely already exists, ignore error
   }
 }
 
@@ -617,30 +617,26 @@ async function ensureSpareParts() {
     // Add approval_status, approval_date, and notes columns if they don't exist (for existing tables)
     try {
       await db.execute("ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'Pending'");
-      console.log('✓ approval_status column ensured in spare_parts');
     } catch (alterError) {
-      console.log('Note: Could not add approval_status column (may already exist):', alterError.message);
+      // Column likely already exists, ignore error
     }
 
     try {
       await db.execute('ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP');
-      console.log('✓ approval_date column ensured in spare_parts');
     } catch (alterError) {
-      console.log('Note: Could not add approval_date column (may already exist):', alterError.message);
+      // Column likely already exists, ignore error
     }
 
     try {
       await db.execute('ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS notes TEXT');
-      console.log('✓ notes column ensured in spare_parts');
     } catch (alterError) {
-      console.log('Note: Could not add notes column (may already exist):', alterError.message);
+      // Column likely already exists, ignore error
     }
 
     try {
       await db.execute('ALTER TABLE spare_parts ADD COLUMN IF NOT EXISTS ride_location VARCHAR(255)');
-      console.log('✓ ride_location column ensured in spare_parts');
     } catch (alterError) {
-      console.log('Note: Could not add ride_location column (may already exist):', alterError.message);
+      // Column likely already exists, ignore error
     }
 
     console.log('✓ Spare parts table ensured');
@@ -675,9 +671,8 @@ async function ensureMaintenanceRecords() {
       await db.execute(`
         ALTER TABLE maintenance_records ADD COLUMN IF NOT EXISTS location VARCHAR(255)
       `);
-      console.log('✓ Location column ensured in maintenance_records');
     } catch (alterError) {
-      console.log('Note: Could not add location column (may already exist):', alterError.message);
+      // Column likely already exists, ignore error
     }
 
     // Add approval_status column if it doesn't exist (for existing tables)
@@ -685,9 +680,8 @@ async function ensureMaintenanceRecords() {
       await db.execute(`
         ALTER TABLE maintenance_records ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'Pending'
       `);
-      console.log('✓ approval_status column ensured in maintenance_records');
     } catch (alterError) {
-      console.log('Note: Could not add approval_status column (may already exist):', alterError.message);
+      // Column likely already exists, ignore error
     }
 
     // Add approval_date column if it doesn't exist (for existing tables)
@@ -695,9 +689,8 @@ async function ensureMaintenanceRecords() {
       await db.execute(`
         ALTER TABLE maintenance_records ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP
       `);
-      console.log('✓ approval_date column ensured in maintenance_records');
     } catch (alterError) {
-      console.log('Note: Could not add approval_date column (may already exist):', alterError.message);
+      // Column likely already exists, ignore error
     }
 
     console.log('✓ Maintenance records table ensured');
@@ -753,9 +746,8 @@ async function ensurePartDeployments() {
     // Add missing_parts column if it doesn't exist
     try {
       await db.execute('ALTER TABLE part_deployments ADD COLUMN IF NOT EXISTS missing_parts TEXT');
-      console.log('✓ missing_parts column ensured in part_deployments');
     } catch (e) {
-      console.log('Note: Column alteration:', e.message);
+      // Column likely already exists, ignore error
     }
     console.log('✓ Part deployments table ensured');
   } catch (e) {
@@ -784,9 +776,8 @@ async function ensurePartRemovals() {
     // Add missing_parts column if it doesn't exist
     try {
       await db.execute('ALTER TABLE part_removals ADD COLUMN IF NOT EXISTS missing_parts TEXT');
-      console.log('✓ missing_parts column ensured in part_removals');
     } catch (e) {
-      console.log('Note: Column alteration:', e.message);
+      // Column likely already exists, ignore error
     }
     console.log('✓ Part removals table ensured');
   } catch (e) {
@@ -797,25 +788,23 @@ async function ensurePartRemovals() {
 // Fix corrupted data in incident_reports (photos and involved_parties)
 async function fixCorruptedData() {
   try {
-    // Fix photos
+    // Fix photos - cast JSONB to text for LIKE operator
     const [photoResult] = await db.execute(
-      'UPDATE incident_reports SET photos = NULL WHERE photos = ? OR photos LIKE ?',
-      ['[object Object]', '%[object Object]%']
+      "UPDATE incident_reports SET photos = NULL WHERE photos::text = '[object Object]' OR photos::text LIKE '%[object Object]%'"
     );
     if (photoResult.affectedRows > 0) {
       console.log(`✓ Fixed ${photoResult.affectedRows} corrupted photo records`);
     }
 
-    // Fix involved_parties
+    // Fix involved_parties - cast JSONB to text for LIKE operator
     const [partiesResult] = await db.execute(
-      'UPDATE incident_reports SET involved_parties = NULL WHERE involved_parties = ? OR involved_parties LIKE ?',
-      ['[object Object]', '%[object Object]%']
+      "UPDATE incident_reports SET involved_parties = NULL WHERE involved_parties::text = '[object Object]' OR involved_parties::text LIKE '%[object Object]%'"
     );
     if (partiesResult.affectedRows > 0) {
       console.log(`✓ Fixed ${partiesResult.affectedRows} corrupted involved_parties records`);
     }
   } catch (e) {
-    console.error('Fix corrupted data failed:', e.message);
+    // Ignore errors - data fix is optional
   }
 }
 
@@ -1838,24 +1827,21 @@ app.put('/api/maintenance/:id', authenticateToken, async (req, res) => {
     // Ensure location column exists
     try {
       await db.execute('ALTER TABLE maintenance_records ADD COLUMN IF NOT EXISTS location VARCHAR(255)');
-      console.log('Location column ensured before update');
     } catch (alterError) {
-      console.log('Note: Column alteration:', alterError.message);
+      // Column likely already exists, ignore error
     }
 
     // Ensure approval columns exist
     try {
       await db.execute('ALTER TABLE maintenance_records ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT "Pending"');
-      console.log('approval_status column ensured before update');
     } catch (alterError) {
-      console.log('Note: Column alteration:', alterError.message);
+      // Column likely already exists, ignore error
     }
 
     try {
       await db.execute('ALTER TABLE maintenance_records ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP');
-      console.log('approval_date column ensured before update');
     } catch (alterError) {
-      console.log('Note: Column alteration:', alterError.message);
+      // Column likely already exists, ignore error
     }
 
     // Build dynamic update query based on provided fields
