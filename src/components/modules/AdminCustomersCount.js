@@ -41,6 +41,7 @@ import {
 import { ridesAPI } from '../../services/api';
 import rideEntriesAPI from '../../services/rideEntriesAPI';
 import ReportGenerator from '../common/ReportGenerator';
+import { getSocket } from '../../utils/socket';
 
 const AdminCustomersCount = () => {
   const [rides, setRides] = useState([]);
@@ -139,6 +140,27 @@ const AdminCustomersCount = () => {
 
   useEffect(() => {
     loadCustomersCount();
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for ride entries updates
+    socket.on('ride-entries-updated', () => {
+      console.log('Ride entries updated via WebSocket');
+      loadCustomersCount();
+    });
+
+    // Listen for rides updates
+    socket.on('rides-updated', () => {
+      console.log('Rides updated via WebSocket');
+      loadCustomersCount();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('ride-entries-updated');
+      socket.off('rides-updated');
+    };
   }, [loadCustomersCount]);
 
   useEffect(() => {

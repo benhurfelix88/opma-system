@@ -3062,10 +3062,13 @@ app.post('/api/ride-entries', authenticateToken, async (req, res) => {
     }
     
     const [result] = await db.execute(
-      `INSERT INTO ride_entries (ride_id, ride_name, customer_count, entry_time, entry_date, entry_type, notes, entered_by) 
+      `INSERT INTO ride_entries (ride_id, ride_name, customer_count, entry_time, entry_date, entry_type, notes, entered_by)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [rideId, rideName, customerCount, entryTime, entryDate, entryType || 'manual', notes || null, req.user.id]
     );
+
+    // Emit ride-entries-updated event
+    io.emit('ride-entries-updated', { action: 'create', id: result.insertId });
 
     res.json({ id: result.insertId, message: 'Ride entry created successfully' });
   } catch (error) {
@@ -3085,7 +3088,7 @@ app.put('/api/ride-entries/:id', authenticateToken, async (req, res) => {
     }
     
     const [result] = await db.execute(
-      `UPDATE ride_entries 
+      `UPDATE ride_entries
        SET ride_id = ?, ride_name = ?, customer_count = ?, entry_time = ?, entry_date = ?, entry_type = ?, notes = ?
        WHERE id = ?`,
       [rideId, rideName, customerCount, entryTime, entryDate, entryType || 'manual', notes || null, id]
@@ -3094,6 +3097,9 @@ app.put('/api/ride-entries/:id', authenticateToken, async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: 'Ride entry not found' });
     }
+
+    // Emit ride-entries-updated event
+    io.emit('ride-entries-updated', { action: 'update', id: id });
 
     res.json({ message: 'Ride entry updated successfully' });
   } catch (error) {
@@ -3106,12 +3112,15 @@ app.put('/api/ride-entries/:id', authenticateToken, async (req, res) => {
 app.delete('/api/ride-entries/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const [result] = await db.execute('DELETE FROM ride_entries WHERE id = ?', [id]);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: 'Ride entry not found' });
     }
+
+    // Emit ride-entries-updated event
+    io.emit('ride-entries-updated', { action: 'delete', id: id });
 
     res.json({ message: 'Ride entry deleted successfully' });
   } catch (error) {
@@ -3233,6 +3242,10 @@ app.post('/api/ride-entries/bulk', authenticateToken, async (req, res) => {
       }
       
       await connection.commit();
+
+      // Emit ride-entries-updated event
+      io.emit('ride-entries-updated', { action: 'bulk-create', count: entries.length });
+
       res.json({ message: `${entries.length} ride entries created successfully` });
     } catch (error) {
       await connection.rollback();

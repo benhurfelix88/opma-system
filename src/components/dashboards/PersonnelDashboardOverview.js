@@ -25,6 +25,7 @@ import {
 } from '../../services/api';
 import rideEntriesAPI from '../../services/rideEntriesAPI';
 import RideEntryCountsList from './RideEntryCountsList';
+import { getSocket } from '../../utils/socket';
 import {
   buildRecentManualEntries,
   countManualEntriesOnDate,
@@ -190,8 +191,34 @@ const PersonnelDashboardOverview = () => {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 300000);
-    return () => clearInterval(interval);
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for ride entries updates
+    socket.on('ride-entries-updated', () => {
+      console.log('Ride entries updated via WebSocket');
+      loadData();
+    });
+
+    // Listen for rides updates
+    socket.on('rides-updated', () => {
+      console.log('Rides updated via WebSocket');
+      loadData();
+    });
+
+    // Listen for incidents updates
+    socket.on('incidents-updated', () => {
+      console.log('Incidents updated via WebSocket');
+      loadData();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('ride-entries-updated');
+      socket.off('rides-updated');
+      socket.off('incidents-updated');
+    };
   }, []);
 
   const modules = [

@@ -33,6 +33,7 @@ import {
 } from '@mui/icons-material';
 import { ridesAPI } from '../../services/api';
 import rideEntriesAPI from '../../services/rideEntriesAPI';
+import { getSocket } from '../../utils/socket';
 
 const PersonnelRideCounters = () => {
   const [rides, setRides] = useState([]);
@@ -188,10 +189,27 @@ const PersonnelRideCounters = () => {
 
   useEffect(() => {
     loadRideCounters();
-    
-    // Refresh every 5 minutes
-    const interval = setInterval(loadRideCounters, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for ride entries updates
+    socket.on('ride-entries-updated', () => {
+      console.log('Ride entries updated via WebSocket');
+      loadRideCounters();
+    });
+
+    // Listen for rides updates
+    socket.on('rides-updated', () => {
+      console.log('Rides updated via WebSocket');
+      loadRideCounters();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('ride-entries-updated');
+      socket.off('rides-updated');
+    };
   }, []);
 
   const handleCloseSnackbar = (event, reason) => {
