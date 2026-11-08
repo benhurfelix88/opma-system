@@ -32,6 +32,7 @@ import {
 } from '../../services/api';
 import rideEntriesAPI from '../../services/rideEntriesAPI';
 import RideEntryCountsList from './RideEntryCountsList';
+import { getSocket } from '../../utils/socket';
 import {
   buildRecentManualEntries,
   countManualEntriesOnDate,
@@ -86,6 +87,56 @@ const AdminDashboardOverview = () => {
 
   useEffect(() => {
     loadData();
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for updates
+    socket.on('spare-parts-updated', () => {
+      console.log('Spare parts updated via WebSocket');
+      loadData();
+    });
+
+    socket.on('rides-updated', () => {
+      console.log('Rides updated via WebSocket');
+      loadData();
+    });
+
+    socket.on('incidents-updated', () => {
+      console.log('Incidents updated via WebSocket');
+      loadData();
+    });
+
+    socket.on('maintenance-updated', () => {
+      console.log('Maintenance updated via WebSocket');
+      loadData();
+    });
+
+    socket.on('part-deployments-updated', () => {
+      console.log('Part deployments updated via WebSocket');
+      loadData();
+    });
+
+    socket.on('part-removals-updated', () => {
+      console.log('Part removals updated via WebSocket');
+      loadData();
+    });
+
+    socket.on('ride-repairs-updated', () => {
+      console.log('Ride repairs updated via WebSocket');
+      loadData();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('spare-parts-updated');
+      socket.off('rides-updated');
+      socket.off('incidents-updated');
+      socket.off('maintenance-updated');
+      socket.off('part-deployments-updated');
+      socket.off('part-removals-updated');
+      socket.off('ride-repairs-updated');
+    };
   }, []);
 
   const loadData = async () => {

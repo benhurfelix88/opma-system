@@ -38,6 +38,7 @@ import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
 import { incidentsAPI } from '../../services/api';
 import { getReviewStatusChipSx, normalizeReviewStatus } from '../../utils/incidentReviewStatus';
+import { getSocket } from '../../utils/socket';
 
 const AdminIncidentReports = () => {
   const [incidents, setIncidents] = useState([]);
@@ -54,6 +55,20 @@ const AdminIncidentReports = () => {
 
   useEffect(() => {
     loadIncidents();
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for incidents updates
+    socket.on('incidents-updated', () => {
+      console.log('Incidents updated via WebSocket');
+      loadIncidents();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('incidents-updated');
+    };
   }, []);
 
   const loadIncidents = async () => {

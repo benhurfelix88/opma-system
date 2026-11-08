@@ -31,6 +31,7 @@ import AdminPartsInventory from './AdminPartsInventory';
 import AdminCustomersCount from '../modules/AdminCustomersCount';
 import { keyframes } from '@mui/system';
 import { incidentsAPI } from '../../services/api';
+import { getSocket } from '../../utils/socket';
 
 const fadeIn = keyframes`
   from {
@@ -55,6 +56,20 @@ const IncidentCount = () => {
       }
     };
     loadCount();
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for incidents updates
+    socket.on('incidents-updated', () => {
+      console.log('Incidents updated via WebSocket');
+      loadCount();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('incidents-updated');
+    };
   }, []);
 
   return <>{count}</>;
@@ -71,8 +86,8 @@ const RecentIncidents = () => {
         const mappedIncidents = allIncidents.slice(0, 5).map(incident => ({
           ...incident,
           id: incident.id,
-          timestamp: incident.date_reported && incident.time_reported 
-            ? `${incident.date_reported}T${incident.time_reported}` 
+          timestamp: incident.date_reported && incident.time_reported
+            ? `${incident.date_reported}T${incident.time_reported}`
             : (incident.date_reported || incident.created_at || new Date().toISOString()),
           ride: incident.ride_name || incident.ride || '',
           type: incident.incident_type || incident.type || 'accident',
@@ -84,6 +99,20 @@ const RecentIncidents = () => {
       }
     };
     loadIncidents();
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for incidents updates
+    socket.on('incidents-updated', () => {
+      console.log('Incidents updated via WebSocket');
+      loadIncidents();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('incidents-updated');
+    };
   }, []);
 
   return (

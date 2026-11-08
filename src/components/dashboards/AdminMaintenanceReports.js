@@ -38,6 +38,7 @@ import {
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
 import { maintenanceAPI } from '../../services/api';
+import { getSocket } from '../../utils/socket';
 
 const AdminMaintenanceReports = () => {
   const [maintenanceData, setMaintenanceData] = useState([]);
@@ -93,8 +94,20 @@ const AdminMaintenanceReports = () => {
     };
 
     loadData();
-    const interval = setInterval(loadData, 300000); // Refresh every 5 minutes
-    return () => clearInterval(interval);
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for maintenance updates
+    socket.on('maintenance-updated', () => {
+      console.log('Maintenance updated via WebSocket');
+      loadData();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('maintenance-updated');
+    };
   }, []);
 
   useEffect(() => {

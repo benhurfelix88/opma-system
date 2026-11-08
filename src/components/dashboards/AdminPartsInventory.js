@@ -28,6 +28,7 @@ import ReportGenerator from '../common/ReportGenerator';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import { sparePartsAPI, rideRepairsAPI, partDeploymentsAPI, partRemovalsAPI } from '../../services/api';
+import { getSocket } from '../../utils/socket';
 
 const AdminPartsInventory = () => {
   const [tabValue, setTabValue] = useState(0);
@@ -53,6 +54,38 @@ const AdminPartsInventory = () => {
     loadRideRepairs();
     loadPartDeployments();
     loadPartRemovals();
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for updates
+    socket.on('spare-parts-updated', () => {
+      console.log('Spare parts updated via WebSocket');
+      loadParts();
+    });
+
+    socket.on('ride-repairs-updated', () => {
+      console.log('Ride repairs updated via WebSocket');
+      loadRideRepairs();
+    });
+
+    socket.on('part-deployments-updated', () => {
+      console.log('Part deployments updated via WebSocket');
+      loadPartDeployments();
+    });
+
+    socket.on('part-removals-updated', () => {
+      console.log('Part removals updated via WebSocket');
+      loadPartRemovals();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('spare-parts-updated');
+      socket.off('ride-repairs-updated');
+      socket.off('part-deployments-updated');
+      socket.off('part-removals-updated');
+    };
   }, []);
 
   const loadParts = async () => {
