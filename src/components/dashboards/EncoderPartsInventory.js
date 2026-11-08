@@ -41,7 +41,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { keyframes } from '@mui/system';
 import { sparePartsAPI, ridesAPI, rideRepairsAPI, partDeploymentsAPI, partRemovalsAPI, rideStatusAPI } from '../../services/api';
-import { getSocket, disconnectSocket } from '../../utils/socket';
+import { getSocket } from '../../utils/socket';
 
 // Define animations
 const fadeIn = keyframes`
@@ -179,6 +179,60 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   useEffect(() => {
     loadParts();
     loadRidesFromManager();
+
+    // Load other data
+    const loadData = async () => {
+      try {
+        // Load ride statuses
+        const statuses = await rideStatusAPI.get();
+        setRideStatusMap(statuses || {});
+        
+        // Load repairs from API
+        const repairsList = await rideRepairsAPI.getAll();
+        const mappedRepairs = repairsList.map(repair => ({
+          id: repair.id,
+          ride: repair.ride,
+          date: repair.date,
+          issue: repair.issue,
+          partsReplaced: repair.parts_replaced || '',
+          cost: repair.cost || 0,
+          technician: repair.technician,
+          status: repair.status,
+          notes: repair.notes || '',
+          timestamp: repair.created_at || new Date().toISOString(),
+        }));
+        setRepairs(mappedRepairs);
+        
+        // Load deployments from API
+        const deploymentsList = await partDeploymentsAPI.getAll();
+        const mappedDeployments = deploymentsList.map(deployment => ({
+          id: deployment.id,
+          date: deployment.date,
+          place: deployment.place,
+          ride: deployment.ride,
+          status: deployment.status,
+          missingParts: deployment.missing_parts || '',
+          encodedBy: deployment.encoded_by,
+        }));
+        setDeployments(mappedDeployments);
+
+        // Load removals from API
+        const removalsList = await partRemovalsAPI.getAll();
+        const mappedRemovals = removalsList.map(removal => ({
+          id: removal.id,
+          date: removal.date,
+          place: removal.place,
+          ride: removal.ride,
+          status: removal.status,
+          missingParts: removal.missing_parts || '',
+          encodedBy: removal.encoded_by,
+        }));
+        setRemovals(mappedRemovals);
+      } catch (e) {
+        console.error('Error loading data:', e);
+      }
+    };
+    loadData();
 
     // Setup WebSocket connection
     const socket = getSocket();
