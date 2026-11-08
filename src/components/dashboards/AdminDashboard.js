@@ -47,16 +47,6 @@ const fadeIn = keyframes`
 const IncidentCount = () => {
   const [count, setCount] = useState(0);
 
-  // Helper function to check if record is newly added/edited (within 1 minute)
-  const isRecent = (timestamp) => {
-    if (!timestamp) return false;
-    const recordTime = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now - recordTime;
-    const diffMinutes = diffMs / 60000; // Convert to minutes
-    return diffMinutes <= 1; // Within 1 minute
-  };
-
   useEffect(() => {
     const loadCount = async () => {
       try {
