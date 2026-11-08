@@ -22,6 +22,7 @@ import {
 } from '@mui/material';
 import {
   ConfirmationNumber as TicketIcon,
+  Circle as CircleIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ManageUsers from './ManageUsers';
@@ -46,6 +47,16 @@ const fadeIn = keyframes`
 const IncidentCount = () => {
   const [count, setCount] = useState(0);
 
+  // Helper function to check if record is newly added/edited (within 1 minute)
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000; // Convert to minutes
+    return diffMinutes <= 1; // Within 1 minute
+  };
+
   useEffect(() => {
     const loadCount = async () => {
       try {
@@ -62,7 +73,6 @@ const IncidentCount = () => {
 
     // Listen for incidents updates
     socket.on('incidents-updated', () => {
-      console.log('Incidents updated via WebSocket');
       loadCount();
     });
 
@@ -78,6 +88,16 @@ const IncidentCount = () => {
 // Component to display recent incidents
 const RecentIncidents = () => {
   const [incidents, setIncidents] = useState([]);
+
+  // Helper function to check if record is newly added/edited (within 1 minute)
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000; // Convert to minutes
+    return diffMinutes <= 1; // Within 1 minute
+  };
 
   useEffect(() => {
     const loadIncidents = async () => {
@@ -105,7 +125,6 @@ const RecentIncidents = () => {
 
     // Listen for incidents updates
     socket.on('incidents-updated', () => {
-      console.log('Incidents updated via WebSocket');
       loadIncidents();
     });
 
@@ -118,7 +137,17 @@ const RecentIncidents = () => {
   return (
     <>
       {incidents.map((incident) => (
-        <TableRow key={incident.id}>
+        <TableRow
+          key={incident.id}
+          sx={{
+            backgroundColor: isRecent(incident.updated_at) || isRecent(incident.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+          }}
+        >
+          <TableCell sx={{ width: '30px' }}>
+            {(isRecent(incident.updated_at) || isRecent(incident.created_at)) && (
+              <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+            )}
+          </TableCell>
           <TableCell>{new Date(incident.timestamp).toLocaleDateString()}</TableCell>
           <TableCell>{incident.ride}</TableCell>
           <TableCell>{incident.type}</TableCell>
@@ -258,6 +287,7 @@ const AdminDashboard = () => {
                         <Table size="small">
                           <TableHead>
                             <TableRow>
+                              <TableCell sx={{ width: '30px' }}></TableCell>
                               <TableCell>Date</TableCell>
                               <TableCell>Ride</TableCell>
                               <TableCell>Type</TableCell>

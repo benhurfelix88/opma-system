@@ -358,6 +358,16 @@ const AdminCustomersCount = () => {
                       <TableCell
                         align="center"
                         sx={{
+                          width: '30px',
+                          fontWeight: 'bold',
+                          fontSize: '0.875rem',
+                          py: 2,
+                          borderBottom: '2px solid #e0e0e0'
+                        }}
+                      ></TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{
                           fontWeight: 'bold',
                           fontSize: '0.875rem',
                           py: 2,
@@ -440,7 +450,18 @@ const AdminCustomersCount = () => {
                   </TableHead>
                   <TableBody>
                     {filteredEntries.map((entry) => (
-                      <TableRow key={entry.id} hover>
+                      <TableRow
+                        key={entry.id}
+                        hover
+                        sx={{
+                          backgroundColor: isRecent(entry.updated_at) || isRecent(entry.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                        }}
+                      >
+                        <TableCell align="center" sx={{ width: '30px' }}>
+                          {(isRecent(entry.updated_at) || isRecent(entry.created_at)) && (
+                            <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                          )}
+                        </TableCell>
                         <TableCell align="center">
                           {new Date(entry.entry_timestamp).toLocaleDateString('en-US', {
                             year: 'numeric',
@@ -717,6 +738,7 @@ const AdminCustomersCount = () => {
                   <Table stickyHeader>
                     <TableHead>
                       <TableRow>
+                        <TableCell align="center" sx={{ width: '30px' }}></TableCell>
                         <TableCell align="center">Date</TableCell>
                         <TableCell align="center">Ride</TableCell>
                         <TableCell align="center">Location</TableCell>
@@ -727,7 +749,18 @@ const AdminCustomersCount = () => {
                     </TableHead>
                     <TableBody>
                       {getHistoryEntries().map((entry) => (
-                        <TableRow key={entry.id} hover>
+                        <TableRow
+                          key={entry.id}
+                          hover
+                          sx={{
+                            backgroundColor: isRecent(entry.updated_at) || isRecent(entry.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                          }}
+                        >
+                          <TableCell align="center" sx={{ width: '30px' }}>
+                            {(isRecent(entry.updated_at) || isRecent(entry.created_at)) && (
+                              <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                            )}
+                          </TableCell>
                           <TableCell align="center">
                             {new Date(entry.entry_timestamp).toLocaleDateString('en-US', {
                               year: 'numeric',
