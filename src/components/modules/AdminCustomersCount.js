@@ -36,7 +36,8 @@ import {
   Attractions as AttractionsIcon,
   Assessment as AssessmentIcon,
   AccessTime as AccessTimeIcon,
-  PictureAsPdf as ReportIcon
+  PictureAsPdf as ReportIcon,
+  Circle as CircleIcon,
 } from '@mui/icons-material';
 import { ridesAPI } from '../../services/api';
 import rideEntriesAPI from '../../services/rideEntriesAPI';
@@ -44,6 +45,15 @@ import ReportGenerator from '../common/ReportGenerator';
 import { getSocket } from '../../utils/socket';
 
 const AdminCustomersCount = () => {
+  // Helper function to check if record is newly added/edited (within 1 minute)
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000; // Convert to minutes
+    return diffMinutes <= 1; // Within 1 minute
+  };
   const [rides, setRides] = useState([]);
   const [allEntries, setAllEntries] = useState([]);
   const [filteredEntries, setFilteredEntries] = useState([]);

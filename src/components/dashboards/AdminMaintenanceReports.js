@@ -34,6 +34,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Schedule as ScheduleIcon,
   PictureAsPdf as ReportIcon,
+  Circle as CircleIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -41,6 +42,15 @@ import { maintenanceAPI } from '../../services/api';
 import { getSocket } from '../../utils/socket';
 
 const AdminMaintenanceReports = () => {
+  // Helper function to check if record is newly added/edited (within 1 minute)
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000; // Convert to minutes
+    return diffMinutes <= 1; // Within 1 minute
+  };
   const [maintenanceData, setMaintenanceData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -474,6 +484,7 @@ const AdminMaintenanceReports = () => {
                 <Table stickyHeader>
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f3f0f7' }}>
+                <TableCell align="center" sx={{ width: '30px', fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}></TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date Recorded</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Location</TableCell>
@@ -489,7 +500,7 @@ const AdminMaintenanceReports = () => {
                 <TableBody>
                   {filteredData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} align="center">
+                      <TableCell colSpan={11} align="center">
                         <Typography variant="body1" color="text.secondary">
                           No maintenance reports found
                         </Typography>
@@ -497,7 +508,17 @@ const AdminMaintenanceReports = () => {
                     </TableRow>
                   ) : (
                     filteredData.map((report) => (
-                      <TableRow key={report.id}>
+                      <TableRow
+                        key={report.id}
+                        sx={{
+                          backgroundColor: isRecent(report.updated_at) || isRecent(report.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                        }}
+                      >
+                        <TableCell align="center" sx={{ width: '30px' }}>
+                          {(isRecent(report.updated_at) || isRecent(report.created_at)) && (
+                            <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                          )}
+                        </TableCell>
                         <TableCell align="center">{formatDate(report.date)}</TableCell>
                         <TableCell align="center">{report.ride || 'N/A'}</TableCell>
                         <TableCell align="center">{report.location || '-'}</TableCell>

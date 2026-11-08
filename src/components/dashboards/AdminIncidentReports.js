@@ -29,10 +29,11 @@ import {
   CardContent,
   CardMedia,
 } from '@mui/material';
-import { 
+import {
   Info as InfoIcon,
   Search as SearchIcon,
-  PictureAsPdf as ReportIcon
+  PictureAsPdf as ReportIcon,
+  Circle as CircleIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -41,6 +42,15 @@ import { getReviewStatusChipSx, normalizeReviewStatus } from '../../utils/incide
 import { getSocket } from '../../utils/socket';
 
 const AdminIncidentReports = () => {
+  // Helper function to check if record is newly added/edited (within 1 minute)
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000; // Convert to minutes
+    return diffMinutes <= 1; // Within 1 minute
+  };
   const [incidents, setIncidents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -249,9 +259,19 @@ const AdminIncidentReports = () => {
                 <Table stickyHeader>
                   <TableHead>
                     <TableRow>
-                      <TableCell 
+                      <TableCell
                         align="center"
-                        sx={{ 
+                        sx={{
+                          width: '30px',
+                          fontWeight: 'bold',
+                          fontSize: '0.875rem',
+                          py: 2,
+                          borderBottom: '2px solid #e0e0e0'
+                        }}
+                      ></TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{
                           fontWeight: 'bold',
                           fontSize: '0.875rem',
                           py: 2,
@@ -320,7 +340,7 @@ const AdminIncidentReports = () => {
             <TableBody>
               {filteredAndSortedIncidents.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
+                  <TableCell colSpan={7} align="center">
                     <Typography variant="body1" color="text.secondary">
                       No incidents found
                     </Typography>
@@ -328,7 +348,17 @@ const AdminIncidentReports = () => {
                 </TableRow>
               ) : (
                 filteredAndSortedIncidents.map((incident) => (
-                <TableRow key={incident.id}>
+                <TableRow
+                  key={incident.id}
+                  sx={{
+                    backgroundColor: isRecent(incident.updated_at) || isRecent(incident.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                  }}
+                >
+                  <TableCell align="center" sx={{ width: '30px' }}>
+                    {(isRecent(incident.updated_at) || isRecent(incident.created_at)) && (
+                      <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                    )}
+                  </TableCell>
                   <TableCell align="center">{new Date(incident.dateTime).toLocaleString()}</TableCell>
                   <TableCell align="center">{incident.location}</TableCell>
                   <TableCell align="center">{incident.type}</TableCell>
