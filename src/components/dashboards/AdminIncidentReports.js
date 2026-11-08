@@ -51,6 +51,16 @@ const AdminIncidentReports = () => {
     const diffMinutes = diffMs / 60000; // Convert to minutes
     return diffMinutes <= 1; // Within 1 minute
   };
+
+  // Force re-render every second to update highlights
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 1000); // Check every second
+    return () => clearInterval(interval);
+  }, []);
+
   const [incidents, setIncidents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');

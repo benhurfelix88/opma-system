@@ -33,6 +33,7 @@ import {
   Edit as EditIcon,
   PictureAsPdf as ReportIcon,
   Search as SearchIcon,
+  Circle as CircleIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -40,14 +41,33 @@ import { sparePartsAPI, rideRepairsAPI, partDeploymentsAPI, partRemovalsAPI } fr
 import { getSocket } from '../../utils/socket';
 
 const ManagerPartsInventory = () => {
+  // Helper function to check if record is newly added/edited (within 1 minute)
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000; // Convert to minutes
+    return diffMinutes <= 1; // Within 1 minute
+  };
+
+  // Force re-render every second to update highlights
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 1000); // Check every second
+    return () => clearInterval(interval);
+  }, []);
+
   const [tabValue, setTabValue] = useState(0);
   const [parts, setParts] = useState([]);
   const [rideRepairs, setRideRepairs] = useState([]);
   const [partDeployments, setPartDeployments] = useState([]);
   const [partRemovals, setPartRemovals] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy] = useState('name');
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sortBy] = useState('updated_at'); // Changed from 'name' to 'updated_at'
+  const [sortOrder, setSortOrder] = useState('desc'); // Changed from 'asc' to 'desc'
   const [statusFilter, setStatusFilter] = useState('all');
   const [repairsSearchQuery, setRepairsSearchQuery] = useState('');
   const [repairsSortOrder, setRepairsSortOrder] = useState('desc');
@@ -361,8 +381,8 @@ const ManagerPartsInventory = () => {
           ? Number(a.price)
           : sortBy === 'quantity'
           ? Number(a.quantity)
-          : sortBy === 'lastUpdated'
-          ? a.lastUpdated
+          : sortBy === 'updated_at'
+          ? a.updated_at
           : a[sortBy]
       );
       const bVal = normalizedValue(
@@ -370,8 +390,8 @@ const ManagerPartsInventory = () => {
           ? Number(b.price)
           : sortBy === 'quantity'
           ? Number(b.quantity)
-          : sortBy === 'lastUpdated'
-          ? b.lastUpdated
+          : sortBy === 'updated_at'
+          ? b.updated_at
           : b[sortBy]
       );
       if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
@@ -442,6 +462,7 @@ const ManagerPartsInventory = () => {
                 <Table stickyHeader>
             <TableHead>
               <TableRow>
+                <TableCell align="center" sx={{ width: '30px' }}></TableCell>
                 <TableCell align="center">Part Name</TableCell>
                 <TableCell align="center">Ride</TableCell>
                 <TableCell align="center">Ride Location</TableCell>
@@ -461,7 +482,7 @@ const ManagerPartsInventory = () => {
             <TableBody>
               {filteredAndSortedParts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={14} align="center">
+                  <TableCell colSpan={15} align="center">
                     <Typography variant="body1" color="text.secondary">
                       No parts found
                     </Typography>
@@ -469,7 +490,17 @@ const ManagerPartsInventory = () => {
                 </TableRow>
               ) : (
                 filteredAndSortedParts.map((part) => (
-                  <TableRow key={part.id}>
+                  <TableRow
+                    key={part.id}
+                    sx={{
+                      backgroundColor: isRecent(part.updated_at) || isRecent(part.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                    }}
+                  >
+                    <TableCell align="center" sx={{ width: '30px' }}>
+                      {(isRecent(part.updated_at) || isRecent(part.created_at)) && (
+                        <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                      )}
+                    </TableCell>
                     <TableCell align="center">{part.name}</TableCell>
                     <TableCell align="center">{part.ride || 'N/A'}</TableCell>
                     <TableCell align="center">{part.ride_location || 'N/A'}</TableCell>
@@ -639,6 +670,7 @@ const ManagerPartsInventory = () => {
                     <Table stickyHeader>
                       <TableHead>
                         <TableRow>
+                          <TableCell align="center" sx={{ width: '30px' }}></TableCell>
                           <TableCell align="center" sx={{ width: '20%' }}>Ride</TableCell>
                           <TableCell align="center" sx={{ width: '15%' }}>Date</TableCell>
                           <TableCell align="center" sx={{ width: '25%' }}>Issue</TableCell>
@@ -650,7 +682,7 @@ const ManagerPartsInventory = () => {
                       <TableBody>
                         {filteredAndSortedRepairs.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={6} align="center">
+                            <TableCell colSpan={7} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No ride repairs found
                               </Typography>
@@ -658,7 +690,17 @@ const ManagerPartsInventory = () => {
                           </TableRow>
                         ) : (
                           filteredAndSortedRepairs.map((repair) => (
-                            <TableRow key={repair.id}>
+                            <TableRow
+                              key={repair.id}
+                              sx={{
+                                backgroundColor: isRecent(repair.updated_at) || isRecent(repair.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                              }}
+                            >
+                              <TableCell align="center" sx={{ width: '30px' }}>
+                                {(isRecent(repair.updated_at) || isRecent(repair.created_at)) && (
+                                  <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                )}
+                              </TableCell>
                               <TableCell align="center">{repair.ride}</TableCell>
                               <TableCell align="center">{new Date(repair.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{repair.issue}</TableCell>
@@ -754,6 +796,7 @@ const ManagerPartsInventory = () => {
                     <Table stickyHeader>
                       <TableHead>
                         <TableRow>
+                          <TableCell align="center" sx={{ width: '30px' }}></TableCell>
                           <TableCell align="center" sx={{ width: '15%' }}>Date</TableCell>
                           <TableCell align="center" sx={{ width: '20%' }}>Place</TableCell>
                           <TableCell align="center" sx={{ width: '15%' }}>Ride</TableCell>
@@ -765,7 +808,7 @@ const ManagerPartsInventory = () => {
                       <TableBody>
                         {filteredAndSortedDeployments.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={6} align="center">
+                            <TableCell colSpan={7} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No deployments found
                               </Typography>
@@ -773,7 +816,17 @@ const ManagerPartsInventory = () => {
                           </TableRow>
                         ) : (
                           filteredAndSortedDeployments.map((deployment) => (
-                            <TableRow key={deployment.id}>
+                            <TableRow
+                              key={deployment.id}
+                              sx={{
+                                backgroundColor: isRecent(deployment.updated_at) || isRecent(deployment.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                              }}
+                            >
+                              <TableCell align="center" sx={{ width: '30px' }}>
+                                {(isRecent(deployment.updated_at) || isRecent(deployment.created_at)) && (
+                                  <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                )}
+                              </TableCell>
                               <TableCell align="center">{new Date(deployment.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{deployment.place}</TableCell>
                               <TableCell align="center">{deployment.ride}</TableCell>
@@ -869,6 +922,7 @@ const ManagerPartsInventory = () => {
                     <Table stickyHeader>
                       <TableHead>
                         <TableRow>
+                          <TableCell align="center" sx={{ width: '30px' }}></TableCell>
                           <TableCell align="center" sx={{ width: '15%' }}>Date</TableCell>
                           <TableCell align="center" sx={{ width: '20%' }}>Place</TableCell>
                           <TableCell align="center" sx={{ width: '15%' }}>Ride</TableCell>
@@ -880,7 +934,7 @@ const ManagerPartsInventory = () => {
                       <TableBody>
                         {filteredAndSortedRemovals.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={6} align="center">
+                            <TableCell colSpan={7} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No removals found
                               </Typography>
@@ -888,7 +942,17 @@ const ManagerPartsInventory = () => {
                           </TableRow>
                         ) : (
                           filteredAndSortedRemovals.map((removal) => (
-                            <TableRow key={removal.id}>
+                            <TableRow
+                              key={removal.id}
+                              sx={{
+                                backgroundColor: isRecent(removal.updated_at) || isRecent(removal.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                              }}
+                            >
+                              <TableCell align="center" sx={{ width: '30px' }}>
+                                {(isRecent(removal.updated_at) || isRecent(removal.created_at)) && (
+                                  <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                )}
+                              </TableCell>
                               <TableCell align="center">{new Date(removal.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{removal.place}</TableCell>
                               <TableCell align="center">{removal.ride}</TableCell>

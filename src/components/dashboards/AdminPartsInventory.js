@@ -41,14 +41,24 @@ const AdminPartsInventory = () => {
     const diffMinutes = diffMs / 60000; // Convert to minutes
     return diffMinutes <= 1; // Within 1 minute
   };
+
+  // Force re-render every second to update highlights
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 1000); // Check every second
+    return () => clearInterval(interval);
+  }, []);
+
   const [tabValue, setTabValue] = useState(0);
   const [parts, setParts] = useState([]);
   const [rideRepairs, setRideRepairs] = useState([]);
   const [partDeployments, setPartDeployments] = useState([]);
   const [partRemovals, setPartRemovals] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy] = useState('name');
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sortBy] = useState('updated_at'); // Changed from 'name' to 'updated_at'
+  const [sortOrder, setSortOrder] = useState('desc'); // Changed from 'asc' to 'desc'
   const [statusFilter, setStatusFilter] = useState('all');
   const [repairsSearchQuery, setRepairsSearchQuery] = useState('');
   const [repairsSortOrder, setRepairsSortOrder] = useState('desc');
@@ -215,8 +225,8 @@ const AdminPartsInventory = () => {
           ? Number(a.price)
           : sortBy === 'quantity'
           ? Number(a.quantity)
-          : sortBy === 'lastUpdated'
-          ? a.lastUpdated
+          : sortBy === 'updated_at'
+          ? a.updated_at
           : a[sortBy]
       );
       const bVal = normalizedValue(
@@ -224,8 +234,8 @@ const AdminPartsInventory = () => {
           ? Number(b.price)
           : sortBy === 'quantity'
           ? Number(b.quantity)
-          : sortBy === 'lastUpdated'
-          ? b.lastUpdated
+          : sortBy === 'updated_at'
+          ? b.updated_at
           : b[sortBy]
       );
       if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;

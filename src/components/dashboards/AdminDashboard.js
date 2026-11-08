@@ -89,6 +89,15 @@ const RecentIncidents = () => {
     return diffMinutes <= 1; // Within 1 minute
   };
 
+  // Force re-render every second to update highlights
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 1000); // Check every second
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     const loadIncidents = async () => {
       try {
