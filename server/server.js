@@ -2651,6 +2651,9 @@ app.post('/api/part-deployments', authenticateToken, async (req, res) => {
       [date, place, ride, status || 'Complete', missing_parts || null, encoded_by, userId]
     );
 
+    // Emit part-deployments-updated event
+    io.emit('part-deployments-updated', { action: 'create', id: result.insertId });
+
     res.json({ id: result.insertId, message: 'Part deployment created successfully' });
   } catch (error) {
     console.error('Create part deployment error:', error.message);
@@ -2669,6 +2672,9 @@ app.put('/api/part-deployments/:id', authenticateToken, async (req, res) => {
       [date, place, ride, status, missing_parts || null, encoded_by, req.params.id]
     );
 
+    // Emit part-deployments-updated event
+    io.emit('part-deployments-updated', { action: 'update', id: req.params.id });
+
     res.json({ message: 'Part deployment updated successfully' });
   } catch (error) {
     console.error('Update part deployment error:', error);
@@ -2680,6 +2686,10 @@ app.put('/api/part-deployments/:id', authenticateToken, async (req, res) => {
 app.delete('/api/part-deployments/:id', authenticateToken, async (req, res) => {
   try {
     await db.execute('DELETE FROM part_deployments WHERE id = ?', [req.params.id]);
+
+    // Emit part-deployments-updated event
+    io.emit('part-deployments-updated', { action: 'delete', id: req.params.id });
+
     res.json({ message: 'Part deployment deleted successfully' });
   } catch (error) {
     console.error('Delete part deployment error:', error);
@@ -2713,6 +2723,9 @@ app.post('/api/part-removals', authenticateToken, async (req, res) => {
       [date, place, ride, status || 'Complete', missing_parts || null, encoded_by, userId]
     );
 
+    // Emit part-removals-updated event
+    io.emit('part-removals-updated', { action: 'create', id: result.insertId });
+
     res.json({ id: result.insertId, message: 'Part removal created successfully' });
   } catch (error) {
     console.error('Create part removal error:', error.message);
@@ -2731,6 +2744,9 @@ app.put('/api/part-removals/:id', authenticateToken, async (req, res) => {
       [date, place, ride, status, missing_parts || null, encoded_by, req.params.id]
     );
 
+    // Emit part-removals-updated event
+    io.emit('part-removals-updated', { action: 'update', id: req.params.id });
+
     res.json({ message: 'Part removal updated successfully' });
   } catch (error) {
     console.error('Update part removal error:', error);
@@ -2742,6 +2758,10 @@ app.put('/api/part-removals/:id', authenticateToken, async (req, res) => {
 app.delete('/api/part-removals/:id', authenticateToken, async (req, res) => {
   try {
     await db.execute('DELETE FROM part_removals WHERE id = ?', [req.params.id]);
+
+    // Emit part-removals-updated event
+    io.emit('part-removals-updated', { action: 'delete', id: req.params.id });
+
     res.json({ message: 'Part removal deleted successfully' });
   } catch (error) {
     console.error('Delete part removal error:', error);

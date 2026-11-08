@@ -120,6 +120,16 @@ const EncoderDashboardOverview = () => {
       loadData();
     });
 
+    socket.on('part-deployments-updated', () => {
+      console.log('Part deployments updated via WebSocket');
+      loadData();
+    });
+
+    socket.on('part-removals-updated', () => {
+      console.log('Part removals updated via WebSocket');
+      loadData();
+    });
+
     // Cleanup on unmount
     return () => {
       socket.off('spare-parts-updated');
@@ -127,6 +137,8 @@ const EncoderDashboardOverview = () => {
       socket.off('maintenance-updated');
       socket.off('incidents-updated');
       socket.off('ride-repairs-updated');
+      socket.off('part-deployments-updated');
+      socket.off('part-removals-updated');
     };
   }, []);
 

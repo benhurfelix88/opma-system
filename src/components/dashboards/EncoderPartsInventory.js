@@ -249,10 +249,24 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       loadRidesFromManager();
     });
 
+    // Listen for part deployments updates
+    socket.on('part-deployments-updated', (data) => {
+      console.log('Part deployments updated via WebSocket:', data);
+      loadData();
+    });
+
+    // Listen for part removals updates
+    socket.on('part-removals-updated', (data) => {
+      console.log('Part removals updated via WebSocket:', data);
+      loadData();
+    });
+
     // Cleanup on unmount
     return () => {
       socket.off('spare-parts-updated');
       socket.off('rides-updated');
+      socket.off('part-deployments-updated');
+      socket.off('part-removals-updated');
     };
   }, []);
 
