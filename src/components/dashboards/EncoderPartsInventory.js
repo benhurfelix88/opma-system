@@ -41,6 +41,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { keyframes } from '@mui/system';
 import { sparePartsAPI, ridesAPI, rideRepairsAPI, partDeploymentsAPI, partRemovalsAPI, rideStatusAPI } from '../../services/api';
+import { getSocket, disconnectSocket } from '../../utils/socket';
 
 // Define animations
 const fadeIn = keyframes`
@@ -178,6 +179,28 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   useEffect(() => {
     loadParts();
     loadRidesFromManager();
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for spare parts updates
+    socket.on('spare-parts-updated', (data) => {
+      console.log('Spare parts updated via WebSocket:', data);
+      loadParts();
+    });
+
+    // Listen for rides updates
+    socket.on('rides-updated', (data) => {
+      console.log('Rides updated via WebSocket:', data);
+      loadRidesFromManager();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('spare-parts-updated');
+      socket.off('rides-updated');
+    };
+  }, []);
     const loadData = async () => {
       try {
         await loadRidesFromManager();

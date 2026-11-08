@@ -37,6 +37,7 @@ import {
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
 import { sparePartsAPI, rideRepairsAPI, partDeploymentsAPI, partRemovalsAPI } from '../../services/api';
+import { getSocket } from '../../utils/socket';
 
 const ManagerPartsInventory = () => {
   const [tabValue, setTabValue] = useState(0);
@@ -68,6 +69,20 @@ const ManagerPartsInventory = () => {
     loadRideRepairs();
     loadPartDeployments();
     loadPartRemovals();
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for spare parts updates
+    socket.on('spare-parts-updated', (data) => {
+      console.log('Spare parts updated via WebSocket:', data);
+      loadParts();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('spare-parts-updated');
+    };
   }, []);
 
   const loadParts = async () => {

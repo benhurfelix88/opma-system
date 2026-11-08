@@ -14,11 +14,22 @@ const fs = require('fs');
 const nodemailer = require('nodemailer');
 const { v2: cloudinary } = require('cloudinary');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
 const db = require('./config/database');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'arms_system_secret_key_change_in_production';
+
+// Create HTTP server and Socket.io server
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: ['http://localhost:3000', 'https://opma-system-t7ur.vercel.app'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE']
+  }
+});
 
 // Email transporter configuration
 let transporter = null;
@@ -2458,6 +2469,9 @@ app.post('/api/spare-parts', authenticateToken, async (req, res) => {
       [part_name, part_number, category, ride || '', ride_location || '', quantity || 0, unit, location, supplier, cost, status || 'Available']
     );
 
+    // Emit socket event for real-time update
+    io.emit('spare-parts-updated', { action: 'create', data: result });
+
     res.json({ id: result.insertId, message: 'Spare part created successfully' });
   } catch (error) {
     console.error('Create spare part error:', error);
@@ -2494,6 +2508,9 @@ app.put('/api/spare-parts/:id', authenticateToken, async (req, res) => {
     console.log('Spare part updated successfully with approval_status:', approval_status);
     console.log('Update result:', result);
 
+    // Emit socket event for real-time update
+    io.emit('spare-parts-updated', { action: 'update', id: req.params.id });
+
     res.json({ message: 'Spare part updated successfully' });
   } catch (error) {
     console.error('Update spare part error:', error.message);
@@ -2509,6 +2526,10 @@ app.put('/api/spare-parts/:id', authenticateToken, async (req, res) => {
 app.delete('/api/spare-parts/:id', authenticateToken, async (req, res) => {
   try {
     await db.execute('DELETE FROM spare_parts WHERE id = ?', [req.params.id]);
+    
+    // Emit socket event for real-time update
+    io.emit('spare-parts-updated', { action: 'delete', id: req.params.id });
+    
     res.json({ message: 'Spare part deleted successfully' });
   } catch (error) {
     console.error('Delete spare part error:', error);
@@ -2730,6 +2751,10 @@ app.post('/api/rides', authenticateToken, async (req, res) => {
   try {
     const { name, status, location } = req.body;
     await db.execute('INSERT INTO rides (name, status, location) VALUES ($1, $2, $3)', [name, status || 'operational', location || '']);
+    
+    // Emit socket event for real-time update
+    io.emit('rides-updated', { action: 'create' });
+    
     res.json({ message: 'Ride created successfully' });
   } catch (error) {
     console.error('Create ride error:', error);
@@ -2742,6 +2767,10 @@ app.post('/api/ride', authenticateToken, async (req, res) => {
   try {
     const { name, status, location } = req.body;
     await db.execute('INSERT INTO rides (name, status, location) VALUES ($1, $2, $3)', [name, status || 'operational', location || '']);
+    
+    // Emit socket event for real-time update
+    io.emit('rides-updated', { action: 'create' });
+    
     res.json({ message: 'Ride created successfully' });
   } catch (error) {
     console.error('Create ride (alias) error:', error);
@@ -2754,6 +2783,10 @@ app.put('/api/rides/:id', authenticateToken, async (req, res) => {
   try {
     const { name, status, location } = req.body;
     await db.execute('UPDATE rides SET name = $1, status = $2, location = $3 WHERE id = $4', [name, status || 'operational', location || '', req.params.id]);
+    
+    // Emit socket event for real-time update
+    io.emit('rides-updated', { action: 'update', id: req.params.id });
+    
     res.json({ message: 'Ride updated successfully' });
   } catch (error) {
     console.error('Update ride error:', error);
@@ -2772,6 +2805,9 @@ app.delete('/api/rides/:id', authenticateToken, async (req, res) => {
     if (rideName) {
       await db.execute('DELETE FROM spare_parts WHERE category = ?', [rideName]);
     }
+
+    // Emit socket event for real-time update
+    io.emit('rides-updated', { action: 'delete', id: req.params.id });
 
     res.json({ message: 'Ride deleted successfully' });
   } catch (error) {
@@ -3180,8 +3216,18 @@ app.get('/api', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`✓ Server running on port ${PORT}`);
   console.log(`✓ API available at http://localhost:${PORT}/api`);
+  console.log(`✓ WebSocket server ready`);
+});
+
+// Socket.io connection handling
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
 });
 
