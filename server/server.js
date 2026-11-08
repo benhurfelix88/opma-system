@@ -311,7 +311,7 @@ async function ensureRides() {
     // No default rides seeding - all rides must be added through the UI
     // This ensures rides are only added by IT Admin/IT Encoder through the system
   } catch (e) {
-    console.error('Rides table ensure failed:', e.message);
+    // Table likely already exists, ignore error
   }
 }
 
@@ -527,7 +527,7 @@ async function ensureSessions() {
         console.log('✓ last_activity column added to sessions table');
       }
     } catch (e) {
-      console.log('Note: Could not add last_activity column:', e.message);
+      // Column likely already exists, ignore error
     }
 
     console.log('✓ Sessions table ensured');
@@ -549,7 +549,7 @@ async function ensureProfilePictureColumn() {
       console.log('✓ profile_picture column already exists');
     }
   } catch (e) {
-    console.error('Profile picture column ensure failed:', e.message);
+    // Column likely already exists, ignore error
   }
 }
 
@@ -566,7 +566,7 @@ async function ensureIncidentReviewStatus() {
     await db.execute(`UPDATE incident_reports SET review_status = 'Approved' WHERE review_status = 'Validated'`);
     await db.execute(`UPDATE incident_reports SET review_status = 'Disapproved' WHERE review_status = 'Reviewed'`);
   } catch (e) {
-    console.error('Incident review_status column ensure failed:', e.message);
+    // Column likely already exists, ignore error
   }
 }
 
@@ -587,7 +587,6 @@ async function ensureSparePartsColumns() {
     }
   } catch (e) {
     // Table might not exist yet, will be created by ensureSpareParts
-    console.log('Spare parts columns check skipped (table may not exist yet)');
   }
 }
 
@@ -1941,7 +1940,6 @@ app.delete('/api/maintenance/:id', authenticateToken, async (req, res) => {
 app.get('/api/incidents', authenticateToken, async (req, res) => {
   try {
     const [incidents] = await db.execute('SELECT * FROM incident_reports ORDER BY created_at DESC');
-    console.log('Total incidents:', incidents.length);
 
     // Parse JSON fields and construct full image URLs
     const parsedIncidents = incidents.map(incident => {
@@ -1955,14 +1953,10 @@ app.get('/api/incidents', authenticateToken, async (req, res) => {
             photos = JSON.parse(incident.photos);
           }
 
-          console.log('Incident', incident.id, 'photos:', JSON.stringify(photos, null, 2));
-
           // Convert file paths to full URLs if they're relative paths
           photos = photos.map(photo => {
             const isFullUrl = photo.path && photo.path.startsWith('http');
             const finalPath = isFullUrl ? photo.path : `${req.protocol}://${req.get('host')}${photo.path}`;
-
-            console.log('Photo URL:', photo.originalname, '->', finalPath);
 
             return {
               ...photo,
