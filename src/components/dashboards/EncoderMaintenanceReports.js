@@ -38,6 +38,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import InfoIcon from '@mui/icons-material/Info';
 import { maintenanceAPI, ridesAPI } from '../../services/api';
+import { getSocket } from '../../utils/socket';
 
 const EncoderMaintenanceReports = () => {
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
@@ -102,13 +103,13 @@ const EncoderMaintenanceReports = () => {
     const load = async () => {
       try {
         const rows = await maintenanceAPI.getAll();
-        
+
         if (!Array.isArray(rows)) {
           console.error('Expected array from maintenance API, got:', typeof rows, rows);
           setMaintenanceRecords([]);
           return;
         }
-        
+
         const mapped = (rows || []).map(r => ({
           ...r,
           id: r.id,
@@ -131,8 +132,27 @@ const EncoderMaintenanceReports = () => {
       }
     };
     load();
-    const syncInterval = setInterval(loadRidesFromManager, 300000);
-    return () => clearInterval(syncInterval);
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for maintenance updates
+    socket.on('maintenance-updated', (data) => {
+      console.log('Maintenance updated via WebSocket:', data);
+      load();
+    });
+
+    // Listen for rides updates
+    socket.on('rides-updated', (data) => {
+      console.log('Rides updated via WebSocket:', data);
+      loadRidesFromManager();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('maintenance-updated');
+      socket.off('rides-updated');
+    };
   }, []);
 
   const handleOpenDialog = (record = null) => {

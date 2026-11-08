@@ -35,6 +35,7 @@ import {
 
 import DashboardLayout from '../layout/DashboardLayout';
 import { rideRepairsAPI, ridesAPI } from '../../services/api';
+import { getSocket } from '../../utils/socket';
 
 const EncoderRideRepairs = () => {
   const [repairs, setRepairs] = useState([]);
@@ -61,7 +62,7 @@ const EncoderRideRepairs = () => {
         // Load rides from API
         const ridesList = await ridesAPI.getAll();
         setRides(ridesList.map(r => r.name));
-        
+
         // Load repairs from API
         const repairsList = await rideRepairsAPI.getAll();
         // Map database fields to component fields
@@ -83,6 +84,27 @@ const EncoderRideRepairs = () => {
       }
     };
     loadData();
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for ride repairs updates
+    socket.on('ride-repairs-updated', (data) => {
+      console.log('Ride repairs updated via WebSocket:', data);
+      loadData();
+    });
+
+    // Listen for rides updates
+    socket.on('rides-updated', (data) => {
+      console.log('Rides updated via WebSocket:', data);
+      loadData();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('ride-repairs-updated');
+      socket.off('rides-updated');
+    };
   }, []);
 
   const handleOpenDialog = (repair = null) => {

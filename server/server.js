@@ -2580,6 +2580,9 @@ app.post('/api/ride-repairs', authenticateToken, async (req, res) => {
       [ride, date, issue, parts_replaced || null, cost || 0, technician, status || 'In Progress', notes || null, userId]
     );
 
+    // Emit ride-repairs-updated event
+    io.emit('ride-repairs-updated', { action: 'create', id: result.insertId });
+
     res.json({ id: result.insertId, message: 'Ride repair created successfully' });
   } catch (error) {
     console.error('Create ride repair error:', error);
@@ -2597,6 +2600,9 @@ app.put('/api/ride-repairs/:id', authenticateToken, async (req, res) => {
       [ride, date, issue, parts_replaced || null, cost || 0, technician, status, notes || null, req.params.id]
     );
 
+    // Emit ride-repairs-updated event
+    io.emit('ride-repairs-updated', { action: 'update', id: req.params.id });
+
     res.json({ message: 'Ride repair updated successfully' });
   } catch (error) {
     console.error('Update ride repair error:', error);
@@ -2608,6 +2614,10 @@ app.put('/api/ride-repairs/:id', authenticateToken, async (req, res) => {
 app.delete('/api/ride-repairs/:id', authenticateToken, async (req, res) => {
   try {
     await db.execute('DELETE FROM ride_repairs WHERE id = ?', [req.params.id]);
+
+    // Emit ride-repairs-updated event
+    io.emit('ride-repairs-updated', { action: 'delete', id: req.params.id });
+
     res.json({ message: 'Ride repair deleted successfully' });
   } catch (error) {
     console.error('Delete ride repair error:', error);

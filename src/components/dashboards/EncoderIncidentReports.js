@@ -45,6 +45,7 @@ import DashboardLayout from '../layout/DashboardLayout';
 import { incidentsAPI } from '../../services/api';
 import { getReviewStatusChipSx, normalizeReviewStatus } from '../../utils/incidentReviewStatus';
 import { Snackbar } from '@mui/material';
+import { getSocket } from '../../utils/socket';
 
 const PersonnelIncidentReport = () => {
   const [incidents, setIncidents] = useState([]);
@@ -230,6 +231,20 @@ const PersonnelIncidentReport = () => {
 
   useEffect(() => {
     loadIncidents();
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for incident updates
+    socket.on('incidents-updated', (data) => {
+      console.log('Incidents updated via WebSocket:', data);
+      loadIncidents();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('incidents-updated');
+    };
   }, []);
 
   const loadIncidents = async () => {
