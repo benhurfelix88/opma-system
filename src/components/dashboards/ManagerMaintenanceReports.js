@@ -349,7 +349,20 @@ const ManagerMaintenanceReports = () => {
                         )}
                       </Box>
                     </TableCell>
-                    <TableCell align="center">{record.technician}</TableCell>
+                    <TableCell align="center">
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          maxWidth: 100,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                        title={record.technician || 'N/A'}
+                      >
+                        {truncateText(record.technician, 3)}
+                      </Typography>
+                    </TableCell>
                     <TableCell align="center">
                       {record.nextMaintenance
                         ? new Date(record.nextMaintenance).toLocaleDateString()

@@ -40,7 +40,8 @@ import {
   Delete as DeleteIcon,
   Add as AddIcon,
   Info as InfoIcon,
-  Circle as CircleIcon
+  Circle as CircleIcon,
+  ArrowRight as ArrowRightIcon,
 } from '@mui/icons-material';
 
 const EncoderMaintenanceReports = () => {
@@ -93,6 +94,8 @@ const EncoderMaintenanceReports = () => {
   const [rideSelectionModalOpen, setRideSelectionModalOpen] = useState(false);
   const [rideSelectModalOpen, setRideSelectModalOpen] = useState(false);
   const [locationSelectModalOpen, setLocationSelectModalOpen] = useState(false);
+  const [descriptionDialogOpen, setDescriptionDialogOpen] = useState(false);
+  const [selectedDescription, setSelectedDescription] = useState('');
 
   const loadRidesFromManager = async () => {
     try {
@@ -509,21 +512,53 @@ const EncoderMaintenanceReports = () => {
                       : 'Not scheduled'}
                   </TableCell>
                   <TableCell align="center">
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          maxWidth: 180,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          textAlign: 'center',
+                        }}
+                        title={record.description || 'No description'}
+                      >
+                        {truncateText(record.description)}
+                      </Typography>
+                      {record.description && record.description.split(' ').length > 5 && (
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setSelectedDescription(record.description || 'No description available');
+                            setDescriptionDialogOpen(true);
+                          }}
+                          sx={{
+                            p: 0.5,
+                            '&:hover': {
+                              backgroundColor: 'action.hover'
+                            }
+                          }}
+                        >
+                          <ArrowRightIcon fontSize="small" color="primary" />
+                        </IconButton>
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell align="center">
                     <Typography
                       variant="body2"
                       sx={{
-                        width: '100%',
+                        maxWidth: 100,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        textAlign: 'center'
                       }}
-                      title={record.description || 'No description'}
+                      title={record.technician || 'N/A'}
                     >
-                      {truncateText(record.description)}
+                      {truncateText(record.technician, 3)}
                     </Typography>
                   </TableCell>
-                  <TableCell align="center">{record.technician}</TableCell>
                   <TableCell align="center">{record.location || '-'}</TableCell>
                   <TableCell align="center">
                       <Chip
@@ -852,6 +887,21 @@ const EncoderMaintenanceReports = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenViewDialog(false)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Description Dialog */}
+        <Dialog open={descriptionDialogOpen} onClose={() => setDescriptionDialogOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle>Full Description</DialogTitle>
+          <DialogContent>
+            <Box sx={{ p: 2 }}>
+              <Typography variant="body1" sx={{ lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                {selectedDescription}
+              </Typography>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDescriptionDialogOpen(false)}>Close</Button>
           </DialogActions>
         </Dialog>
 

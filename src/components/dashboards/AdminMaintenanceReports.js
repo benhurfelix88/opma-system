@@ -35,6 +35,7 @@ import {
   Schedule as ScheduleIcon,
   PictureAsPdf as ReportIcon,
   Circle as CircleIcon,
+  ArrowRight as ArrowRightIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -544,21 +545,53 @@ const AdminMaintenanceReports = () => {
                           {report.nextMaintenance ? formatDate(report.nextMaintenance) : 'Not scheduled'}
                         </TableCell>
                         <TableCell align="center">
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                maxWidth: 180,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                textAlign: 'center',
+                              }}
+                              title={report.description || 'No description'}
+                            >
+                              {truncateText(report.description)}
+                            </Typography>
+                            {report.description && report.description.split(' ').length > 5 && (
+                              <IconButton
+                                size="small"
+                                onClick={() => {
+                                  setSelectedDescription(report.description || 'No description available');
+                                  setDescriptionDialogOpen(true);
+                                }}
+                                sx={{
+                                  p: 0.5,
+                                  '&:hover': {
+                                    backgroundColor: 'action.hover'
+                                  }
+                                }}
+                              >
+                                <ArrowRightIcon fontSize="small" color="primary" />
+                              </IconButton>
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell align="center">
                           <Typography
                             variant="body2"
                             sx={{
-                              width: '100%',
+                              maxWidth: 100,
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap',
-                              textAlign: 'center',
                             }}
-                            title={report.description || 'No description'}
+                            title={report.technician || 'N/A'}
                           >
-                            {truncateText(report.description)}
+                            {truncateText(report.technician, 3)}
                           </Typography>
                         </TableCell>
-                        <TableCell align="center">{report.technician || 'N/A'}</TableCell>
                         <TableCell align="center">
                           <Chip
                             icon={getStatusIcon(report.status)}
