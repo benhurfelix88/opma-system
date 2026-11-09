@@ -459,7 +459,7 @@ const AdminCustomersCount = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {filteredEntries.map((entry) => (
+                    {filteredEntries.slice(0, 9).map((entry) => (
                       <TableRow
                         key={entry.id}
                         hover
