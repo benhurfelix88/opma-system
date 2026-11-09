@@ -206,6 +206,11 @@ const ReportGenerator = ({
         const row = columns.map(col => {
           let value = item[col.field] || '';
 
+          // Use render function if available
+          if (col.render && typeof col.render === 'function') {
+            value = col.render(item);
+          }
+
           // Format dates
           if (col.field === 'entry_timestamp' || col.field === 'entry_date' || col.field === 'date') {
             if (value && typeof value === 'string' && value.includes('T')) {
@@ -337,6 +342,11 @@ const ReportGenerator = ({
         const dataRow = new DocxRow({
           children: columns.map(col => {
             let value = item[col.field] || '';
+
+            // Use render function if available
+            if (col.render && typeof col.render === 'function') {
+              value = col.render(item);
+            }
 
             // Format dates
             if (col.field === 'entry_timestamp' || col.field === 'entry_date' || col.field === 'date') {
