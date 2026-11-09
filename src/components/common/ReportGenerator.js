@@ -359,11 +359,16 @@ const ReportGenerator = ({
             // Format times
             if (col.field === 'entry_time') {
               if (value && typeof value === 'string') {
-                const [hours, minutes] = value.split(':');
-                const hour = parseInt(hours, 10);
-                const ampm = hour >= 12 ? 'PM' : 'AM';
-                const hour12 = hour % 12 || 12;
-                value = `${hour12}:${minutes} ${ampm}`;
+                // Skip formatting if already formatted (contains AM/PM)
+                if (value.includes('AM') || value.includes('PM')) {
+                  // value is already formatted, keep it as is
+                } else {
+                  const [hours, minutes] = value.split(':');
+                  const hour = parseInt(hours, 10);
+                  const ampm = hour >= 12 ? 'PM' : 'AM';
+                  const hour12 = hour % 12 || 12;
+                  value = `${hour12}:${minutes} ${ampm}`;
+                }
               }
             }
 
