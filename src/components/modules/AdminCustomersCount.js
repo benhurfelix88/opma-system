@@ -361,7 +361,7 @@ const AdminCustomersCount = () => {
               </Box>
             ) : (
               <Box sx={{ maxHeight: '70vh', overflow: 'auto' }}>
-                <TableContainer component={Paper} sx={{ maxHeight: '70vh' }}>
+                <TableContainer component={Paper} sx={{ maxHeight: '500px' }}>
                   <Table stickyHeader>
                   <TableHead>
                     <TableRow>
@@ -459,7 +459,7 @@ const AdminCustomersCount = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {filteredEntries.slice(0, 9).map((entry) => (
+                    {filteredEntries.map((entry) => (
                       <TableRow
                         key={entry.id}
                         hover
