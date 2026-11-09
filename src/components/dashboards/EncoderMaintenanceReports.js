@@ -33,14 +33,36 @@ import { DatePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import DashboardLayout from '../layout/DashboardLayout';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import InfoIcon from '@mui/icons-material/Info';
 import { maintenanceAPI, ridesAPI } from '../../services/api';
 import { getSocket } from '../../utils/socket';
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Add as AddIcon,
+  Info as InfoIcon,
+  Circle as CircleIcon
+} from '@mui/icons-material';
 
 const EncoderMaintenanceReports = () => {
+  // Helper function to check if record is newly added/edited (within 1 minute)
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000; // Convert to minutes
+    return diffMinutes <= 1; // Within 1 minute
+  };
+
+  // Force re-render every second to update highlights
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 1000); // Check every second
+    return () => clearInterval(interval);
+  }, []);
+
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
@@ -444,6 +466,7 @@ const EncoderMaintenanceReports = () => {
           <Table>
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f3f0f7' }}>
+                <TableCell align="center" sx={{ width: '30px', fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}></TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date Recorded</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Maintenance Schedule</TableCell>
@@ -459,7 +482,7 @@ const EncoderMaintenanceReports = () => {
             <TableBody>
               {filteredAndSortedRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} align="center">
+                  <TableCell colSpan={11} align="center">
                     <Typography variant="body1" color="text.secondary">
                       No maintenance records found
                     </Typography>
@@ -467,7 +490,17 @@ const EncoderMaintenanceReports = () => {
                 </TableRow>
               ) : (
                 filteredAndSortedRecords.map((record) => (
-                <TableRow key={record.id}>
+                <TableRow
+                  key={record.id}
+                  sx={{
+                    backgroundColor: isRecent(record.updated_at) || isRecent(record.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                  }}
+                >
+                  <TableCell align="center" sx={{ width: '30px' }}>
+                    {(isRecent(record.updated_at) || isRecent(record.created_at)) && (
+                      <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                    )}
+                  </TableCell>
                   <TableCell align="center">{new Date(record.date).toLocaleDateString()}</TableCell>
                   <TableCell align="center">{record.ride}</TableCell>
                   <TableCell align="center">

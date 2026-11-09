@@ -31,6 +31,11 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
+import DashboardLayout from '../layout/DashboardLayout';
+import { incidentsAPI } from '../../services/api';
+import { getReviewStatusChipSx, normalizeReviewStatus } from '../../utils/incidentReviewStatus';
+import { Snackbar } from '@mui/material';
+import { getSocket } from '../../utils/socket';
 import {
   Add as AddIcon,
   Edit as EditIcon,
@@ -40,14 +45,29 @@ import {
   Info as InfoIcon,
   Add as AddIconMaterial,
   RemoveCircleOutline as RemoveCircleOutlineIcon,
+  Circle as CircleIcon,
 } from '@mui/icons-material';
-import DashboardLayout from '../layout/DashboardLayout';
-import { incidentsAPI } from '../../services/api';
-import { getReviewStatusChipSx, normalizeReviewStatus } from '../../utils/incidentReviewStatus';
-import { Snackbar } from '@mui/material';
-import { getSocket } from '../../utils/socket';
 
 const PersonnelIncidentReport = () => {
+  // Helper function to check if record is newly added/edited (within 1 minute)
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000; // Convert to minutes
+    return diffMinutes <= 1; // Within 1 minute
+  };
+
+  // Force re-render every second to update highlights
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 1000); // Check every second
+    return () => clearInterval(interval);
+  }, []);
+
   const [incidents, setIncidents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIncident, setSelectedIncident] = useState(null);
@@ -728,6 +748,7 @@ const PersonnelIncidentReport = () => {
           <Table>
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f3f0f7' }}>
+                <TableCell align="center" sx={{ width: '30px', fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}></TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date & Time</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Location</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Type</TableCell>
@@ -769,7 +790,17 @@ const PersonnelIncidentReport = () => {
                 }
                 
                 return (
-                <TableRow key={incident.id}>
+                <TableRow
+                  key={incident.id}
+                  sx={{
+                    backgroundColor: isRecent(incident.updated_at) || isRecent(incident.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                  }}
+                >
+                  <TableCell align="center" sx={{ width: '30px' }}>
+                    {(isRecent(incident.updated_at) || isRecent(incident.created_at)) && (
+                      <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                    )}
+                  </TableCell>
                   <TableCell align="center">{formatDateTimeDisplay(dateTimeStr)}</TableCell>
                   <TableCell align="center">{incident.location}</TableCell>
                   <TableCell align="center">{incident.type}</TableCell>

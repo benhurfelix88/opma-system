@@ -27,17 +27,37 @@ import {
   InputLabel,
   Select,
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-} from '@mui/icons-material';
 
 import DashboardLayout from '../layout/DashboardLayout';
 import { rideRepairsAPI, ridesAPI } from '../../services/api';
 import { getSocket } from '../../utils/socket';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Circle as CircleIcon,
+} from '@mui/icons-material';
 
 const EncoderRideRepairs = () => {
+  // Helper function to check if record is newly added/edited (within 1 minute)
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000; // Convert to minutes
+    return diffMinutes <= 1; // Within 1 minute
+  };
+
+  // Force re-render every second to update highlights
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 1000); // Check every second
+    return () => clearInterval(interval);
+  }, []);
+
   const [repairs, setRepairs] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [rides, setRides] = useState([]);
@@ -312,6 +332,7 @@ const EncoderRideRepairs = () => {
               <Table>
                 <TableHead>
                   <TableRow>
+                    <TableCell sx={{ width: '30px' }}></TableCell>
                     <TableCell>Ride</TableCell>
                     <TableCell>Date</TableCell>
                     <TableCell>Issue</TableCell>
@@ -326,7 +347,7 @@ const EncoderRideRepairs = () => {
                 <TableBody>
                   {repairs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} align="center">
+                      <TableCell colSpan={10} align="center">
                         <Typography variant="body1" color="text.secondary">
                           No repair records found
                         </Typography>
@@ -334,7 +355,17 @@ const EncoderRideRepairs = () => {
                     </TableRow>
                   ) : (
                     repairs.map((repair) => (
-                      <TableRow key={repair.id}>
+                      <TableRow
+                        key={repair.id}
+                        sx={{
+                          backgroundColor: isRecent(repair.updated_at) || isRecent(repair.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                        }}
+                      >
+                        <TableCell sx={{ width: '30px' }}>
+                          {(isRecent(repair.updated_at) || isRecent(repair.created_at)) && (
+                            <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                          )}
+                        </TableCell>
                         <TableCell>{repair.ride}</TableCell>
                         <TableCell>{repair.date ? new Date(repair.date).toLocaleDateString() : 'N/A'}</TableCell>
                         <TableCell>{repair.issue}</TableCell>

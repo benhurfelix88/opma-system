@@ -32,16 +32,19 @@ import {
   Tab,
   Snackbar,
 } from '@mui/material';
-import DashboardLayout from '../layout/DashboardLayout';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import InfoIcon from '@mui/icons-material/Info';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { keyframes } from '@mui/system';
+import DashboardLayout from '../layout/DashboardLayout';
 import { sparePartsAPI, ridesAPI, rideRepairsAPI, partDeploymentsAPI, partRemovalsAPI, rideStatusAPI } from '../../services/api';
 import { getSocket } from '../../utils/socket';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Info as InfoIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  Circle as CircleIcon
+} from '@mui/icons-material';
 
 // Define animations
 const fadeIn = keyframes`
@@ -85,6 +88,25 @@ const parseApprovalStatus = (part) => {
 };
 
 const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
+  // Helper function to check if record is newly added/edited (within 1 minute)
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000; // Convert to minutes
+    return diffMinutes <= 1; // Within 1 minute
+  };
+
+  // Force re-render every second to update highlights
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 1000); // Check every second
+    return () => clearInterval(interval);
+  }, []);
+
   const [selectedTab, setSelectedTab] = useState(0);
   const [selectedRideId, setSelectedRideId] = useState('');
   const [rides, setRides] = useState([]);
@@ -1043,6 +1065,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow sx={{ backgroundColor: '#f3f0f7' }}>
+                      <TableCell align="center" sx={{ width: '30px', fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}></TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Part Name</TableCell>
                       {!selectedRideId && (
                         <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
@@ -1066,7 +1089,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   <TableBody>
                     {filteredParts.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={selectedRideId ? 12 : 14} align="center">
+                        <TableCell colSpan={selectedRideId ? 13 : 15} align="center">
                           <Typography variant="body1" color="text.secondary">
                             No parts found
                           </Typography>
@@ -1074,7 +1097,17 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       </TableRow>
                     ) : (
                       filteredParts.map((part) => (
-                        <TableRow key={part.id}>
+                        <TableRow
+                          key={part.id}
+                          sx={{
+                            backgroundColor: isRecent(part.updated_at) || isRecent(part.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                          }}
+                        >
+                          <TableCell align="center" sx={{ width: '30px' }}>
+                            {(isRecent(part.updated_at) || isRecent(part.created_at)) && (
+                              <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                            )}
+                          </TableCell>
                           <TableCell align="center">{part.name}</TableCell>
                           {!selectedRideId && (
                             <TableCell align="center">{part.ride}</TableCell>
@@ -1235,6 +1268,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                 <Table>
                   <TableHead>
                     <TableRow sx={{ backgroundColor: '#f3f0f7' }}>
+                      <TableCell align="center" sx={{ width: '30px', fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}></TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Rides</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Issue</TableCell>
@@ -1249,7 +1283,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   <TableBody>
                     {getSortedRepairs().length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={10} align="center">
+                        <TableCell colSpan={11} align="center">
                           <Typography variant="body1" color="text.secondary">
                             No repair records found
                           </Typography>
@@ -1259,7 +1293,17 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       getSortedRepairs().map((repair) => {
                         const stats = getRepairStats(repair.ride);
                         return (
-                          <TableRow key={repair.id}>
+                          <TableRow
+                            key={repair.id}
+                            sx={{
+                              backgroundColor: isRecent(repair.updated_at) || isRecent(repair.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                            }}
+                          >
+                            <TableCell align="center" sx={{ width: '30px' }}>
+                              {(isRecent(repair.updated_at) || isRecent(repair.created_at)) && (
+                                <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                              )}
+                            </TableCell>
                             <TableCell align="center">{new Date(repair.date).toLocaleDateString()}</TableCell>
                             <TableCell align="center">{repair.ride}</TableCell>
                             <TableCell align="center">{repair.issue}</TableCell>
@@ -1361,6 +1405,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     <>
                       <TableHead>
                         <TableRow sx={{ backgroundColor: '#f3f0f7' }}>
+                          <TableCell align="center" sx={{ width: '30px', fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}></TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date of Deployment</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Place of Installation</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Name of Ride</TableCell>
@@ -1372,7 +1417,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableBody>
                         {deployments.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={6} align="center">
+                            <TableCell colSpan={7} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No deployment records found
                               </Typography>
@@ -1380,7 +1425,17 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           </TableRow>
                         ) : (
                           deployments.map((deployment) => (
-                            <TableRow key={deployment.id}>
+                            <TableRow
+                              key={deployment.id}
+                              sx={{
+                                backgroundColor: isRecent(deployment.updated_at) || isRecent(deployment.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                              }}
+                            >
+                              <TableCell align="center" sx={{ width: '30px' }}>
+                                {(isRecent(deployment.updated_at) || isRecent(deployment.created_at)) && (
+                                  <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                )}
+                              </TableCell>
                               <TableCell align="center">{new Date(deployment.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{deployment.place}</TableCell>
                               <TableCell align="center">{deployment.ride}</TableCell>
@@ -1418,6 +1473,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     <>
                       <TableHead>
                         <TableRow sx={{ backgroundColor: '#f3f0f7' }}>
+                          <TableCell align="center" sx={{ width: '30px', fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}></TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date of Removal</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Place</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
@@ -1429,7 +1485,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableBody>
                         {removals.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={6} align="center">
+                            <TableCell colSpan={7} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No removal records found
                               </Typography>
@@ -1437,7 +1493,17 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           </TableRow>
                         ) : (
                           removals.map((removal) => (
-                            <TableRow key={removal.id}>
+                            <TableRow
+                              key={removal.id}
+                              sx={{
+                                backgroundColor: isRecent(removal.updated_at) || isRecent(removal.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                              }}
+                            >
+                              <TableCell align="center" sx={{ width: '30px' }}>
+                                {(isRecent(removal.updated_at) || isRecent(removal.created_at)) && (
+                                  <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                )}
+                              </TableCell>
                               <TableCell align="center">{new Date(removal.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{removal.place}</TableCell>
                               <TableCell align="center">{removal.ride}</TableCell>
@@ -1510,6 +1576,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                 <Table>
                   <TableHead>
                     <TableRow sx={{ backgroundColor: '#f3f0f7' }}>
+                      <TableCell align="center" sx={{ width: '30px', fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}></TableCell>
                       {summaryMode === 'parts' ? (
                         <>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Part Name</TableCell>
@@ -1543,7 +1610,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     {summaryMode === 'deployment' && (
                       deployments.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={3} align="center">
+                          <TableCell colSpan={4} align="center">
                             <Typography variant="body1" color="text.secondary">
                               No deployment records found
                             </Typography>
@@ -1552,7 +1619,17 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       ) : (
                         deployments.map((item) => {
                           return (
-                            <TableRow key={item.id}>
+                            <TableRow
+                              key={item.id}
+                              sx={{
+                                backgroundColor: isRecent(item.updated_at) || isRecent(item.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                              }}
+                            >
+                              <TableCell align="center" sx={{ width: '30px' }}>
+                                {(isRecent(item.updated_at) || isRecent(item.created_at)) && (
+                                  <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                )}
+                              </TableCell>
                               <TableCell align="center">{item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</TableCell>
                               <TableCell align="center">{item.ride || 'N/A'}</TableCell>
                               <TableCell align="center">{item.status || 'N/A'}</TableCell>
@@ -1564,7 +1641,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     {summaryMode === 'removal' && (
                       removals.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={3} align="center">
+                          <TableCell colSpan={4} align="center">
                             <Typography variant="body1" color="text.secondary">
                               No removal records found
                             </Typography>
@@ -1573,7 +1650,17 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       ) : (
                         removals.map((item) => {
                           return (
-                            <TableRow key={item.id}>
+                            <TableRow
+                              key={item.id}
+                              sx={{
+                                backgroundColor: isRecent(item.updated_at) || isRecent(item.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                              }}
+                            >
+                              <TableCell align="center" sx={{ width: '30px' }}>
+                                {(isRecent(item.updated_at) || isRecent(item.created_at)) && (
+                                  <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                )}
+                              </TableCell>
                               <TableCell align="center">{item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</TableCell>
                               <TableCell align="center">{item.ride || 'N/A'}</TableCell>
                               <TableCell align="center">{item.status || 'N/A'}</TableCell>
@@ -1585,7 +1672,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     {summaryMode === 'repairs' && (
                       repairs.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} align="center">
+                          <TableCell colSpan={6} align="center">
                             <Typography variant="body1" color="text.secondary">
                               No repair records found
                             </Typography>
@@ -1594,7 +1681,17 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       ) : (
                         repairs.map((item) => {
                           return (
-                            <TableRow key={item.id}>
+                            <TableRow
+                              key={item.id}
+                              sx={{
+                                backgroundColor: isRecent(item.updated_at) || isRecent(item.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                              }}
+                            >
+                              <TableCell align="center" sx={{ width: '30px' }}>
+                                {(isRecent(item.updated_at) || isRecent(item.created_at)) && (
+                                  <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                )}
+                              </TableCell>
                               <TableCell align="center">{item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</TableCell>
                               <TableCell align="center">{item.ride || 'N/A'}</TableCell>
                               <TableCell align="center">{item.issue || 'N/A'}</TableCell>
@@ -1608,7 +1705,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     {summaryMode === 'parts' && (
                       spareParts.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={9} align="center">
+                          <TableCell colSpan={10} align="center">
                             <Typography variant="body1" color="text.secondary">
                               No parts inventory records found
                             </Typography>
@@ -1616,7 +1713,17 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                         </TableRow>
                       ) : (
                         spareParts.map((part) => (
-                          <TableRow key={part.id}>
+                          <TableRow
+                            key={part.id}
+                            sx={{
+                              backgroundColor: isRecent(part.updated_at) || isRecent(part.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                            }}
+                          >
+                            <TableCell align="center" sx={{ width: '30px' }}>
+                              {(isRecent(part.updated_at) || isRecent(part.created_at)) && (
+                                <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                              )}
+                            </TableCell>
                             <TableCell align="center">{part.name || 'N/A'}</TableCell>
                             <TableCell align="center">{part.ride || 'N/A'}</TableCell>
                             <TableCell align="center">{part.quantity || 'N/A'}</TableCell>
