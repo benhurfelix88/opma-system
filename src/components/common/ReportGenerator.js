@@ -6,9 +6,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
   MenuItem,
   Typography,
   Paper,
@@ -28,8 +25,6 @@ import {
   Print as PrintIcon,
   Download as DownloadIcon,
   Close as CloseIcon,
-  Visibility as ViewFullDataIcon,
-  ArrowRight as ArrowRightIcon,
   NavigateBefore as NavigateBeforeIcon,
   NavigateNext as NavigateNextIcon,
   TableChart as ExcelIcon,
@@ -74,9 +69,6 @@ const ReportGenerator = ({
   const [customStartDate, setCustomStartDate] = useState(null);
   const [customEndDate, setCustomEndDate] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [fullDataDialogOpen, setFullDataDialogOpen] = useState(false);
-  const [descriptionDialogOpen, setDescriptionDialogOpen] = useState(false);
-  const [selectedDescription, setSelectedDescription] = useState('');
   const [downloadMenuAnchor, setDownloadMenuAnchor] = useState(null);
   const reportRef = useRef(null);
 
@@ -225,11 +217,16 @@ const ReportGenerator = ({
           // Format times
           if (col.field === 'entry_time') {
             if (value && typeof value === 'string') {
-              const [hours, minutes] = value.split(':');
-              const hour = parseInt(hours, 10);
-              const ampm = hour >= 12 ? 'PM' : 'AM';
-              const hour12 = hour % 12 || 12;
-              value = `${hour12}:${minutes} ${ampm}`;
+              // Skip formatting if already formatted (contains AM/PM)
+              if (value.includes('AM') || value.includes('PM')) {
+                // value is already formatted, keep it as is
+              } else {
+                const [hours, minutes] = value.split(':');
+                const hour = parseInt(hours, 10);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const hour12 = hour % 12 || 12;
+                value = `${hour12}:${minutes} ${ampm}`;
+              }
             }
           }
 
@@ -570,11 +567,16 @@ const ReportGenerator = ({
           // Format times
           if (col.field === 'entry_time') {
             if (value && typeof value === 'string') {
-              const [hours, minutes] = value.split(':');
-              const hour = parseInt(hours, 10);
-              const ampm = hour >= 12 ? 'PM' : 'AM';
-              const hour12 = hour % 12 || 12;
-              value = `${hour12}:${minutes} ${ampm}`;
+              // Skip formatting if already formatted (contains AM/PM)
+              if (value.includes('AM') || value.includes('PM')) {
+                // value is already formatted, keep it as is
+              } else {
+                const [hours, minutes] = value.split(':');
+                const hour = parseInt(hours, 10);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const hour12 = hour % 12 || 12;
+                value = `${hour12}:${minutes} ${ampm}`;
+              }
             }
           }
 
@@ -945,22 +947,6 @@ const ReportGenerator = ({
             </Typography>
             
             <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} sm={6} md={3}>
-                <FormControl fullWidth size="small" sx={{ mt: 1 }}>
-                  <InputLabel>Time Range</InputLabel>
-                  <Select
-                    value={dateRange}
-                    onChange={(e) => handleDateRangeChange(e.target.value)}
-                  >
-                    <MenuItem value="overall">Overall</MenuItem>
-                    <MenuItem value="daily">Daily</MenuItem>
-                    <MenuItem value="weekly">Weekly</MenuItem>
-                    <MenuItem value="monthly">Monthly</MenuItem>
-                    <MenuItem value="custom">Custom Range</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-
               {dateRange !== 'overall' && dateRange !== 'custom' && (
                 <Grid item xs={12} sm={6} md={4}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1072,15 +1058,6 @@ const ReportGenerator = ({
                         Export to Word
                       </MenuItem>
                     </Menu>
-                    <Tooltip title="View Full Data">
-                      <Button
-                        variant="outlined"
-                        startIcon={<ViewFullDataIcon />}
-                        onClick={() => setFullDataDialogOpen(true)}
-                      >
-                        View
-                      </Button>
-                    </Tooltip>
                     <Tooltip title="Print Report">
                       <Button
                         variant="contained"
@@ -1147,28 +1124,9 @@ const ReportGenerator = ({
                               {column.render ? 
                                 column.render(item) : 
                                 (column.field === 'description' || column.header?.toLowerCase().includes('description')) ?
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                      {truncateText(item[column.field] || 'N/A')}
-                                    </Typography>
-                                    {item[column.field] && item[column.field].split(' ').length > 5 && (
-                                      <IconButton 
-                                        size="small" 
-                                        onClick={() => {
-                                          setSelectedDescription(item[column.field] || 'No description available');
-                                          setDescriptionDialogOpen(true);
-                                        }}
-                                        sx={{ 
-                                          p: 0.5,
-                                          '&:hover': {
-                                            backgroundColor: 'action.hover'
-                                          }
-                                        }}
-                                      >
-                                        <ArrowRightIcon fontSize="small" color="primary" />
-                                      </IconButton>
-                                    )}
-                                  </Box>
+                                  <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {truncateText(item[column.field] || 'N/A')}
+                                  </Typography>
                                   :
                                   // Format date fields for table display
                                   (column.field === 'entryDate' || column.field === 'entry_date' || column.field === 'date' || column.field === 'date_reported') ?
@@ -1263,216 +1221,6 @@ const ReportGenerator = ({
         </DialogActions>
       </Dialog>
 
-      {/* Full Data Dialog */}
-      <Dialog 
-        open={fullDataDialogOpen} 
-        onClose={() => setFullDataDialogOpen(false)}
-        maxWidth="lg"
-        fullWidth
-      >
-        <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="h6">Full Data View - {title}</Typography>
-            <IconButton onClick={() => setFullDataDialogOpen(false)}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent sx={{ p: 0 }}>
-          <Box sx={{ p: 3, pb: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              Total Records: {filteredData.length}
-            </Typography>
-          </Box>
-
-          <TableContainer 
-            component={Paper} 
-            sx={{ 
-              maxHeight: '60vh',
-              '&::-webkit-scrollbar': {
-                width: '8px',
-              },
-              '&::-webkit-scrollbar-track': {
-                backgroundColor: '#f1f1f1',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: '#c1c1c1',
-                borderRadius: '4px',
-              },
-              '&::-webkit-scrollbar-thumb:hover': {
-                backgroundColor: '#a8a8a8',
-              }
-            }}
-          >
-            <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  {columns.map((column, index) => (
-                    <TableCell
-                      key={index}
-                      align="center"
-                      sx={{
-                        fontWeight: 'bold',
-                        bgcolor: 'grey.100',
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 1
-                      }}
-                    >
-                      {column.header}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredData.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} align="center" sx={{ py: 8 }}>
-                      <Typography color="text.secondary">
-                        No data available
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredData.map((item, index) => (
-                    <TableRow key={index} hover>
-                      {columns.map((column, colIndex) => (
-                        <TableCell key={colIndex} align="center">
-                          {column.render ? 
-                            column.render(item) : 
-                            (column.field === 'description' || column.header?.toLowerCase().includes('description')) ?
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
-                                <Typography variant="body2" sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {truncateText(item[column.field] || 'N/A', 10)}
-                                </Typography>
-                                {item[column.field] && item[column.field].split(' ').length > 10 && (
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => {
-                                      setSelectedDescription(item[column.field] || 'No description available');
-                                      setDescriptionDialogOpen(true);
-                                    }}
-                                    sx={{
-                                      p: 0.5,
-                                      '&:hover': {
-                                        backgroundColor: 'action.hover'
-                                      }
-                                    }}
-                                  >
-                                    <ArrowRightIcon fontSize="small" color="primary" />
-                                  </IconButton>
-                                )}
-                              </Box>
-                              :
-                              // Format date fields for table display
-                              (column.field === 'entryDate' || column.field === 'entry_date' || column.field === 'date' || column.field === 'date_reported') ?
-                                (() => {
-                                  let value = item[column.field] || '';
-                                  if (value && typeof value === 'string' && value.includes('T')) {
-                                    value = value.split('T')[0];
-                                  } else if (value instanceof Date) {
-                                    value = value.toISOString().split('T')[0];
-                                  }
-                                  return value || 'N/A';
-                                })() :
-                              // Format updated_at field to show date and time with AM/PM
-                              (column.field === 'updated_at') ?
-                                (() => {
-                                  let value = item[column.field] || '';
-                                  if (value && typeof value === 'string') {
-                                    const date = new Date(value);
-                                    if (!isNaN(date.getTime())) {
-                                      value = date.toLocaleString('en-US', {
-                                        year: 'numeric',
-                                        month: '2-digit',
-                                        day: '2-digit',
-                                        hour: 'numeric',
-                                        minute: '2-digit',
-                                        hour12: true
-                                      });
-                                    }
-                                  } else if (value instanceof Date) {
-                                    value = value.toLocaleString('en-US', {
-                                      year: 'numeric',
-                                      month: '2-digit',
-                                      day: '2-digit',
-                                      hour: 'numeric',
-                                      minute: '2-digit',
-                                      hour12: true
-                                    });
-                                  }
-                                  return value || 'N/A';
-                                })() :
-                              // Format approval_date field to show date and time with AM/PM
-                              (column.field === 'approval_date') ?
-                                (() => {
-                                  let value = item[column.field] || '';
-                                  if (value && typeof value === 'string') {
-                                    const date = new Date(value);
-                                    if (!isNaN(date.getTime())) {
-                                      value = date.toLocaleString('en-US', {
-                                        year: 'numeric',
-                                        month: '2-digit',
-                                        day: '2-digit',
-                                        hour: 'numeric',
-                                        minute: '2-digit',
-                                        hour12: true
-                                      });
-                                    }
-                                  } else if (value instanceof Date) {
-                                    value = value.toLocaleString('en-US', {
-                                      year: 'numeric',
-                                      month: '2-digit',
-                                      day: '2-digit',
-                                      hour: 'numeric',
-                                      minute: '2-digit',
-                                      hour12: true
-                                    });
-                                  }
-                                  return value || 'N/A';
-                                })() :
-                              item[column.field] || 'N/A'
-                          }
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setFullDataDialogOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Description Dialog */}
-      <Dialog 
-        open={descriptionDialogOpen} 
-        onClose={() => setDescriptionDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="h6">Full Description</Typography>
-            <IconButton onClick={() => setDescriptionDialogOpen(false)}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ p: 2 }}>
-            <Typography variant="body1" sx={{ lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-              {selectedDescription}
-            </Typography>
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setDescriptionDialogOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
     </LocalizationProvider>
   );
 };
