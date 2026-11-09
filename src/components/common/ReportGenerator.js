@@ -946,7 +946,7 @@ const ReportGenerator = ({
             
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} sm={6} md={3}>
-                <FormControl fullWidth size="small">
+                <FormControl fullWidth size="small" sx={{ mt: 1 }}>
                   <InputLabel>Time Range</InputLabel>
                   <Select
                     value={dateRange}
