@@ -52,6 +52,14 @@ const AdminMaintenanceReports = () => {
     return diffMinutes <= 1; // Within 1 minute
   };
 
+  // Helper function to check if approval status was recently updated
+  const isApprovalStatusRecent = (item) => {
+    // Check if approval_status is not the default 'Pending' or was recently changed
+    if (!item.approval_status || item.approval_status === 'Pending') return false;
+    // Use updated_at as proxy for when approval status was changed
+    return isRecent(item.updated_at);
+  };
+
   // Force re-render every second to update highlights
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -521,11 +529,11 @@ const AdminMaintenanceReports = () => {
                       <TableRow
                         key={report.id}
                         sx={{
-                          backgroundColor: isRecent(report.updated_at) || isRecent(report.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                          backgroundColor: isRecent(report.updated_at) || isRecent(report.created_at) || isApprovalStatusRecent(report) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
                         }}
                       >
                         <TableCell align="center" sx={{ width: '30px' }}>
-                          {(isRecent(report.updated_at) || isRecent(report.created_at)) && (
+                          {(isRecent(report.updated_at) || isRecent(report.created_at) || isApprovalStatusRecent(report)) && (
                             <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                           )}
                         </TableCell>

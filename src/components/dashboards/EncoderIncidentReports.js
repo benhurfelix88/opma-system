@@ -59,6 +59,14 @@ const PersonnelIncidentReport = () => {
     return diffMinutes <= 1; // Within 1 minute
   };
 
+  // Helper function to check if review status was recently updated
+  const isReviewStatusRecent = (incident) => {
+    // Check if review_status is not the default 'Pending' or was recently changed
+    if (!incident.reviewStatus || incident.reviewStatus === 'Pending') return false;
+    // Use updated_at as proxy for when review status was changed
+    return isRecent(incident.updated_at);
+  };
+
   // Force re-render every second to update highlights
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -793,11 +801,11 @@ const PersonnelIncidentReport = () => {
                 <TableRow
                   key={incident.id}
                   sx={{
-                    backgroundColor: isRecent(incident.updated_at) || isRecent(incident.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                    backgroundColor: isRecent(incident.updated_at) || isRecent(incident.created_at) || isReviewStatusRecent(incident) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
                   }}
                 >
                   <TableCell align="center" sx={{ width: '30px' }}>
-                    {(isRecent(incident.updated_at) || isRecent(incident.created_at)) && (
+                    {(isRecent(incident.updated_at) || isRecent(incident.created_at) || isReviewStatusRecent(incident)) && (
                       <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                     )}
                   </TableCell>
