@@ -1889,6 +1889,11 @@ app.put('/api/maintenance/:id', authenticateToken, async (req, res) => {
       values.push(approval_date);
     }
 
+    // If approval_status is being updated, also update updated_at timestamp
+    if (approval_status !== undefined) {
+      updates.push('updated_at = CURRENT_TIMESTAMP');
+    }
+
     values.push(req.params.id);
 
     const query = `UPDATE maintenance_records SET ${updates.join(', ')} WHERE id = ?`;
@@ -2170,9 +2175,12 @@ const updateIncidentReviewStatusHandler = async (req, res) => {
     }
 
     await db.execute(
-      'UPDATE incident_reports SET review_status = ? WHERE id = ?',
+      'UPDATE incident_reports SET review_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
       [review_status, incidentId]
     );
+
+    // Emit socket event for real-time updates
+    io.emit('incidents-updated');
 
     res.json({ message: 'Review status updated successfully', review_status });
   } catch (error) {
@@ -2494,9 +2502,9 @@ app.put('/api/spare-parts/:id', authenticateToken, async (req, res) => {
     let updateQuery = 'UPDATE spare_parts SET part_name = ?, part_number = ?, category = ?, quantity = ?, unit = ?, location = ?, supplier = ?, cost = ?, status = ?, ride = ?, ride_location = ?, approval_status = ?, notes = ?';
     let params = [part_name, part_number, category, quantity, unit, location, supplier, cost, status, ride || '', ride_location || '', newApprovalStatus, notes || ''];
 
-    // If approval_status changed, update approval_date
+    // If approval_status changed, update approval_date and updated_at
     if (currentApprovalStatus !== newApprovalStatus) {
-      updateQuery += ', approval_date = CURRENT_TIMESTAMP';
+      updateQuery += ', approval_date = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP';
     }
 
     updateQuery += ' WHERE id = ?';
