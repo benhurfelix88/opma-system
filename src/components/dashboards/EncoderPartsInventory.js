@@ -1100,11 +1100,11 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                         <TableRow
                           key={part.id}
                           sx={{
-                            backgroundColor: isRecent(part.updated_at) || isRecent(part.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                            backgroundColor: isRecent(part.updated_at) || isRecent(part.created_at) || isRecent(part.approval_date) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
                           }}
                         >
                           <TableCell align="center" sx={{ width: '30px' }}>
-                            {(isRecent(part.updated_at) || isRecent(part.created_at)) && (
+                            {(isRecent(part.updated_at) || isRecent(part.created_at) || isRecent(part.approval_date)) && (
                               <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                             )}
                           </TableCell>

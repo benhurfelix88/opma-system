@@ -32,6 +32,7 @@ import {
   Close as CloseIcon,
   Info as InfoIcon,
   Edit as EditIcon,
+  Circle as CircleIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -39,6 +40,25 @@ import { maintenanceAPI } from '../../services/api';
 import { getSocket } from '../../utils/socket';
 
 const ManagerMaintenanceReports = () => {
+  // Helper function to check if record is newly added/edited (within 1 minute)
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000; // Convert to minutes
+    return diffMinutes <= 1; // Within 1 minute
+  };
+
+  // Force re-render every second to update highlights
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 1000); // Check every second
+    return () => clearInterval(interval);
+  }, []);
+
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy] = useState('date');
@@ -249,6 +269,7 @@ const ManagerMaintenanceReports = () => {
                 <Table stickyHeader>
             <TableHead>
               <TableRow>
+                <TableCell align="center" sx={{ width: '30px' }}></TableCell>
                 <TableCell align="center">Ride</TableCell>
                 <TableCell align="center">Location</TableCell>
                 <TableCell align="center">Date</TableCell>
@@ -264,7 +285,7 @@ const ManagerMaintenanceReports = () => {
             <TableBody>
               {filteredAndSortedRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} align="center">
+                  <TableCell colSpan={11} align="center">
                     <Typography variant="body1" color="text.secondary">
                       No maintenance records found
                     </Typography>
@@ -272,7 +293,17 @@ const ManagerMaintenanceReports = () => {
                 </TableRow>
               ) : (
                 filteredAndSortedRecords.map((record) => (
-                  <TableRow key={record.id}>
+                  <TableRow
+                    key={record.id}
+                    sx={{
+                      backgroundColor: isRecent(record.updated_at) || isRecent(record.created_at) || isRecent(record.approval_date) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                    }}
+                  >
+                    <TableCell align="center" sx={{ width: '30px' }}>
+                      {(isRecent(record.updated_at) || isRecent(record.created_at) || isRecent(record.approval_date)) && (
+                        <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                      )}
+                    </TableCell>
                     <TableCell align="center">{record.ride}</TableCell>
                     <TableCell align="center">{record.location || '-'}</TableCell>
                     <TableCell align="center">

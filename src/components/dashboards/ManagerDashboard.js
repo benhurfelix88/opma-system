@@ -35,6 +35,7 @@ import {
   Report as ReportIcon,
   Build as BuildIcon,
   Inventory as InventoryIcon,
+  Circle as CircleIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ManagerPartsInventory from './ManagerPartsInventory';
@@ -64,6 +65,25 @@ const slideIn = keyframes`
 `;
 
 const ManagerDashboard = () => {
+  // Helper function to check if record is newly added/edited (within 1 minute)
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000; // Convert to minutes
+    return diffMinutes <= 1; // Within 1 minute
+  };
+
+  // Force re-render every second to update highlights
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 1000); // Check every second
+    return () => clearInterval(interval);
+  }, []);
+
   const [incidents, setIncidents] = useState([]);
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
   const [openIncidentDialog, setOpenIncidentDialog] = useState(false);
@@ -328,6 +348,7 @@ const ManagerDashboard = () => {
                         <Table>
                           <TableHead>
                             <TableRow>
+                              <TableCell sx={{ width: '30px' }}></TableCell>
                               <TableCell>Date</TableCell>
                               <TableCell>Ride</TableCell>
                               <TableCell>Status</TableCell>
@@ -336,7 +357,17 @@ const ManagerDashboard = () => {
                           </TableHead>
                           <TableBody>
                             {incidents.slice(0, 5).map((incident) => (
-                              <TableRow key={incident.id}>
+                              <TableRow
+                                key={incident.id}
+                                sx={{
+                                  backgroundColor: isRecent(incident.updated_at) || isRecent(incident.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                                }}
+                              >
+                                <TableCell sx={{ width: '30px' }}>
+                                  {(isRecent(incident.updated_at) || isRecent(incident.created_at)) && (
+                                    <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                  )}
+                                </TableCell>
                                 <TableCell>{incident.date}</TableCell>
                                 <TableCell>{incident.ride}</TableCell>
                                 <TableCell>
@@ -406,6 +437,7 @@ const ManagerDashboard = () => {
                         <Table>
                           <TableHead>
                             <TableRow>
+                              <TableCell sx={{ width: '30px' }}></TableCell>
                               <TableCell>Date</TableCell>
                               <TableCell>Ride</TableCell>
                               <TableCell>Status</TableCell>
@@ -414,7 +446,17 @@ const ManagerDashboard = () => {
                           </TableHead>
                           <TableBody>
                             {maintenanceRecords.slice(0, 5).map((record) => (
-                              <TableRow key={record.id}>
+                              <TableRow
+                                key={record.id}
+                                sx={{
+                                  backgroundColor: isRecent(record.updated_at) || isRecent(record.created_at) || isRecent(record.approval_date) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                                }}
+                              >
+                                <TableCell sx={{ width: '30px' }}>
+                                  {(isRecent(record.updated_at) || isRecent(record.created_at) || isRecent(record.approval_date)) && (
+                                    <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                  )}
+                                </TableCell>
                                 <TableCell>{record.date}</TableCell>
                                 <TableCell>{record.ride}</TableCell>
                                 <TableCell>
@@ -488,6 +530,7 @@ const ManagerDashboard = () => {
                         <Table>
                           <TableHead>
                             <TableRow>
+                              <TableCell sx={{ width: '30px' }}></TableCell>
                               <TableCell>Date</TableCell>
                               <TableCell>Ride</TableCell>
                               <TableCell>Status</TableCell>
@@ -496,7 +539,17 @@ const ManagerDashboard = () => {
                           </TableHead>
                           <TableBody>
                             {incidents.slice(0, 5).map((incident) => (
-                              <TableRow key={incident.id}>
+                              <TableRow
+                                key={incident.id}
+                                sx={{
+                                  backgroundColor: isRecent(incident.updated_at) || isRecent(incident.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                                }}
+                              >
+                                <TableCell sx={{ width: '30px' }}>
+                                  {(isRecent(incident.updated_at) || isRecent(incident.created_at)) && (
+                                    <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                  )}
+                                </TableCell>
                                 <TableCell>{incident.date}</TableCell>
                                 <TableCell>{incident.ride}</TableCell>
                                 <TableCell>
@@ -566,6 +619,7 @@ const ManagerDashboard = () => {
                         <Table>
                           <TableHead>
                             <TableRow>
+                              <TableCell sx={{ width: '30px' }}></TableCell>
                               <TableCell>Date</TableCell>
                               <TableCell>Ride</TableCell>
                               <TableCell>Status</TableCell>
@@ -574,7 +628,17 @@ const ManagerDashboard = () => {
                           </TableHead>
                           <TableBody>
                             {maintenanceRecords.slice(0, 5).map((record) => (
-                              <TableRow key={record.id}>
+                              <TableRow
+                                key={record.id}
+                                sx={{
+                                  backgroundColor: isRecent(record.updated_at) || isRecent(record.created_at) || isRecent(record.approval_date) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                                }}
+                              >
+                                <TableCell sx={{ width: '30px' }}>
+                                  {(isRecent(record.updated_at) || isRecent(record.created_at) || isRecent(record.approval_date)) && (
+                                    <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                  )}
+                                </TableCell>
                                 <TableCell>{record.date}</TableCell>
                                 <TableCell>{record.ride}</TableCell>
                                 <TableCell>

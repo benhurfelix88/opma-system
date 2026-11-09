@@ -493,11 +493,11 @@ const EncoderMaintenanceReports = () => {
                 <TableRow
                   key={record.id}
                   sx={{
-                    backgroundColor: isRecent(record.updated_at) || isRecent(record.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                    backgroundColor: isRecent(record.updated_at) || isRecent(record.created_at) || isRecent(record.approval_date) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
                   }}
                 >
                   <TableCell align="center" sx={{ width: '30px' }}>
-                    {(isRecent(record.updated_at) || isRecent(record.created_at)) && (
+                    {(isRecent(record.updated_at) || isRecent(record.created_at) || isRecent(record.approval_date)) && (
                       <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                     )}
                   </TableCell>

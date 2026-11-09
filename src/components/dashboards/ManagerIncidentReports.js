@@ -42,6 +42,7 @@ import {
   Add as AddIconMaterial,
   RemoveCircleOutline as RemoveCircleOutlineIcon,
   PictureAsPdf as ReportIcon,
+  Circle as CircleIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -51,6 +52,25 @@ import { REVIEW_STATUS_OPTIONS, getReviewStatusChipSx, normalizeReviewStatus } f
 import { getSocket } from '../../utils/socket';
 
 const ManagerIncidentReports = () => {
+  // Helper function to check if record is newly added/edited (within 1 minute)
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000; // Convert to minutes
+    return diffMinutes <= 1; // Within 1 minute
+  };
+
+  // Force re-render every second to update highlights
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 1000); // Check every second
+    return () => clearInterval(interval);
+  }, []);
+
   const [incidents, setIncidents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIncident, setSelectedIncident] = useState(null);
@@ -699,6 +719,7 @@ const ManagerIncidentReports = () => {
                 <Table stickyHeader>
             <TableHead>
               <TableRow>
+                <TableCell align="center" sx={{ width: '30px' }}></TableCell>
                 <TableCell align="center">Date & Time</TableCell>
                 <TableCell align="center">Location</TableCell>
                 <TableCell align="center">Type</TableCell>
@@ -740,7 +761,17 @@ const ManagerIncidentReports = () => {
                 }
                 
                 return (
-                <TableRow key={incident.id}>
+                <TableRow
+                  key={incident.id}
+                  sx={{
+                    backgroundColor: isRecent(incident.updated_at) || isRecent(incident.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                  }}
+                >
+                  <TableCell align="center" sx={{ width: '30px' }}>
+                    {(isRecent(incident.updated_at) || isRecent(incident.created_at)) && (
+                      <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                    )}
+                  </TableCell>
                   <TableCell align="center">{formatDateTimeDisplay(dateTimeStr)}</TableCell>
                   <TableCell align="center">{incident.location}</TableCell>
                   <TableCell align="center">{incident.type}</TableCell>

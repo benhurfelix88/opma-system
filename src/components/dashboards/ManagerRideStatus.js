@@ -38,6 +38,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   PictureAsPdf as ReportIcon,
+  Circle as CircleIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -45,6 +46,25 @@ import { ridesAPI, rideStatusAPI, sparePartsAPI } from '../../services/api';
 import { getSocket } from '../../utils/socket';
 
 const ManagerRideStatus = () => {
+  // Helper function to check if record is newly added/edited (within 1 minute)
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000; // Convert to minutes
+    return diffMinutes <= 1; // Within 1 minute
+  };
+
+  // Force re-render every second to update highlights
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 1000); // Check every second
+    return () => clearInterval(interval);
+  }, []);
+
   const [rides, setRides] = useState([]);
   const [rideStatusMap, setRideStatusMap] = useState({});
   const [loading, setLoading] = useState(true);
@@ -388,6 +408,7 @@ const ManagerRideStatus = () => {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell align="center" sx={{ width: '30px' }}></TableCell>
                 <TableCell align="center"><Typography fontWeight="bold">Ride Name</Typography></TableCell>
                 <TableCell align="center"><Typography fontWeight="bold">Location</Typography></TableCell>
                 <TableCell align="center"><Typography fontWeight="bold">Status</Typography></TableCell>
@@ -398,14 +419,20 @@ const ManagerRideStatus = () => {
             <TableBody>
               {rides.map((ride, index) => (
                 <Fade in={true} style={{ transitionDelay: `${index * 50 + 500}ms` }} key={ride.id}>
-                  <TableRow 
+                  <TableRow
                     sx={{
+                      backgroundColor: isRecent(ride.updated_at) || isRecent(ride.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
                       '&:hover': {
                         backgroundColor: 'action.hover',
                       },
                       transition: 'background-color 0.2s ease',
                     }}
                   >
+                    <TableCell align="center" sx={{ width: '30px' }}>
+                      {(isRecent(ride.updated_at) || isRecent(ride.created_at)) && (
+                        <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                      )}
+                    </TableCell>
                     <TableCell align="center">
                       <Box display="flex" alignItems="center" gap={2} justifyContent="center">
                         <AttractionsIcon color="primary" />
