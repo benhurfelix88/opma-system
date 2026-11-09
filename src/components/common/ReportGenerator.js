@@ -19,6 +19,8 @@ import {
   Tooltip,
   Grid,
   Menu,
+  FormControl,
+  Select,
 } from '@mui/material';
 import {
   DateRange as DateRangeIcon,
@@ -952,6 +954,21 @@ const ReportGenerator = ({
             </Typography>
             
             <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} sm={6} md={3}>
+                <FormControl fullWidth size="small">
+                  <Select
+                    value={dateRange}
+                    onChange={(e) => handleDateRangeChange(e.target.value)}
+                  >
+                    <MenuItem value="overall">Overall</MenuItem>
+                    <MenuItem value="daily">Daily</MenuItem>
+                    <MenuItem value="weekly">Weekly</MenuItem>
+                    <MenuItem value="monthly">Monthly</MenuItem>
+                    <MenuItem value="custom">Custom Range</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
               {dateRange !== 'overall' && dateRange !== 'custom' && (
                 <Grid item xs={12} sm={6} md={4}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
