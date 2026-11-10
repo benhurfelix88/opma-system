@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -41,22 +41,22 @@ import { getSocket } from '../../utils/socket';
 
 const AdminPartsInventory = () => {
   // Helper function to check if record is newly added/edited (within 1 minute)
-  const isRecent = (timestamp) => {
+  const isRecent = useCallback((timestamp) => {
     if (!timestamp) return false;
     const recordTime = new Date(timestamp);
     const now = new Date();
     const diffMs = now - recordTime;
     const diffMinutes = diffMs / 60000; // Convert to minutes
     return diffMinutes <= 1; // Within 1 minute
-  };
+  }, []);
 
   // Helper function to check if approval status was recently updated
-  const isApprovalStatusRecent = (item) => {
+  const isApprovalStatusRecent = useCallback((item) => {
     // Check if approval_status is not the default 'Pending' or was recently changed
     if (!item.approval_status || item.approval_status === 'Pending') return false;
     // Use updated_at as proxy for when approval status was changed
     return isRecent(item.updated_at);
-  };
+  }, [isRecent]);
 
   // Force re-render every second to update highlights
   const [, setTick] = useState(0);
@@ -87,46 +87,7 @@ const AdminPartsInventory = () => {
   const [openRepairDetailsDialog, setOpenRepairDetailsDialog] = useState(false);
   const [selectedRepairDetails, setSelectedRepairDetails] = useState(null);
 
-  useEffect(() => {
-    loadParts();
-    loadRideRepairs();
-    loadPartDeployments();
-    loadPartRemovals();
-
-    // Setup WebSocket connection
-    const socket = getSocket();
-
-    // Listen for updates
-    socket.on('spare-parts-updated', () => {
-      console.log('Spare parts updated via WebSocket');
-      loadParts();
-    });
-
-    socket.on('ride-repairs-updated', () => {
-      console.log('Ride repairs updated via WebSocket');
-      loadRideRepairs();
-    });
-
-    socket.on('part-deployments-updated', () => {
-      console.log('Part deployments updated via WebSocket');
-      loadPartDeployments();
-    });
-
-    socket.on('part-removals-updated', () => {
-      console.log('Part removals updated via WebSocket');
-      loadPartRemovals();
-    });
-
-    // Cleanup on unmount
-    return () => {
-      socket.off('spare-parts-updated');
-      socket.off('ride-repairs-updated');
-      socket.off('part-deployments-updated');
-      socket.off('part-removals-updated');
-    };
-  }, []);
-
-  const loadParts = async () => {
+  const loadParts = useCallback(async () => {
     try {
       setLoading(true);
       const allParts = await sparePartsAPI.getAll();
@@ -170,23 +131,31 @@ const AdminPartsInventory = () => {
         };
       });
       setParts(mappedParts);
+
+      // Check for newly approved items and set notification
+      const hasNewlyApproved = mappedParts.some(part =>
+        part.approvalStatus === 'Approved' && isApprovalStatusRecent(part)
+      );
+      window.dispatchEvent(new CustomEvent('set-notification', {
+        detail: { path: '/admin-dashboard/parts-inventory', hasNotification: hasNewlyApproved }
+      }));
     } catch (error) {
       console.error('Error loading parts:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [isApprovalStatusRecent]);
 
-  const loadRideRepairs = async () => {
+  const loadRideRepairs = useCallback(async () => {
     try {
       const repairs = await rideRepairsAPI.getAll();
       setRideRepairs(repairs || []);
     } catch (error) {
       console.error('Error loading ride repairs:', error);
     }
-  };
+  }, []);
 
-  const loadPartDeployments = async () => {
+  const loadPartDeployments = useCallback(async () => {
     try {
       const deployments = await partDeploymentsAPI.getAll();
       const mappedDeployments = deployments.map(deployment => ({
@@ -197,9 +166,9 @@ const AdminPartsInventory = () => {
     } catch (error) {
       console.error('Error loading part deployments:', error);
     }
-  };
+  }, []);
 
-  const loadPartRemovals = async () => {
+  const loadPartRemovals = useCallback(async () => {
     try {
       const removals = await partRemovalsAPI.getAll();
       const mappedRemovals = removals.map(removal => ({
@@ -210,7 +179,46 @@ const AdminPartsInventory = () => {
     } catch (error) {
       console.error('Error loading part removals:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadParts();
+    loadRideRepairs();
+    loadPartDeployments();
+    loadPartRemovals();
+
+    // Setup WebSocket connection
+    const socket = getSocket();
+
+    // Listen for updates
+    socket.on('spare-parts-updated', () => {
+      console.log('Spare parts updated via WebSocket');
+      loadParts();
+    });
+
+    socket.on('ride-repairs-updated', () => {
+      console.log('Ride repairs updated via WebSocket');
+      loadRideRepairs();
+    });
+
+    socket.on('part-deployments-updated', () => {
+      console.log('Part deployments updated via WebSocket');
+      loadPartDeployments();
+    });
+
+    socket.on('part-removals-updated', () => {
+      console.log('Part removals updated via WebSocket');
+      loadPartRemovals();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('spare-parts-updated');
+      socket.off('ride-repairs-updated');
+      socket.off('part-deployments-updated');
+      socket.off('part-removals-updated');
+    };
+  }, [loadParts, loadRideRepairs, loadPartDeployments, loadPartRemovals]);
 
   const normalizedValue = (value) => {
     if (value === undefined || value === null) return '';

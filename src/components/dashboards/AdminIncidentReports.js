@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -43,22 +43,22 @@ import { getSocket } from '../../utils/socket';
 
 const AdminIncidentReports = () => {
   // Helper function to check if record is newly added/edited (within 1 minute)
-  const isRecent = (timestamp) => {
+  const isRecent = useCallback((timestamp) => {
     if (!timestamp) return false;
     const recordTime = new Date(timestamp);
     const now = new Date();
     const diffMs = now - recordTime;
     const diffMinutes = diffMs / 60000; // Convert to minutes
     return diffMinutes <= 1; // Within 1 minute
-  };
+  }, []);
 
   // Helper function to check if review status was recently updated
-  const isReviewStatusRecent = (incident) => {
+  const isReviewStatusRecent = useCallback((incident) => {
     // Check if review_status is not the default 'Pending' or was recently changed
     if (!incident.reviewStatus || incident.reviewStatus === 'Pending') return false;
     // Use updated_at as proxy for when review status was changed
     return isRecent(incident.updated_at);
-  };
+  }, [isRecent]);
 
   // Force re-render every second to update highlights
   const [, setTick] = useState(0);
@@ -98,6 +98,16 @@ const AdminIncidentReports = () => {
       socket.off('incidents-updated');
     };
   }, []);
+
+  // Separate effect to update notification when data changes
+  useEffect(() => {
+    const hasNewlyReviewed = incidents.some(incident =>
+      incident.reviewStatus === 'Reviewed' && isReviewStatusRecent(incident)
+    );
+    window.dispatchEvent(new CustomEvent('set-notification', {
+      detail: { path: '/admin-dashboard/incidents', hasNotification: hasNewlyReviewed }
+    }));
+  }, [incidents, isReviewStatusRecent]);
 
   const loadIncidents = async () => {
     try {

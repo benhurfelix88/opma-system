@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -41,22 +41,22 @@ import { getSocket } from '../../utils/socket';
 
 const AdminMaintenanceReports = () => {
   // Helper function to check if record is newly added/edited (within 1 minute)
-  const isRecent = (timestamp) => {
+  const isRecent = useCallback((timestamp) => {
     if (!timestamp) return false;
     const recordTime = new Date(timestamp);
     const now = new Date();
     const diffMs = now - recordTime;
     const diffMinutes = diffMs / 60000; // Convert to minutes
     return diffMinutes <= 1; // Within 1 minute
-  };
+  }, []);
 
   // Helper function to check if approval status was recently updated
-  const isApprovalStatusRecent = (item) => {
+  const isApprovalStatusRecent = useCallback((item) => {
     // Check if approval_status is not the default 'Pending' or was recently changed
     if (!item.approval_status || item.approval_status === 'Pending') return false;
     // Use updated_at as proxy for when approval status was changed
     return isRecent(item.updated_at);
-  };
+  }, [isRecent]);
 
   // Force re-render every second to update highlights
   const [, setTick] = useState(0);
@@ -135,6 +135,16 @@ const AdminMaintenanceReports = () => {
       socket.off('maintenance-updated');
     };
   }, []);
+
+  // Separate effect to update notification when data changes
+  useEffect(() => {
+    const hasNewlyApproved = maintenanceData.some(report =>
+      report.approval_status === 'Approved' && isApprovalStatusRecent(report)
+    );
+    window.dispatchEvent(new CustomEvent('set-notification', {
+      detail: { path: '/admin-dashboard/maintenance', hasNotification: hasNewlyApproved }
+    }));
+  }, [maintenanceData, isApprovalStatusRecent]);
 
   useEffect(() => {
     let filtered = maintenanceData;

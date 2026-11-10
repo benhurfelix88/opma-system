@@ -27,6 +27,7 @@ import {
   Divider,
   Tooltip,
   Snackbar,
+  Badge,
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -80,6 +81,7 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
   const [profileSnackbar, setProfileSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [notifications, setNotifications] = useState({});
   const fileInputRef = useRef(null);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -101,6 +103,21 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
       }
     };
     loadCurrentUser();
+
+    // Listen for notification events from child components
+    const handleNotification = (event) => {
+      const { path, hasNotification } = event.detail;
+      setNotifications(prev => ({
+        ...prev,
+        [path]: hasNotification,
+      }));
+    };
+
+    window.addEventListener('set-notification', handleNotification);
+
+    return () => {
+      window.removeEventListener('set-notification', handleNotification);
+    };
   }, []);
 
   const getMenuItems = () => {
@@ -433,7 +450,7 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
                     transform: activeButton === item.text ? 'scale(0.98)' : 'scale(1)',
                   }}
                 >
-                  <ListItemIcon sx={{ 
+                  <ListItemIcon sx={{
                     color: location.pathname === item.path ? (item.hasColorCode ? 'secondary.main' : 'primary.main') : (item.isViewOnly ? 'text.disabled' : 'text.secondary'),
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     minWidth: '40px',
@@ -441,7 +458,22 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
                       fontSize: '1.25rem',
                     }
                   }}>
-                    {item.icon}
+                    {notifications[item.path] ? (
+                      <Badge
+                        badgeContent=""
+                        color="error"
+                        variant="dot"
+                        sx={{
+                          '& .MuiBadge-badge': {
+                            animation: `${pulseAnimation} 2s infinite`,
+                          },
+                        }}
+                      >
+                        {item.icon}
+                      </Badge>
+                    ) : (
+                      item.icon
+                    )}
                   </ListItemIcon>
                   <ListItemText
                     primary={item.text}
