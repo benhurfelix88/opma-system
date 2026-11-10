@@ -18,11 +18,19 @@ import {
   MenuItem,
   Tabs,
   Tab,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Grid,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   PictureAsPdf as ReportIcon,
-  Circle as CircleIcon
+  Circle as CircleIcon,
+  Info as InfoIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -76,6 +84,8 @@ const AdminPartsInventory = () => {
   const [removalsSortOrder, setRemovalsSortOrder] = useState('desc');
   const [loading, setLoading] = useState(true);
   const [openReportDialog, setOpenReportDialog] = useState(false);
+  const [openRepairDetailsDialog, setOpenRepairDetailsDialog] = useState(false);
+  const [selectedRepairDetails, setSelectedRepairDetails] = useState(null);
 
   useEffect(() => {
     loadParts();
@@ -258,6 +268,16 @@ const AdminPartsInventory = () => {
     if (statusLower.includes('low stock')) return 'warning';
     if (statusLower.includes('out of stock')) return 'error';
     return 'default';
+  };
+
+  const handleOpenRepairDetails = (repair) => {
+    setSelectedRepairDetails(repair);
+    setOpenRepairDetailsDialog(true);
+  };
+
+  const handleCloseRepairDetails = () => {
+    setOpenRepairDetailsDialog(false);
+    setSelectedRepairDetails(null);
   };
 
   const filteredAndSortedRepairs = rideRepairs
@@ -606,18 +626,20 @@ const AdminPartsInventory = () => {
                       <TableHead>
                         <TableRow>
                           <TableCell align="center" sx={{ width: '30px' }}></TableCell>
-                          <TableCell align="center" sx={{ width: '20%' }}>Ride</TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Date</TableCell>
-                          <TableCell align="center" sx={{ width: '25%' }}>Issue</TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Technician</TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Status</TableCell>
+                          <TableCell align="center" sx={{ width: '15%' }}>Ride</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Ride Location</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Date</TableCell>
+                          <TableCell align="center" sx={{ width: '20%' }}>Issue</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Technician</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Status</TableCell>
                           <TableCell align="center" sx={{ width: '10%' }}>Cost</TableCell>
+                          <TableCell align="center" sx={{ width: '7%' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAndSortedRepairs.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={7} align="center">
+                            <TableCell colSpan={9} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No ride repairs found
                               </Typography>
@@ -637,6 +659,7 @@ const AdminPartsInventory = () => {
                                 )}
                               </TableCell>
                               <TableCell align="center">{repair.ride}</TableCell>
+                              <TableCell align="center">{repair.location || '-'}</TableCell>
                               <TableCell align="center">{new Date(repair.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{repair.issue}</TableCell>
                               <TableCell align="center">{repair.technician}</TableCell>
@@ -657,6 +680,16 @@ const AdminPartsInventory = () => {
                                 />
                               </TableCell>
                               <TableCell align="center">₱{Number(repair.cost || 0).toFixed(2)}</TableCell>
+                              <TableCell align="center">
+                                <Tooltip title="View Details">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleOpenRepairDetails(repair)}
+                                  >
+                                    <InfoIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              </TableCell>
                             </TableRow>
                           ))
                         )}
@@ -961,6 +994,42 @@ const AdminPartsInventory = () => {
             ]}
           />
         )}
+
+        {/* Repair Details Dialog */}
+        <Dialog open={openRepairDetailsDialog} onClose={handleCloseRepairDetails} maxWidth="md" fullWidth>
+          <DialogTitle>Repair Details</DialogTitle>
+          <DialogContent>
+            {selectedRepairDetails && (
+              <Box sx={{ mt: 2 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Date:</Typography>
+                    <Typography variant="body1">{new Date(selectedRepairDetails.date).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Ride:</Typography>
+                    <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedRepairDetails.ride}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Ride Location:</Typography>
+                    <Typography variant="body1">{selectedRepairDetails.location || 'Not specified'}</Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Issue:</Typography>
+                    <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedRepairDetails.issue}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Technician:</Typography>
+                    <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedRepairDetails.technician}</Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseRepairDetails}>Close</Button>
+          </DialogActions>
+        </Dialog>
 
         {tabValue === 2 && (
           <ReportGenerator
