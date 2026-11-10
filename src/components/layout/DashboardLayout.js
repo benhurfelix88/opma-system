@@ -48,7 +48,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { keyframes } from '@mui/system';
 import Logo from '../common/Logo';
 import FadeInContent from '../common/FadeInContent';
-import { authAPI } from '../../services/api';
+import { authAPI, sparePartsAPI, maintenanceAPI, incidentsAPI } from '../../services/api';
+import rideEntriesAPI from '../../services/rideEntriesAPI';
 
 const drawerWidth = 240;
 
@@ -119,6 +120,78 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
       window.removeEventListener('set-notification', handleNotification);
     };
   }, []);
+
+  // Helper function to check if timestamp is within 1 minute
+  const isRecent = (timestamp) => {
+    if (!timestamp) return false;
+    const recordTime = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - recordTime;
+    const diffMinutes = diffMs / 60000;
+    return diffMinutes <= 1;
+  };
+
+  // Periodically check for notifications for IT Admin
+  useEffect(() => {
+    if (user?.role !== 'IT Admin') return;
+
+    const checkNotifications = async () => {
+      try {
+        // Check parts inventory
+        const parts = await sparePartsAPI.getAll();
+        const hasPartsNotification = parts.some(part =>
+          (part.approval_status === 'Approved' && isRecent(part.updated_at)) ||
+          isRecent(part.created_at)
+        );
+        setNotifications(prev => ({
+          ...prev,
+          '/admin-dashboard/parts-inventory': hasPartsNotification
+        }));
+
+        // Check maintenance
+        const maintenance = await maintenanceAPI.getAll();
+        const hasMaintenanceNotification = maintenance.some(report =>
+          (report.approval_status === 'Approved' && isRecent(report.updated_at)) ||
+          isRecent(report.created_at)
+        );
+        setNotifications(prev => ({
+          ...prev,
+          '/admin-dashboard/maintenance': hasMaintenanceNotification
+        }));
+
+        // Check incidents
+        const incidents = await incidentsAPI.getAll();
+        const hasIncidentsNotification = incidents.some(incident =>
+          (incident.review_status === 'Reviewed' && isRecent(incident.updated_at)) ||
+          isRecent(incident.created_at)
+        );
+        setNotifications(prev => ({
+          ...prev,
+          '/admin-dashboard/incidents': hasIncidentsNotification
+        }));
+
+        // Check customers count
+        const entries = await rideEntriesAPI.getAll();
+        const hasCustomersNotification = entries.some(entry =>
+          isRecent(entry.created_at)
+        );
+        setNotifications(prev => ({
+          ...prev,
+          '/admin-dashboard/customers-count': hasCustomersNotification
+        }));
+      } catch (error) {
+        console.error('Error checking notifications:', error);
+      }
+    };
+
+    // Check immediately
+    checkNotifications();
+
+    // Check every 10 seconds
+    const interval = setInterval(checkNotifications, 10000);
+
+    return () => clearInterval(interval);
+  }, [user?.role]);
 
   const getMenuItems = () => {
     switch (user?.role) {
