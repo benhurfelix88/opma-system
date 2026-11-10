@@ -655,8 +655,8 @@ async function ensureMaintenanceRecords() {
         maintenance_type VARCHAR(100),
         description TEXT,
         performed_by VARCHAR(255),
-        date_performed DATE,
-        next_maintenance_date DATE,
+        date_performed TIMESTAMP,
+        next_maintenance_date TIMESTAMP,
         status VARCHAR(50),
         location VARCHAR(255),
         approval_status VARCHAR(50) DEFAULT 'Pending',
@@ -673,6 +673,23 @@ async function ensureMaintenanceRecords() {
       `);
     } catch (alterError) {
       // Column likely already exists, ignore error
+    }
+
+    // Update date columns to TIMESTAMP if they are still DATE (for existing tables)
+    try {
+      await db.execute(`
+        ALTER TABLE maintenance_records ALTER COLUMN date_performed TYPE TIMESTAMP USING date_performed::timestamp
+      `);
+    } catch (alterError) {
+      // Column may already be TIMESTAMP or conversion failed, ignore
+    }
+
+    try {
+      await db.execute(`
+        ALTER TABLE maintenance_records ALTER COLUMN next_maintenance_date TYPE TIMESTAMP USING next_maintenance_date::timestamp
+      `);
+    } catch (alterError) {
+      // Column may already be TIMESTAMP or conversion failed, ignore
     }
 
     // Add approval_status column if it doesn't exist (for existing tables)
