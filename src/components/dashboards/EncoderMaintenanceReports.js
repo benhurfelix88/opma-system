@@ -775,7 +775,7 @@ const EncoderMaintenanceReports = () => {
                     label="Date Recorded"
                     value={formData.date}
                     onChange={(newValue) => setFormData({ ...formData, date: newValue })}
-                    slotProps={{ textField: { fullWidth: true } }}
+                    slotProps={{ textField: { fullWidth: true, sx: { pr: 2 } } }}
                   />
                 </LocalizationProvider>
               </Grid>
@@ -820,7 +820,7 @@ const EncoderMaintenanceReports = () => {
                     label="Maintenance Schedule"
                     value={formData.nextMaintenance}
                     onChange={(newValue) => setFormData({ ...formData, nextMaintenance: newValue })}
-                    slotProps={{ textField: { fullWidth: true } }}
+                    slotProps={{ textField: { fullWidth: true, sx: { pr: 2 } } }}
                   />
                 </LocalizationProvider>
               </Grid>
@@ -860,7 +860,7 @@ const EncoderMaintenanceReports = () => {
                 </Paper>
                 <Typography><strong>Maintenance Schedule:</strong>
                   {viewRecord.nextMaintenance
-                    ? new Date(viewRecord.nextMaintenance).toLocaleDateString()
+                    ? new Date(viewRecord.nextMaintenance).toLocaleString()
                     : ' Not scheduled'}
                 </Typography>
               </Box>

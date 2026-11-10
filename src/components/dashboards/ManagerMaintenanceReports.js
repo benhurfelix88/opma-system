@@ -561,7 +561,14 @@ const ManagerMaintenanceReports = () => {
                 </Paper>
                 <Typography><strong>Next Maintenance:</strong>
                   {viewRecord.nextMaintenance
-                    ? ` ${new Date(viewRecord.nextMaintenance).toLocaleString()}`
+                    ? ` ${new Date(viewRecord.nextMaintenance).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}`
                     : ' Not scheduled'}
                 </Typography>
               </Box>

@@ -240,57 +240,7 @@ const AdminMaintenanceReports = () => {
     setSelectedDescription('');
   };
 
-  const ViewDetailsDialog = () => {
-    return (
-      <Dialog
-        open={openViewDialog}
-        onClose={handleCloseViewDialog}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <BuildIcon sx={{ color: 'primary.main' }} />
-          Maintenance Record Details
-        </DialogTitle>
-        <DialogContent>
-          {viewRecord && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-              <Typography><strong>Date Recorded:</strong> {viewRecord.date ? new Date(viewRecord.date).toLocaleString('en-US', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-              }) : 'N/A'}</Typography>
-              <Typography><strong>Technician:</strong> {viewRecord.technician || 'N/A'}</Typography>
-              <Typography><strong>Description:</strong></Typography>
-              <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {viewRecord.description || 'No description provided'}
-                </Typography>
-              </Paper>
-              <Typography><strong>Maintenance Schedule:</strong>
-                {viewRecord.nextMaintenance
-                  ? ` ${new Date(viewRecord.nextMaintenance).toLocaleString('en-US', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true
-                    })}`
-                  : ' Not scheduled'}
-              </Typography>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseViewDialog}>Close</Button>
-        </DialogActions>
-      </Dialog>
-    );
-  };
+
 
   const DescriptionDialog = () => {
     return (
@@ -627,11 +577,57 @@ const AdminMaintenanceReports = () => {
         </CardContent>
       </Card>
 
-        {/* View Details Dialog */}
-        <ViewDetailsDialog />
-        
         {/* Description Dialog */}
         <DescriptionDialog />
+
+        {/* View Details Dialog */}
+        <Dialog
+          open={openViewDialog}
+          onClose={handleCloseViewDialog}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <BuildIcon sx={{ color: 'primary.main' }} />
+            Maintenance Record Details
+          </DialogTitle>
+          <DialogContent>
+            {viewRecord && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                <Typography><strong>Date Recorded:</strong> {viewRecord.date ? new Date(viewRecord.date).toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                }) : 'N/A'}</Typography>
+                <Typography><strong>Technician:</strong> {viewRecord.technician || 'N/A'}</Typography>
+                <Typography><strong>Description:</strong></Typography>
+                <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                    {viewRecord.description || 'No description provided'}
+                  </Typography>
+                </Paper>
+                <Typography><strong>Maintenance Schedule:</strong>
+                  {viewRecord.nextMaintenance
+                    ? ` ${new Date(viewRecord.nextMaintenance).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}`
+                    : ' Not scheduled'}
+                </Typography>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseViewDialog}>Close</Button>
+          </DialogActions>
+        </Dialog>
 
         {/* Ride Selection Modal */}
         <Dialog 
@@ -665,10 +661,11 @@ const AdminMaintenanceReports = () => {
                   All Rides
                 </Typography>
               </Box>
-              <Box 
-                sx={{ 
-                  maxHeight: 300, 
+              <Box
+                sx={{
+                  maxHeight: 300,
                   overflowY: 'auto',
+                  pr: 1,
                   '&::-webkit-scrollbar': {
                     width: '8px',
                   },
