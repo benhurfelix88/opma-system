@@ -196,7 +196,7 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
       clearInterval(heartbeatInterval);
       socketCleanup();
     };
-  }, [API_BASE_URL, lastVisitTimes, handleSocketUpdate]);
+  }, [API_BASE_URL, handleSocketUpdate]);
 
   const getMenuItems = () => {
     switch (user?.role) {
