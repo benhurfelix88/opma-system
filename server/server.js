@@ -2560,12 +2560,12 @@ app.get('/api/ride-repairs', authenticateToken, async (req, res) => {
 // Create ride repair
 app.post('/api/ride-repairs', authenticateToken, async (req, res) => {
   try {
-    const { ride, date, issue, parts_replaced, cost, technician, status, notes } = req.body;
+    const { ride, date, issue, parts_replaced, cost, technician, status, notes, location } = req.body;
     const userId = req.user?.id || null;
-    
+
     const [result] = await db.execute(
-      'INSERT INTO ride_repairs (ride, date, issue, parts_replaced, cost, technician, status, notes, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [ride, date, issue, parts_replaced || null, cost || 0, technician, status || 'In Progress', notes || null, userId]
+      'INSERT INTO ride_repairs (ride, date, issue, parts_replaced, cost, technician, status, notes, location, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [ride, date, issue, parts_replaced || null, cost || 0, technician, status || 'In Progress', notes || null, location || null, userId]
     );
 
     // Emit ride-repairs-updated event
@@ -2581,11 +2581,11 @@ app.post('/api/ride-repairs', authenticateToken, async (req, res) => {
 // Update ride repair
 app.put('/api/ride-repairs/:id', authenticateToken, async (req, res) => {
   try {
-    const { ride, date, issue, parts_replaced, cost, technician, status, notes } = req.body;
-    
+    const { ride, date, issue, parts_replaced, cost, technician, status, notes, location } = req.body;
+
     await db.execute(
-      'UPDATE ride_repairs SET ride = ?, date = ?, issue = ?, parts_replaced = ?, cost = ?, technician = ?, status = ?, notes = ? WHERE id = ?',
-      [ride, date, issue, parts_replaced || null, cost || 0, technician, status, notes || null, req.params.id]
+      'UPDATE ride_repairs SET ride = ?, date = ?, issue = ?, parts_replaced = ?, cost = ?, technician = ?, status = ?, notes = ?, location = ? WHERE id = ?',
+      [ride, date, issue, parts_replaced || null, cost || 0, technician, status, notes || null, location || null, req.params.id]
     );
 
     // Emit ride-repairs-updated event

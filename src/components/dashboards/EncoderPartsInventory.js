@@ -507,6 +507,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         technician: repair.technician,
         status: repair.status,
         notes: repair.notes || '',
+        location: repair.location || '',
       });
     } else {
       setSelectedRepair(null);
@@ -519,6 +520,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         technician: '',
         status: 'In Progress',
         notes: '',
+        location: '',
       });
     }
     setOpenDialog(true);
@@ -594,6 +596,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         technician: repairData.technician,
         status: repairData.status,
         notes: repairData.notes || null,
+        location: repairData.location || null,
       };
 
       if (selectedRepair) {
@@ -614,6 +617,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         technician: repair.technician,
         status: repair.status,
         notes: repair.notes || '',
+        location: repair.location || '',
         timestamp: repair.created_at || new Date().toISOString(),
       }));
       setRepairs(mappedRepairs);
@@ -1281,9 +1285,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Rides</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride Location</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Issue</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Parts Replaced</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Cost</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Technician</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Notes</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
@@ -1292,7 +1293,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   <TableBody>
                     {getSortedRepairs().length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={12} align="center">
+                        <TableCell colSpan={9} align="center">
                           <Typography variant="body1" color="text.secondary">
                             No repair records found
                           </Typography>
@@ -1315,6 +1316,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                             </TableCell>
                             <TableCell align="center">{new Date(repair.date).toLocaleDateString()}</TableCell>
                             <TableCell align="center">{repair.ride}</TableCell>
+                            <TableCell align="center">{repair.location || '-'}</TableCell>
                             <TableCell align="center">
                               <Typography
                                 variant="body2"
@@ -1328,28 +1330,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               >
                                 {truncateText(repair.issue, 5)}
                               </Typography>
-                            </TableCell>
-                            <TableCell align="center">{repair.ride}</TableCell>
-                            <TableCell align="center">{repair.location || '-'}</TableCell>
-                            <TableCell align="center">{repair.partsReplaced}</TableCell>
-                            <TableCell align="center">₱{Number(repair.cost).toFixed(2)}</TableCell>
-                            <TableCell align="center">
-                              <Chip
-                                label={repair.status}
-                                variant="outlined"
-                                size="small"
-                                sx={{ 
-                                  color: getStatusColor(repair.status) === 'success' ? 'green' : 
-                                        getStatusColor(repair.status) === 'warning' ? 'orange' : 
-                                        getStatusColor(repair.status) === 'error' ? 'red' : 
-                                        getStatusColor(repair.status) === 'info' ? 'blue' : 'gray',
-                                  borderColor: getStatusColor(repair.status) === 'success' ? 'green' : 
-                                               getStatusColor(repair.status) === 'warning' ? 'orange' : 
-                                               getStatusColor(repair.status) === 'error' ? 'red' : 
-                                               getStatusColor(repair.status) === 'info' ? 'blue' : 'gray',
-                                  backgroundColor: 'transparent'
-                                }}
-                              />
                             </TableCell>
                             <TableCell align="center">
                               <Typography
@@ -1366,8 +1346,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               </Typography>
                             </TableCell>
                             <TableCell align="center">
-                              {repair.notes && repair.notes.length > 30 
-                                ? repair.notes.substring(0, 30) + '...' 
+                              {repair.notes && repair.notes.length > 30
+                                ? repair.notes.substring(0, 30) + '...'
                                 : repair.notes}
                             </TableCell>
                             <TableCell align="center">
@@ -1970,6 +1950,18 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     />
                   )}
                 </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Ride Location"
+                    value={repairData.location || ''}
+                    onChange={(e) => setRepairData({ ...repairData, location: e.target.value })}
+                    InputProps={{
+                      readOnly: true,
+                      style: { backgroundColor: '#f5f5f5', borderRadius: '4px', padding: '8.5px 14px' }
+                    }}
+                  />
+                </Grid>
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
@@ -2313,7 +2305,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   <Box
                     key={ride.id}
                     onClick={() => {
-                      setRepairData({ ...repairData, ride: ride.name, partsReplaced: '' });
+                      setRepairData({ ...repairData, ride: ride.name, location: ride.location, partsReplaced: '' });
                       setRideSelectionModalOpen(false);
                     }}
                     sx={{
