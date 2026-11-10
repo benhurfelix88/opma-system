@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -46,14 +46,14 @@ import {
 
 const EncoderMaintenanceReports = () => {
   // Helper function to check if record is newly added/edited (within 1 minute)
-  const isRecent = (timestamp) => {
+  const isRecent = useCallback((timestamp) => {
     if (!timestamp) return false;
     const recordTime = new Date(timestamp);
     const now = new Date();
     const diffMs = now - recordTime;
     const diffMinutes = diffMs / 60000; // Convert to minutes
     return diffMinutes <= 1; // Within 1 minute
-  };
+  }, []);
 
   // Force re-render every second to update highlights
   const [, setTick] = useState(0);
@@ -149,6 +149,7 @@ const EncoderMaintenanceReports = () => {
           approval_date: r.approval_date || null,
         }));
         setMaintenanceRecords(mapped);
+
         await loadRidesFromManager();
       } catch (e) {
         console.error('Error loading maintenance data:', e);
@@ -179,6 +180,19 @@ const EncoderMaintenanceReports = () => {
       socket.off('rides-updated');
     };
   }, []);
+
+  // Check for notifications when data changes
+  useEffect(() => {
+    const hasNewlyAdded = maintenanceRecords.some(record =>
+      isRecent(record.created_at)
+    );
+    const hasNewlyApproved = maintenanceRecords.some(record =>
+      record.approval_status === 'Approved' && isRecent(record.updated_at)
+    );
+    window.dispatchEvent(new CustomEvent('set-notification', {
+      detail: { path: '/encoder-dashboard/maintenance', hasNotification: hasNewlyAdded || hasNewlyApproved }
+    }));
+  }, [maintenanceRecords, isRecent]);
 
   const handleOpenDialog = (record = null) => {
     if (record) {

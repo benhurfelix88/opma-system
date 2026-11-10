@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -91,14 +91,14 @@ const parseApprovalStatus = (part) => {
 
 const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   // Helper function to check if record is newly added/edited (within 1 minute)
-  const isRecent = (timestamp) => {
+  const isRecent = useCallback((timestamp) => {
     if (!timestamp) return false;
     const recordTime = new Date(timestamp);
     const now = new Date();
     const diffMs = now - recordTime;
     const diffMinutes = diffMs / 60000; // Convert to minutes
     return diffMinutes <= 1; // Within 1 minute
-  };
+  }, []);
 
   // Helper function to truncate text to word limit
   const truncateText = (text, wordLimit = 5) => {
@@ -191,7 +191,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   });
   const [repairSortBy, setRepairSortBy] = useState('date-desc');
 
-  const loadRidesFromManager = async () => {
+  const loadRidesFromManager = useCallback(async () => {
     try {
       const list = await ridesAPI.getAll();
       const rideObjects = (list || []).map((r) => ({
@@ -208,64 +208,95 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     } catch (e) {
       console.error('Error loading rides:', e);
     }
-  };
+  }, []);
+
+  const loadParts = useCallback(async () => {
+    try {
+      const allParts = await sparePartsAPI.getAll();
+      // Map database fields to component fields
+      const mappedParts = allParts.map(part => {
+        const { approvalStatus } = parseApprovalStatus(part);
+        return {
+          ...part,
+          id: part.id,
+          name: part.part_name || part.name,
+          quantity: part.quantity || 0,
+          unit: part.unit || '',
+          price: part.cost || part.price || 0,
+          status: part.status || 'In Stock',
+          location: part.location || '',
+          supplier: part.supplier || '',
+          ride: part.ride || '',
+          ride_location: part.ride_location || '',
+          category: part.category || '',
+          approvalStatus,
+          approval_date: part.approval_date,
+          totalAmount: (part.cost || 0) * (part.quantity || 0),
+          lastUpdated: part.updated_at || part.created_at || new Date().toISOString(),
+        };
+      });
+      setSpareParts(mappedParts);
+      setFilteredParts(mappedParts);
+    } catch (error) {
+      console.error('Error loading parts:', error);
+    }
+  }, []);
+
+  const loadData = useCallback(async () => {
+    try {
+      // Load ride statuses
+      const statuses = await rideStatusAPI.get();
+      setRideStatusMap(statuses || {});
+
+      // Load repairs from API
+      const repairsList = await rideRepairsAPI.getAll();
+      const mappedRepairs = repairsList.map(repair => ({
+        id: repair.id,
+        ride: repair.ride,
+        date: repair.date,
+        issue: repair.issue,
+        partsReplaced: repair.parts_replaced || '',
+        cost: repair.cost || 0,
+        technician: repair.technician,
+        status: repair.status,
+        notes: repair.notes || '',
+        timestamp: repair.created_at || new Date().toISOString(),
+      }));
+      setRepairs(mappedRepairs);
+
+      // Load deployments from API
+      const deploymentsList = await partDeploymentsAPI.getAll();
+      const mappedDeployments = deploymentsList.map(deployment => ({
+        id: deployment.id,
+        date: deployment.date,
+        place: deployment.place,
+        ride: deployment.ride,
+        status: deployment.status,
+        missingParts: deployment.missing_parts || '',
+        encodedBy: deployment.encoded_by,
+      }));
+      setDeployments(mappedDeployments);
+
+      // Load removals from API
+      const removalsList = await partRemovalsAPI.getAll();
+      const mappedRemovals = removalsList.map(removal => ({
+        id: removal.id,
+        date: removal.date,
+        place: removal.place,
+        ride: removal.ride,
+        status: removal.status,
+        missingParts: removal.missing_parts || '',
+        encodedBy: removal.encoded_by,
+      }));
+      setRemovals(mappedRemovals);
+    } catch (e) {
+      console.error('Error loading data:', e);
+    }
+  }, []);
 
   useEffect(() => {
     loadParts();
     loadRidesFromManager();
-
-    // Load other data
-    const loadData = async () => {
-      try {
-        // Load ride statuses
-        const statuses = await rideStatusAPI.get();
-        setRideStatusMap(statuses || {});
-        
-        // Load repairs from API
-        const repairsList = await rideRepairsAPI.getAll();
-        const mappedRepairs = repairsList.map(repair => ({
-          id: repair.id,
-          ride: repair.ride,
-          date: repair.date,
-          issue: repair.issue,
-          partsReplaced: repair.parts_replaced || '',
-          cost: repair.cost || 0,
-          technician: repair.technician,
-          status: repair.status,
-          notes: repair.notes || '',
-          timestamp: repair.created_at || new Date().toISOString(),
-        }));
-        setRepairs(mappedRepairs);
-        
-        // Load deployments from API
-        const deploymentsList = await partDeploymentsAPI.getAll();
-        const mappedDeployments = deploymentsList.map(deployment => ({
-          id: deployment.id,
-          date: deployment.date,
-          place: deployment.place,
-          ride: deployment.ride,
-          status: deployment.status,
-          missingParts: deployment.missing_parts || '',
-          encodedBy: deployment.encoded_by,
-        }));
-        setDeployments(mappedDeployments);
-
-        // Load removals from API
-        const removalsList = await partRemovalsAPI.getAll();
-        const mappedRemovals = removalsList.map(removal => ({
-          id: removal.id,
-          date: removal.date,
-          place: removal.place,
-          ride: removal.ride,
-          status: removal.status,
-          missingParts: removal.missing_parts || '',
-          encodedBy: removal.encoded_by,
-        }));
-        setRemovals(mappedRemovals);
-      } catch (e) {
-        console.error('Error loading data:', e);
-      }
-    };
     loadData();
 
     // Setup WebSocket connection
@@ -302,39 +333,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       socket.off('part-deployments-updated');
       socket.off('part-removals-updated');
     };
-  }, []);
-
-  const loadParts = async () => {
-    try {
-      const allParts = await sparePartsAPI.getAll();
-      // Map database fields to component fields
-      const mappedParts = allParts.map(part => {
-        const { approvalStatus } = parseApprovalStatus(part);
-        return {
-          ...part,
-          id: part.id,
-          name: part.part_name || part.name,
-          quantity: part.quantity || 0,
-          unit: part.unit || '',
-          price: part.cost || part.price || 0,
-          status: part.status || 'In Stock',
-          location: part.location || '',
-          supplier: part.supplier || '',
-          ride: part.ride || '', // Use actual ride field from database
-          ride_location: part.ride_location || '', // Ride location from Manager's Ride Status
-          category: part.category || '',
-          approvalStatus,
-          approval_date: part.approval_date,
-          totalAmount: (part.cost || 0) * (part.quantity || 0),
-          lastUpdated: part.updated_at || part.created_at || new Date().toISOString(),
-        };
-      });
-      setSpareParts(mappedParts);
-      setFilteredParts(mappedParts);
-    } catch (error) {
-      console.error('Error loading parts:', error);
-    }
-  };
+  }, [loadParts, loadRidesFromManager, loadData]);
 
   useEffect(() => {
     const selectedRideObj = rides.find(r => r.id === selectedRideId);
@@ -346,6 +345,31 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       setFilteredParts(spareParts);
     }
   }, [selectedRideId, spareParts, rides]);
+
+  // Check for notifications when data changes
+  useEffect(() => {
+    const hasNewlyAddedParts = spareParts.some(part =>
+      isRecent(part.created_at)
+    );
+    const hasNewlyApprovedParts = spareParts.some(part =>
+      part.approval_status === 'Approved' && isRecent(part.updated_at)
+    );
+    const hasNewlyAddedRepairs = repairs.some(repair =>
+      isRecent(repair.timestamp)
+    );
+    const hasNewlyAddedDeployments = deployments.some(deployment =>
+      isRecent(deployment.created_at)
+    );
+    const hasNewlyAddedRemovals = removals.some(removal =>
+      isRecent(removal.created_at)
+    );
+    window.dispatchEvent(new CustomEvent('set-notification', {
+      detail: {
+        path: '/encoder-dashboard/parts-inventory',
+        hasNotification: hasNewlyAddedParts || hasNewlyApprovedParts || hasNewlyAddedRepairs || hasNewlyAddedDeployments || hasNewlyAddedRemovals
+      }
+    }));
+  }, [spareParts, repairs, deployments, removals, isRecent]);
 
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -50,22 +50,22 @@ import {
 
 const PersonnelIncidentReport = () => {
   // Helper function to check if record is newly added/edited (within 1 minute)
-  const isRecent = (timestamp) => {
+  const isRecent = useCallback((timestamp) => {
     if (!timestamp) return false;
     const recordTime = new Date(timestamp);
     const now = new Date();
     const diffMs = now - recordTime;
     const diffMinutes = diffMs / 60000; // Convert to minutes
     return diffMinutes <= 1; // Within 1 minute
-  };
+  }, []);
 
   // Helper function to check if review status was recently updated
-  const isReviewStatusRecent = (incident) => {
+  const isReviewStatusRecent = useCallback((incident) => {
     // Check if review_status is not the default 'Pending' or was recently changed
     if (!incident.reviewStatus || incident.reviewStatus === 'Pending') return false;
     // Use updated_at as proxy for when review status was changed
     return isRecent(incident.updated_at);
-  };
+  }, [isRecent]);
 
   // Force re-render every second to update highlights
   const [, setTick] = useState(0);
@@ -124,6 +124,96 @@ const PersonnelIncidentReport = () => {
   });
   const [openWarningModal, setOpenWarningModal] = useState(false);
   const [warningMessage, setWarningMessage] = useState('');
+
+  const loadIncidents = useCallback(async () => {
+    try {
+      const allIncidents = await incidentsAPI.getAll();
+      // Map database fields to component fields
+      const mappedIncidents = allIncidents.map(incident => {
+        // Handle photos: use server-provided URLs
+        const photos = (incident.photos || []).map(photo => ({
+          ...photo,
+          preview: photo.path || photo.preview,
+        }));
+
+        // Build a safe dateTime value based on date_reported/time_reported, falling back to created_at
+        let rawDateTime = '';
+        if (incident.date_reported && incident.time_reported && 
+            incident.date_reported !== null && incident.time_reported !== null &&
+            String(incident.date_reported) !== 'null' && String(incident.time_reported) !== 'null') {
+          let timeStr = String(incident.time_reported);
+          if (timeStr && !timeStr.includes(':')) {
+            timeStr = '00:00:00';
+          } else if (timeStr && timeStr.split(':').length === 2) {
+            timeStr = timeStr + ':00';
+          }
+          const candidate = `${incident.date_reported}T${timeStr}`;
+          const d = new Date(candidate);
+          if (!Number.isNaN(d.getTime())) {
+            rawDateTime = candidate;
+          }
+        }
+        if (!rawDateTime && incident.date_reported && 
+            incident.date_reported !== null && String(incident.date_reported) !== 'null') {
+          const d = new Date(incident.date_reported);
+          if (!Number.isNaN(d.getTime())) {
+            rawDateTime = incident.date_reported;
+          }
+        }
+        if (!rawDateTime) {
+          rawDateTime = incident.created_at || new Date().toISOString();
+        }
+
+        return {
+          ...incident,
+          id: incident.id,
+          incident_id: incident.incident_id,
+          dateTime: rawDateTime,
+          date_reported: incident.date_reported 
+            ? (typeof incident.date_reported === 'string' 
+                ? incident.date_reported 
+                : incident.date_reported.toISOString().split('T')[0])
+            : null,
+          time_reported: incident.time_reported 
+            ? (typeof incident.time_reported === 'string' 
+                ? incident.time_reported 
+                : (incident.time_reported instanceof Date 
+                    ? incident.time_reported.toTimeString().split(' ')[0]
+                    : String(incident.time_reported)))
+            : null,
+          location: incident.ride_name || incident.location || '',
+          type: incident.incident_type || incident.type || 'accident',
+          description: incident.description || '',
+          severity: incident.severity || 'low',
+          status: incident.status || 'Not Resolved',
+          photos: photos,
+          involvedParties: incident.involved_parties || [{ name: '', contact: '', role: '' }],
+          injuries: incident.injuries || '',
+          propertyDamage: incident.property_damage || '',
+          otherImpact: incident.other_impact || '',
+          response: incident.response || '',
+          actionsTaken: incident.actions_taken || '',
+          followUp: incident.follow_up || '',
+          recommendations: incident.recommendations || incident.resolution || '',
+          reviewStatus: normalizeReviewStatus(incident.review_status),
+        };
+      });
+      setIncidents(mappedIncidents);
+
+      // Check for newly added items and set notifications
+      const hasNewlyAdded = mappedIncidents.some(incident =>
+        isRecent(incident.created_at)
+      );
+      const hasNewlyReviewed = mappedIncidents.some(incident =>
+        incident.reviewStatus === 'Reviewed' && isReviewStatusRecent(incident)
+      );
+      window.dispatchEvent(new CustomEvent('set-notification', {
+        detail: { path: '/encoder-dashboard/incidents', hasNotification: hasNewlyAdded || hasNewlyReviewed }
+      }));
+    } catch (error) {
+      console.error('Error loading incidents:', error);
+    }
+  }, [isRecent, isReviewStatusRecent]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -283,97 +373,7 @@ const PersonnelIncidentReport = () => {
     return () => {
       socket.off('incidents-updated');
     };
-  }, []);
-
-  const loadIncidents = async () => {
-    try {
-      const allIncidents = await incidentsAPI.getAll();
-      // Map database fields to component fields
-      const mappedIncidents = allIncidents.map(incident => {
-        // Handle photos: use server-provided URLs
-        const photos = (incident.photos || []).map(photo => ({
-          ...photo,
-          preview: photo.path || photo.preview, // Use server path for preview
-        }));
-
-        // Build a safe dateTime value based on date_reported/time_reported, falling back to created_at
-        let rawDateTime = '';
-        // Check if date_reported and time_reported exist and are not null
-        if (incident.date_reported && incident.time_reported && 
-            incident.date_reported !== null && incident.time_reported !== null &&
-            String(incident.date_reported) !== 'null' && String(incident.time_reported) !== 'null') {
-          // Ensure time_reported is in HH:mm:ss or HH:mm format
-          let timeStr = String(incident.time_reported);
-          if (timeStr && !timeStr.includes(':')) {
-            timeStr = '00:00:00';
-          } else if (timeStr && timeStr.split(':').length === 2) {
-            timeStr = timeStr + ':00'; // Add seconds if missing
-          }
-          const candidate = `${incident.date_reported}T${timeStr}`;
-          const d = new Date(candidate);
-          if (!Number.isNaN(d.getTime())) {
-            rawDateTime = candidate;
-          }
-        }
-        if (!rawDateTime && incident.date_reported && 
-            incident.date_reported !== null && String(incident.date_reported) !== 'null') {
-          const candidate = `${incident.date_reported}T00:00:00`;
-          const d = new Date(candidate);
-          if (!Number.isNaN(d.getTime())) {
-            rawDateTime = candidate;
-          }
-        }
-        if (!rawDateTime && (incident.created_at || incident.createdAt)) {
-          const candidate = incident.created_at || incident.createdAt;
-          const d = new Date(candidate);
-          if (!Number.isNaN(d.getTime())) {
-            rawDateTime = candidate;
-          }
-        }
-        if (!rawDateTime) {
-          rawDateTime = new Date().toISOString();
-        }
-
-        return {
-          ...incident,
-          id: incident.id,
-          incident_id: incident.incident_id,
-          dateTime: rawDateTime,
-          // Preserve date_reported and time_reported as strings (handle Date objects from MySQL)
-          date_reported: incident.date_reported 
-            ? (typeof incident.date_reported === 'string' 
-                ? incident.date_reported 
-                : incident.date_reported.toISOString().split('T')[0])
-            : null,
-          time_reported: incident.time_reported 
-            ? (typeof incident.time_reported === 'string' 
-                ? incident.time_reported 
-                : (incident.time_reported instanceof Date 
-                    ? incident.time_reported.toTimeString().split(' ')[0]
-                    : String(incident.time_reported)))
-            : null,
-          location: incident.ride_name || incident.location || '',
-          type: incident.incident_type || incident.type || 'accident',
-          description: incident.description || '',
-          severity: incident.severity || 'low',
-          status: incident.status || 'Not Resolved',
-          photos: photos,
-          involvedParties: incident.involved_parties || [{ name: '', contact: '', role: '' }],
-          injuries: incident.injuries || '',
-          propertyDamage: incident.property_damage || '',
-          otherImpact: incident.other_impact || '',
-          response: incident.response || '',
-          actionsTaken: incident.actions_taken || '',
-          followUp: incident.follow_up || '',
-          recommendations: incident.recommendations || incident.resolution || '',
-          reviewStatus: normalizeReviewStatus(incident.review_status),
-        };
-      });
-      setIncidents(mappedIncidents);
-    } catch (error) {
-      console.error('Error loading incidents:', error);
-    }
-  };
+  }, [loadIncidents]);
 
   const handlePhotoUpload = (event) => {
     const files = Array.from(event.target.files);

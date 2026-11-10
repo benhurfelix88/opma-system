@@ -121,6 +121,16 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
     };
   }, []);
 
+  // Clear notification when user navigates to a path
+  useEffect(() => {
+    if (notifications[location.pathname]) {
+      setNotifications(prev => ({
+        ...prev,
+        [location.pathname]: false,
+      }));
+    }
+  }, [location.pathname, notifications]);
+
   // Helper function to check if timestamp is within 1 minute
   const isRecent = (timestamp) => {
     if (!timestamp) return false;
@@ -161,13 +171,81 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
 
         // Check incidents
         const incidents = await incidentsAPI.getAll();
-        const hasIncidentsNotification = incidents.some(incident =>
-          (incident.review_status === 'Reviewed' && isRecent(incident.updated_at)) ||
-          isRecent(incident.created_at)
-        );
+        const hasIncidentsNotification = incidents.some(incident => {
+          const reviewStatus = incident.review_status === 'Reviewed' ||
+                             incident.review_status === 'reviewed' ||
+                             incident.reviewStatus === 'REVIEWED';
+          return (reviewStatus && isRecent(incident.updated_at)) ||
+                 isRecent(incident.created_at);
+        });
         setNotifications(prev => ({
           ...prev,
           '/admin-dashboard/incidents': hasIncidentsNotification
+        }));
+
+        // Check customers count
+        const entries = await rideEntriesAPI.getAll();
+        const hasCustomersNotification = entries.some(entry =>
+          isRecent(entry.created_at)
+        );
+        setNotifications(prev => ({
+          ...prev,
+          '/admin-dashboard/customers-count': hasCustomersNotification
+        }));
+      } catch (error) {
+        console.error('Error checking notifications:', error);
+      }
+    };
+
+    // Check immediately
+    checkNotifications();
+
+    // Check every 10 seconds
+    const interval = setInterval(checkNotifications, 10000);
+
+    return () => clearInterval(interval);
+  }, [user?.role]);
+
+  // Periodically check for notifications for IT Encoder
+  useEffect(() => {
+    if (user?.role !== 'IT Encoder') return;
+
+    const checkNotifications = async () => {
+      try {
+        // Check parts inventory
+        const parts = await sparePartsAPI.getAll();
+        const hasPartsNotification = parts.some(part =>
+          (part.approval_status === 'Approved' && isRecent(part.updated_at)) ||
+          isRecent(part.created_at)
+        );
+        setNotifications(prev => ({
+          ...prev,
+          '/encoder-dashboard/parts-inventory': hasPartsNotification
+        }));
+
+        // Check maintenance
+        const maintenance = await maintenanceAPI.getAll();
+        const hasMaintenanceNotification = maintenance.some(report =>
+          (report.approval_status === 'Approved' && isRecent(report.updated_at)) ||
+          isRecent(report.created_at)
+        );
+        setNotifications(prev => ({
+          ...prev,
+          '/encoder-dashboard/maintenance': hasMaintenanceNotification
+        }));
+
+        // Check incidents
+        const incidents = await incidentsAPI.getAll();
+        const hasIncidentsNotification = incidents.some(incident => {
+          const reviewStatus = incident.review_status === 'Reviewed' ||
+                             incident.review_status === 'reviewed' ||
+                             incident.review_status === 'REVIEWED';
+          return (reviewStatus && isRecent(incident.updated_at)) ||
+                 isRecent(incident.created_at);
+        });
+        setNotifications(prev => ({
+          ...prev,
+          '/encoder-dashboard/incidents': hasIncidentsNotification
         }));
 
         // Check customers count
