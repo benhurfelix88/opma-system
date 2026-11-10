@@ -210,6 +210,16 @@ const ManagerIncidentReports = () => {
         filtered = incidents;
     }
 
+    // Apply search query filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(incident => {
+        return Object.values(incident)
+          .map((v) => (v || '').toString().toLowerCase())
+          .some((v) => v.includes(q));
+      });
+    }
+
     return filtered.sort((a, b) => {
       const aVal = normalizedValue(
         sortBy === 'dateTime'

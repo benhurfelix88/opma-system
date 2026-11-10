@@ -152,9 +152,11 @@ const ManagerMaintenanceReports = () => {
       const q = searchQuery.toLowerCase();
       return [
         record.ride,
+        record.location,
         record.status,
         record.technician,
         record.description,
+        new Date(record.date).toLocaleDateString(),
       ]
         .map((v) => (v || '').toString().toLowerCase())
         .some((v) => v.includes(q));

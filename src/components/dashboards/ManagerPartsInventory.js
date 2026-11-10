@@ -305,9 +305,12 @@ const ManagerPartsInventory = () => {
       const q = repairsSearchQuery.toLowerCase();
       return (
         repair.ride?.toLowerCase().includes(q) ||
+        repair.location?.toLowerCase().includes(q) ||
         repair.issue?.toLowerCase().includes(q) ||
         repair.technician?.toLowerCase().includes(q) ||
-        repair.status?.toLowerCase().includes(q)
+        repair.status?.toLowerCase().includes(q) ||
+        new Date(repair.date).toLocaleDateString().toLowerCase().includes(q) ||
+        repair.cost?.toString().toLowerCase().includes(q)
       );
     })
     .sort((a, b) => {
@@ -325,7 +328,8 @@ const ManagerPartsInventory = () => {
         deployment.ride?.toLowerCase().includes(q) ||
         deployment.encoded_by?.toLowerCase().includes(q) ||
         deployment.status?.toLowerCase().includes(q) ||
-        deployment.missing_parts?.toLowerCase().includes(q)
+        deployment.missing_parts?.toLowerCase().includes(q) ||
+        new Date(deployment.date).toLocaleDateString().toLowerCase().includes(q)
       );
     })
     .sort((a, b) => {
@@ -343,7 +347,8 @@ const ManagerPartsInventory = () => {
         removal.ride?.toLowerCase().includes(q) ||
         removal.encoded_by?.toLowerCase().includes(q) ||
         removal.status?.toLowerCase().includes(q) ||
-        removal.missing_parts?.toLowerCase().includes(q)
+        removal.missing_parts?.toLowerCase().includes(q) ||
+        new Date(removal.date).toLocaleDateString().toLowerCase().includes(q)
       );
     })
     .sort((a, b) => {

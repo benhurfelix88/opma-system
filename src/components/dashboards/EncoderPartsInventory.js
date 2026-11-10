@@ -44,7 +44,8 @@ import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   Circle as CircleIcon,
-  ArrowForward as ArrowForwardIcon
+  ArrowForward as ArrowForwardIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
 
 // Define animations
@@ -156,7 +157,9 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     technician: '',
     status: 'In Progress',
     notes: '',
+    location: '',
   });
+  const [repairSearchQuery, setRepairSearchQuery] = useState('');
   const [deployments, setDeployments] = useState([]);
   const [removals, setRemovals] = useState([]);
   const [deploymentRemovalMode, setDeploymentRemovalMode] = useState('deployment');
@@ -558,7 +561,25 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   };
 
   const getSortedRepairs = () => {
-    const sortedRepairs = [...repairs];
+    let sortedRepairs = [...repairs];
+
+    // Filter by search query
+    if (repairSearchQuery) {
+      const q = repairSearchQuery.toLowerCase();
+      sortedRepairs = sortedRepairs.filter((repair) => {
+        return (
+          repair.ride?.toLowerCase().includes(q) ||
+          repair.location?.toLowerCase().includes(q) ||
+          repair.issue?.toLowerCase().includes(q) ||
+          repair.technician?.toLowerCase().includes(q) ||
+          repair.status?.toLowerCase().includes(q) ||
+          new Date(repair.date).toLocaleDateString().toLowerCase().includes(q) ||
+          repair.cost?.toString().toLowerCase().includes(q)
+        );
+      });
+    }
+
+    // Sort
     switch (repairSortBy) {
       case 'date-desc':
         return sortedRepairs.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -1235,7 +1256,17 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Box></Box>
+                <TextField
+                  placeholder="Search repairs..."
+                  variant="outlined"
+                  size="small"
+                  value={repairSearchQuery}
+                  onChange={(e) => setRepairSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                  }}
+                  sx={{ minWidth: 200 }}
+                />
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                   <FormControl size="small" sx={{ minWidth: 150 }}>
                     <InputLabel>Sort By</InputLabel>
