@@ -29,7 +29,7 @@ import {
   ListItem,
   ListItemText,
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers';
+import { DateTimePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import DashboardLayout from '../layout/DashboardLayout';
@@ -771,7 +771,7 @@ const EncoderMaintenanceReports = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <DatePicker
+                  <DateTimePicker
                     label="Date Recorded"
                     value={formData.date}
                     onChange={(newValue) => setFormData({ ...formData, date: newValue })}
@@ -816,7 +816,7 @@ const EncoderMaintenanceReports = () => {
               </Grid>
               <Grid item xs={12}>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <DatePicker
+                  <DateTimePicker
                     label="Maintenance Schedule"
                     value={formData.nextMaintenance}
                     onChange={(newValue) => setFormData({ ...formData, nextMaintenance: newValue })}
@@ -850,29 +850,8 @@ const EncoderMaintenanceReports = () => {
           <DialogContent>
             {viewRecord && (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-                <Typography><strong>Ride:</strong> {viewRecord.ride}</Typography>
                 <Typography><strong>Date Recorded:</strong> {new Date(viewRecord.date).toLocaleString()}</Typography>
-                <Typography><strong>Status:</strong>
-                  <Chip
-                    label={viewRecord.status}
-                    variant="outlined"
-                    size="small"
-                    sx={{
-                      ml: 1,
-                      color: getStatusColor(viewRecord.status) === 'success' ? 'green' :
-                            getStatusColor(viewRecord.status) === 'warning' ? 'orange' :
-                            getStatusColor(viewRecord.status) === 'error' ? 'red' :
-                            getStatusColor(viewRecord.status) === 'info' ? 'blue' : 'gray',
-                      borderColor: getStatusColor(viewRecord.status) === 'success' ? 'green' :
-                                   getStatusColor(viewRecord.status) === 'warning' ? 'orange' :
-                                   getStatusColor(viewRecord.status) === 'error' ? 'red' :
-                                   getStatusColor(viewRecord.status) === 'info' ? 'blue' : 'gray',
-                      backgroundColor: 'transparent'
-                    }}
-                  />
-                </Typography>
                 <Typography><strong>Technician:</strong> {viewRecord.technician}</Typography>
-                <Typography><strong>Location:</strong> {viewRecord.location || 'Not specified'}</Typography>
                 <Typography><strong>Description:</strong></Typography>
                 <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
                   <Typography variant="body2">

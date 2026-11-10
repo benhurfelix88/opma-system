@@ -551,26 +551,7 @@ const ManagerMaintenanceReports = () => {
           <DialogContent>
             {viewRecord && (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-                <Typography><strong>Ride:</strong> {viewRecord.ride || 'N/A'}</Typography>
-                <Typography><strong>Location:</strong> {viewRecord.location || 'N/A'}</Typography>
                 <Typography><strong>Date:</strong> {new Date(viewRecord.date).toLocaleString()}</Typography>
-                <Typography><strong>Status:</strong>
-                  <Chip
-                    label={viewRecord.status}
-                    variant="outlined"
-                    size="small"
-                    sx={{
-                      ml: 1,
-                      color: getStatusColor(viewRecord.status) === 'success' ? 'green' :
-                            getStatusColor(viewRecord.status) === 'warning' ? 'orange' :
-                            getStatusColor(viewRecord.status) === 'error' ? 'red' : 'blue',
-                      borderColor: getStatusColor(viewRecord.status) === 'success' ? 'green' :
-                                   getStatusColor(viewRecord.status) === 'warning' ? 'orange' :
-                                   getStatusColor(viewRecord.status) === 'error' ? 'red' : 'blue',
-                      backgroundColor: 'transparent',
-                    }}
-                  />
-                </Typography>
                 <Typography><strong>Technician:</strong> {viewRecord.technician || 'N/A'}</Typography>
                 <Typography><strong>Description:</strong></Typography>
                 <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
@@ -582,33 +563,6 @@ const ManagerMaintenanceReports = () => {
                   {viewRecord.nextMaintenance
                     ? ` ${new Date(viewRecord.nextMaintenance).toLocaleString()}`
                     : ' Not scheduled'}
-                </Typography>
-                <Typography><strong>Approval Status:</strong>
-                  <Chip
-                    label={viewRecord.approval_status || 'Pending'}
-                    variant="outlined"
-                    size="small"
-                    sx={{
-                      ml: 1,
-                      color: viewRecord.approval_status === 'Approved' ? 'green' :
-                            viewRecord.approval_status === 'Rejected' ? 'red' : 'orange',
-                      borderColor: viewRecord.approval_status === 'Approved' ? 'green' :
-                                   viewRecord.approval_status === 'Rejected' ? 'red' : 'orange',
-                      backgroundColor: 'transparent',
-                    }}
-                  />
-                </Typography>
-                <Typography><strong>Approval Date:</strong>
-                  {viewRecord.approval_date
-                    ? ` ${new Date(viewRecord.approval_date).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true
-                      })}`
-                    : ' N/A'}
                 </Typography>
               </Box>
             )}

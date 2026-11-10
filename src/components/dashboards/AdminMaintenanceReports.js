@@ -241,11 +241,9 @@ const AdminMaintenanceReports = () => {
   };
 
   const ViewDetailsDialog = () => {
-    if (!viewRecord) return null;
-
     return (
-      <Dialog 
-        open={openViewDialog} 
+      <Dialog
+        open={openViewDialog}
         onClose={handleCloseViewDialog}
         maxWidth="md"
         fullWidth
@@ -255,81 +253,37 @@ const AdminMaintenanceReports = () => {
           Maintenance Record Details
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <Typography><strong>Ride:</strong> {viewRecord.ride || 'N/A'}</Typography>
-            <Typography><strong>Date Recorded:</strong> {viewRecord.date ? new Date(viewRecord.date).toLocaleString('en-US', { 
-              year: 'numeric', 
-              month: '2-digit', 
-              day: '2-digit',
-              hour: 'numeric', 
-              minute: '2-digit',
-              hour12: true 
-            }) : 'N/A'}</Typography>
-            <Typography><strong>Status:</strong>
-              <Chip
-                icon={getStatusIcon(viewRecord.status)}
-                label={viewRecord.status || 'Unknown'}
-                variant="outlined"
-                size="small"
-                sx={{
-                  ml: 1,
-                  color: getStatusColor(viewRecord.status) === 'success' ? 'green' :
-                        getStatusColor(viewRecord.status) === 'warning' ? 'orange' :
-                        getStatusColor(viewRecord.status) === 'error' ? 'red' : 'blue',
-                  borderColor: getStatusColor(viewRecord.status) === 'success' ? 'green' :
-                               getStatusColor(viewRecord.status) === 'warning' ? 'orange' :
-                               getStatusColor(viewRecord.status) === 'error' ? 'red' : 'blue',
-                  backgroundColor: 'transparent',
-                }}
-              />
-            </Typography>
-            <Typography><strong>Technician:</strong> {viewRecord.technician || 'N/A'}</Typography>
-            <Typography><strong>Description:</strong></Typography>
-            <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
-              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                {viewRecord.description || 'No description provided'}
+          {viewRecord && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+              <Typography><strong>Date Recorded:</strong> {viewRecord.date ? new Date(viewRecord.date).toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              }) : 'N/A'}</Typography>
+              <Typography><strong>Technician:</strong> {viewRecord.technician || 'N/A'}</Typography>
+              <Typography><strong>Description:</strong></Typography>
+              <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {viewRecord.description || 'No description provided'}
+                </Typography>
+              </Paper>
+              <Typography><strong>Maintenance Schedule:</strong>
+                {viewRecord.nextMaintenance
+                  ? ` ${new Date(viewRecord.nextMaintenance).toLocaleString('en-US', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    })}`
+                  : ' Not scheduled'}
               </Typography>
-            </Paper>
-            <Typography><strong>Maintenance Schedule:</strong>
-              {viewRecord.nextMaintenance
-                ? ` ${new Date(viewRecord.nextMaintenance).toLocaleString('en-US', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
-                  })}`
-                : ' Not scheduled'}
-            </Typography>
-            <Typography><strong>Approval Status:</strong>
-              <Chip
-                label={viewRecord.approval_status || 'Pending'}
-                variant="outlined"
-                size="small"
-                sx={{
-                  ml: 1,
-                  color: viewRecord.approval_status === 'Approved' ? 'green' :
-                        viewRecord.approval_status === 'Rejected' ? 'red' : 'orange',
-                  borderColor: viewRecord.approval_status === 'Approved' ? 'green' :
-                               viewRecord.approval_status === 'Rejected' ? 'red' : 'orange',
-                  backgroundColor: 'transparent',
-                }}
-              />
-            </Typography>
-            <Typography><strong>Approval Date:</strong>
-              {viewRecord.approval_date
-                ? ` ${new Date(viewRecord.approval_date).toLocaleString('en-US', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
-                  })}`
-                : ' N/A'}
-            </Typography>
-          </Box>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseViewDialog}>Close</Button>
