@@ -30,9 +30,6 @@ import {
   Build as BuildIcon,
   Search as SearchIcon,
   Info as InfoIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-  Schedule as ScheduleIcon,
   PictureAsPdf as ReportIcon,
   Circle as CircleIcon,
   ArrowRight as ArrowRightIcon,
@@ -193,23 +190,6 @@ const AdminMaintenanceReports = () => {
         return 'error';
       default:
         return 'default';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'pending':
-      case 'scheduled':
-        return <ScheduleIcon />;
-      case 'in progress':
-      case 'in_progress':
-        return <BuildIcon />;
-      case 'completed':
-        return <CheckCircleIcon />;
-      case 'overdue':
-        return <WarningIcon />;
-      default:
-        return null;
     }
   };
 
@@ -498,7 +478,6 @@ const AdminMaintenanceReports = () => {
                         </TableCell>
                         <TableCell align="center">
                           <Chip
-                            icon={getStatusIcon(report.status)}
                             label={report.status || 'Unknown'}
                             variant="outlined"
                             size="small"

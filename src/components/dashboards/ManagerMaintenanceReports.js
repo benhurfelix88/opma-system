@@ -272,13 +272,13 @@ const ManagerMaintenanceReports = () => {
             <TableHead>
               <TableRow>
                 <TableCell align="center" sx={{ width: '30px' }}></TableCell>
+                <TableCell align="center">Date Recorded</TableCell>
                 <TableCell align="center">Ride</TableCell>
-                <TableCell align="center">Location</TableCell>
-                <TableCell align="center">Date</TableCell>
-                <TableCell align="center">Status</TableCell>
+                <TableCell align="center">Maintenance Schedule</TableCell>
                 <TableCell align="center">Description</TableCell>
                 <TableCell align="center">Technician</TableCell>
-                <TableCell align="center">Next Maintenance</TableCell>
+                <TableCell align="center">Location</TableCell>
+                <TableCell align="center">Status</TableCell>
                 <TableCell align="center">Approval Status</TableCell>
                 <TableCell align="center">Approval Date</TableCell>
                 <TableCell align="center">Actions</TableCell>
@@ -287,7 +287,7 @@ const ManagerMaintenanceReports = () => {
             <TableBody>
               {filteredAndSortedRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} align="center">
+                  <TableCell colSpan={13} align="center">
                     <Typography variant="body1" color="text.secondary">
                       No maintenance records found
                     </Typography>
@@ -306,26 +306,15 @@ const ManagerMaintenanceReports = () => {
                         <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                       )}
                     </TableCell>
-                    <TableCell align="center">{record.ride}</TableCell>
-                    <TableCell align="center">{record.location || '-'}</TableCell>
                     <TableCell align="center">
                       {new Date(record.date).toLocaleDateString()}
                     </TableCell>
+                    <TableCell align="center">{record.ride}</TableCell>
                     <TableCell align="center">
-                      <Chip
-                        label={record.status}
-                        variant="outlined"
-                        size="small"
-                        sx={{ 
-                          color: getStatusColor(record.status) === 'success' ? 'green' : 
-                                getStatusColor(record.status) === 'warning' ? 'orange' : 
-                                getStatusColor(record.status) === 'error' ? 'red' : 'blue',
-                          borderColor: getStatusColor(record.status) === 'success' ? 'green' : 
-                                       getStatusColor(record.status) === 'warning' ? 'orange' : 
-                                       getStatusColor(record.status) === 'error' ? 'red' : 'blue',
-                          backgroundColor: 'transparent'
-                        }}
-                      />
+                      {record.nextMaintenance
+                        ? new Date(record.nextMaintenance).toLocaleDateString()
+                        : 'Not scheduled'}
+                      }
                     </TableCell>
                     <TableCell align="center">
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
@@ -351,25 +340,23 @@ const ManagerMaintenanceReports = () => {
                         )}
                       </Box>
                     </TableCell>
+                    <TableCell align="center">{record.technician}</TableCell>
+                    <TableCell align="center">{record.location || '-'}</TableCell>
                     <TableCell align="center">
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          maxWidth: 100,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
+                      <Chip
+                        label={record.status}
+                        variant="outlined"
+                        size="small"
+                        sx={{ 
+                          color: getStatusColor(record.status) === 'success' ? 'green' : 
+                                getStatusColor(record.status) === 'warning' ? 'orange' : 
+                                getStatusColor(record.status) === 'error' ? 'red' : 'blue',
+                          borderColor: getStatusColor(record.status) === 'success' ? 'green' : 
+                                       getStatusColor(record.status) === 'warning' ? 'orange' : 
+                                       getStatusColor(record.status) === 'error' ? 'red' : 'blue',
+                          backgroundColor: 'transparent'
                         }}
-                        title={record.technician || 'N/A'}
-                      >
-                        {truncateText(record.technician, 3)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      {record.nextMaintenance
-                        ? new Date(record.nextMaintenance).toLocaleDateString()
-                        : 'N/A'
-                      }
+                      />
                     </TableCell>
                     <TableCell align="center">
                       <Chip

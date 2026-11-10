@@ -555,9 +555,9 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     setDetailsData(null);
   };
 
-  const getRepairPartsForRide = (ride) => {
+  const getRepairPartsForRide = (ride, location) => {
     if (!ride) return [];
-    return spareParts.filter((part) => part.ride === ride);
+    return spareParts.filter((part) => part.ride === ride && (!location || part.ride_location === location));
   };
 
   const getSortedRepairs = () => {
@@ -2353,9 +2353,10 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                 const statusColor = rideStatus === 'operational' ? 'green' :
                                    rideStatus === 'maintenance' ? 'orange' :
                                    rideStatus === 'malfunction' ? 'red' : 'gray';
+                const uniqueKey = `${ride.id}-${ride.location}`;
                 return (
                   <Box
-                    key={ride.id}
+                    key={uniqueKey}
                     onClick={() => {
                       setRepairData({ ...repairData, ride: ride.name, location: ride.location, partsReplaced: '' });
                       setRideSelectionModalOpen(false);
@@ -2412,12 +2413,12 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           <DialogTitle>Select Parts</DialogTitle>
           <DialogContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, pt: 1 }}>
-              {getRepairPartsForRide(repairData.ride).length === 0 ? (
+              {getRepairPartsForRide(repairData.ride, repairData.location).length === 0 ? (
                 <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
                   No parts available for this ride
                 </Typography>
               ) : (
-                getRepairPartsForRide(repairData.ride).map((part) => (
+                getRepairPartsForRide(repairData.ride, repairData.location).map((part) => (
                   <Box
                     key={part.id}
                     onClick={() => {
