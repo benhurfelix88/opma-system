@@ -83,7 +83,6 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(null);
   const fileInputRef = useRef(null);
-  const [profilePicKey, setProfilePicKey] = useState(Date.now());
   const [menuNotifications, setMenuNotifications] = useState({});
   const [lastVisitTimes, setLastVisitTimes] = useState({});
   const menuNotificationsRef = useRef(menuNotifications);
@@ -128,8 +127,7 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
   const getProfilePicUrl = (picPath) => {
     if (!picPath) return null;
     if (picPath.startsWith('http')) return picPath;
-    // Add timestamp to prevent browser caching
-    return `${BACKEND_URL}${picPath}?t=${profilePicKey}`;
+    return `${BACKEND_URL}${picPath}`;
   };
 
   useEffect(() => {
@@ -140,11 +138,8 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
         setUser(userData);
         setEditedUser(userData);
 
-        // Update key to force fresh image load
-        setProfilePicKey(Date.now());
-
-        // Fetch fresh user data from server to get latest profile picture
-        // Silently fail on 403 errors (session expired, etc.)
+        // Only fetch fresh user data if not already fetched recently
+        // This prevents excessive API calls
         try {
           const freshUser = await authAPI.getCurrentUser();
           setUser(freshUser);
@@ -336,8 +331,6 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
     setPhotoUploading(true);
     try {
       await authAPI.uploadProfilePicture(file);
-      // Update key to force browser to fetch new image
-      setProfilePicKey(Date.now());
       // Fetch fresh user data from server to get the updated profile picture
       const freshUser = await authAPI.getCurrentUser();
       setUser(freshUser);
@@ -361,8 +354,6 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
     setPhotoUploading(true);
     try {
       await authAPI.deleteProfilePicture();
-      // Update key to force browser to fetch new image
-      setProfilePicKey(Date.now());
       // Fetch fresh user data from server to get the updated profile picture
       const freshUser = await authAPI.getCurrentUser();
       setUser(freshUser);
@@ -424,7 +415,6 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Avatar
-                key={profilePicKey}
                 src={photoPreview || getProfilePicUrl(user?.profile_picture)}
                 sx={{
                   bgcolor: 'primary.main',
@@ -625,7 +615,6 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
             <Box sx={{ position: 'relative', mb: 1 }}>
               <Avatar
-                key={profilePicKey}
                 src={photoPreview || getProfilePicUrl(user?.profile_picture)}
                 sx={{
                   width: 100,
