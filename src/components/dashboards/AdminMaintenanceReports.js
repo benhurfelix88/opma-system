@@ -141,10 +141,13 @@ const AdminMaintenanceReports = () => {
     const hasNewlyApproved = maintenanceData.some(report =>
       report.approval_status === 'Approved' && isApprovalStatusRecent(report)
     );
+    const hasNewlyAdded = maintenanceData.some(report =>
+      isRecent(report.created_at)
+    );
     window.dispatchEvent(new CustomEvent('set-notification', {
-      detail: { path: '/admin-dashboard/maintenance', hasNotification: hasNewlyApproved }
+      detail: { path: '/admin-dashboard/maintenance', hasNotification: hasNewlyApproved || hasNewlyAdded }
     }));
-  }, [maintenanceData, isApprovalStatusRecent]);
+  }, [maintenanceData, isApprovalStatusRecent, isRecent]);
 
   useEffect(() => {
     let filtered = maintenanceData;

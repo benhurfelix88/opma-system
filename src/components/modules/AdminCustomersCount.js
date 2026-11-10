@@ -46,14 +46,14 @@ import { getSocket } from '../../utils/socket';
 
 const AdminCustomersCount = () => {
   // Helper function to check if record is newly added/edited (within 1 minute)
-  const isRecent = (timestamp) => {
+  const isRecent = useCallback((timestamp) => {
     if (!timestamp) return false;
     const recordTime = new Date(timestamp);
     const now = new Date();
     const diffMs = now - recordTime;
     const diffMinutes = diffMs / 60000; // Convert to minutes
     return diffMinutes <= 1; // Within 1 minute
-  };
+  }, []);
 
   // Force re-render every second to update highlights
   const [, setTick] = useState(0);
@@ -99,7 +99,7 @@ const AdminCustomersCount = () => {
       const entries = await rideEntriesAPI.getAll();
       console.log('📝 All entries:', entries);
       setAllEntries(entries);
-      
+
       // Apply filters
       applyFilters(entries, ridesList, selectedRide, selectedDate);
       
@@ -182,6 +182,16 @@ const AdminCustomersCount = () => {
       socket.off('rides-updated');
     };
   }, [loadCustomersCount]);
+
+  // Separate effect to update notification when data changes
+  useEffect(() => {
+    const hasNewlyAdded = allEntries.some(entry =>
+      isRecent(entry.created_at)
+    );
+    window.dispatchEvent(new CustomEvent('set-notification', {
+      detail: { path: '/admin-dashboard/customers-count', hasNotification: hasNewlyAdded }
+    }));
+  }, [allEntries, isRecent]);
 
   useEffect(() => {
     applyFilters(allEntries, rides, selectedRide, selectedDate);

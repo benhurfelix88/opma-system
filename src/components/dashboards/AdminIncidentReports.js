@@ -104,10 +104,13 @@ const AdminIncidentReports = () => {
     const hasNewlyReviewed = incidents.some(incident =>
       incident.reviewStatus === 'Reviewed' && isReviewStatusRecent(incident)
     );
+    const hasNewlyAdded = incidents.some(incident =>
+      isRecent(incident.created_at)
+    );
     window.dispatchEvent(new CustomEvent('set-notification', {
-      detail: { path: '/admin-dashboard/incidents', hasNotification: hasNewlyReviewed }
+      detail: { path: '/admin-dashboard/incidents', hasNotification: hasNewlyReviewed || hasNewlyAdded }
     }));
-  }, [incidents, isReviewStatusRecent]);
+  }, [incidents, isReviewStatusRecent, isRecent]);
 
   const loadIncidents = async () => {
     try {

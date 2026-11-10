@@ -132,19 +132,22 @@ const AdminPartsInventory = () => {
       });
       setParts(mappedParts);
 
-      // Check for newly approved items and set notification
+      // Check for newly approved items and newly added items
       const hasNewlyApproved = mappedParts.some(part =>
         part.approvalStatus === 'Approved' && isApprovalStatusRecent(part)
       );
+      const hasNewlyAdded = mappedParts.some(part =>
+        isRecent(part.created_at)
+      );
       window.dispatchEvent(new CustomEvent('set-notification', {
-        detail: { path: '/admin-dashboard/parts-inventory', hasNotification: hasNewlyApproved }
+        detail: { path: '/admin-dashboard/parts-inventory', hasNotification: hasNewlyApproved || hasNewlyAdded }
       }));
     } catch (error) {
       console.error('Error loading parts:', error);
     } finally {
       setLoading(false);
     }
-  }, [isApprovalStatusRecent]);
+  }, [isApprovalStatusRecent, isRecent]);
 
   const loadRideRepairs = useCallback(async () => {
     try {
