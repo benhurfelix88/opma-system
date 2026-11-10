@@ -186,6 +186,7 @@ CREATE TABLE IF NOT EXISTS ride_repairs (
     technician VARCHAR(255) NOT NULL,
     status VARCHAR(50) DEFAULT 'In Progress',
     notes TEXT,
+    location VARCHAR(255),
     created_by INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
