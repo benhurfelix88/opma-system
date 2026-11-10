@@ -2358,7 +2358,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   <Box
                     key={uniqueKey}
                     onClick={() => {
-                      setRepairData({ ...repairData, ride: ride.name, location: ride.location || '', partsReplaced: '' });
+                      setRepairData({ ...repairData, ride: ride.name, location: ride.location, partsReplaced: '' });
                       setRideSelectionModalOpen(false);
                     }}
                     sx={{
@@ -2380,7 +2380,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           {ride.name}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                          {ride.location || '(No Location)'}
+                          {ride.location}
                         </Typography>
                       </Box>
                       <Chip
