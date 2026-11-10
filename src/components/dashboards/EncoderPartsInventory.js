@@ -1991,7 +1991,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     }}
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={12} md={6}>
                   {repairData.ride ? (
                     <Button
                       fullWidth
@@ -2358,7 +2358,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   <Box
                     key={uniqueKey}
                     onClick={() => {
-                      setRepairData({ ...repairData, ride: ride.name, location: ride.location, partsReplaced: '' });
+                      setRepairData({ ...repairData, ride: ride.name, location: ride.location || '', partsReplaced: '' });
                       setRideSelectionModalOpen(false);
                     }}
                     sx={{
@@ -2379,8 +2379,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                         <Typography variant="subtitle2" fontWeight="bold">
                           {ride.name}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {ride.location}
+                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                          {ride.location || '(No Location)'}
                         </Typography>
                       </Box>
                       <Chip

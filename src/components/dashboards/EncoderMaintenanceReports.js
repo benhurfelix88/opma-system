@@ -820,7 +820,16 @@ const EncoderMaintenanceReports = () => {
                     label="Maintenance Schedule"
                     value={formData.nextMaintenance}
                     onChange={(newValue) => setFormData({ ...formData, nextMaintenance: newValue })}
-                    slotProps={{ textField: { fullWidth: true, sx: { pr: 2 } } }}
+                    slotProps={{
+                      textField: { fullWidth: true, sx: { pr: 2 } },
+                      popper: {
+                        sx: {
+                          '& .MuiPaper-root': {
+                            paddingRight: '20px',
+                          },
+                        },
+                      },
+                    }}
                   />
                 </LocalizationProvider>
               </Grid>
