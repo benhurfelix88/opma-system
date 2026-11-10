@@ -144,12 +144,14 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
         setProfilePicKey(Date.now());
 
         // Fetch fresh user data from server to get latest profile picture
+        // Silently fail on 403 errors (session expired, etc.)
         try {
           const freshUser = await authAPI.getCurrentUser();
           setUser(freshUser);
           setEditedUser(freshUser);
         } catch (error) {
-          console.error('Failed to fetch current user:', error);
+          // Silently ignore errors - use stored user data instead
+          // This prevents console errors on session expiration
         }
       }
     };
