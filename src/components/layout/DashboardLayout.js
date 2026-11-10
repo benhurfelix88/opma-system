@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Drawer,
@@ -42,12 +42,14 @@ import {
   Edit as EditIcon,
   Save as SaveIcon,
   Cancel as CancelIcon,
+  Circle as CircleIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { keyframes } from '@mui/system';
 import Logo from '../common/Logo';
 import FadeInContent from '../common/FadeInContent';
 import { authAPI } from '../../services/api';
+import { getSocket } from '../../utils/socket';
 
 const drawerWidth = 240;
 
@@ -81,6 +83,43 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(null);
   const fileInputRef = useRef(null);
+  const [menuNotifications, setMenuNotifications] = useState({});
+  const [lastVisitTimes, setLastVisitTimes] = useState({});
+  const menuNotificationsRef = useRef(menuNotifications);
+  menuNotificationsRef.current = menuNotifications;
+  const eventToPathsRef = useRef({
+    'incidents-updated': ['/admin-dashboard/incidents', '/encoder-dashboard/incidents', '/manager-dashboard/incidents', '/personnel-dashboard/incidents'],
+    'maintenance-updated': ['/admin-dashboard/maintenance', '/encoder-dashboard/maintenance', '/manager-dashboard/maintenance'],
+    'spare-parts-updated': ['/admin-dashboard/parts-inventory', '/encoder-dashboard/parts-inventory', '/manager-dashboard/parts-inventory'],
+    'ride-repairs-updated': ['/encoder-dashboard/parts-inventory'],
+    'part-deployments-updated': ['/encoder-dashboard/parts-inventory'],
+    'part-removals-updated': ['/encoder-dashboard/parts-inventory'],
+    'rides-updated': ['/manager-dashboard/ride-status'],
+    'ride-entries-updated': ['/admin-dashboard/customers-count', '/encoder-dashboard/customers-count', '/manager-dashboard/customers-count', '/personnel-dashboard/ride-counters'],
+  });
+
+  const handleSocketUpdate = useCallback((event) => {
+    const paths = eventToPathsRef.current[event] || [];
+    const now = new Date();
+
+    setMenuNotifications(prev => {
+      const updated = { ...prev };
+      paths.forEach(path => {
+        const lastVisit = lastVisitTimes[path];
+        if (lastVisit) {
+          const lastVisitDate = new Date(lastVisit);
+          // Show notification if the last visit was more than 1 minute ago
+          if (now - lastVisitDate > 60000) {
+            updated[path] = true;
+          }
+        } else {
+          // If never visited, show notification
+          updated[path] = true;
+        }
+      });
+      return updated;
+    });
+  }, [lastVisitTimes]);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
   const BACKEND_URL = API_BASE_URL.replace('/api', '');
@@ -111,6 +150,12 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
     };
     loadCurrentUser();
 
+    // Load last visit times from localStorage
+    const storedLastVisits = localStorage.getItem('menuLastVisits');
+    if (storedLastVisits) {
+      setLastVisitTimes(JSON.parse(storedLastVisits));
+    }
+
     // Send heartbeat every 30 seconds to keep session active
     const heartbeatInterval = setInterval(async () => {
       const token = sessionStorage.getItem('authToken');
@@ -124,8 +169,34 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
       }
     }, 30000);
 
-    return () => clearInterval(heartbeatInterval);
-  }, [API_BASE_URL]);
+    // Setup socket listeners for real-time menu notifications
+    const socket = getSocket();
+
+    const socketCleanup = () => {
+      socket.off('incidents-updated');
+      socket.off('maintenance-updated');
+      socket.off('spare-parts-updated');
+      socket.off('ride-repairs-updated');
+      socket.off('part-deployments-updated');
+      socket.off('part-removals-updated');
+      socket.off('rides-updated');
+      socket.off('ride-entries-updated');
+    };
+
+    socket.on('incidents-updated', () => handleSocketUpdate('incidents-updated'));
+    socket.on('maintenance-updated', () => handleSocketUpdate('maintenance-updated'));
+    socket.on('spare-parts-updated', () => handleSocketUpdate('spare-parts-updated'));
+    socket.on('ride-repairs-updated', () => handleSocketUpdate('ride-repairs-updated'));
+    socket.on('part-deployments-updated', () => handleSocketUpdate('part-deployments-updated'));
+    socket.on('part-removals-updated', () => handleSocketUpdate('part-removals-updated'));
+    socket.on('rides-updated', () => handleSocketUpdate('rides-updated'));
+    socket.on('ride-entries-updated', () => handleSocketUpdate('ride-entries-updated'));
+
+    return () => {
+      clearInterval(heartbeatInterval);
+      socketCleanup();
+    };
+  }, [API_BASE_URL, lastVisitTimes, handleSocketUpdate]);
 
   const getMenuItems = () => {
     switch (user?.role) {
@@ -168,6 +239,14 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
 
   const handleNavigation = (path, text) => {
     setActiveButton(text);
+    // Update last visit time for this menu
+    setLastVisitTimes(prev => {
+      const updated = { ...prev, [path]: new Date().toISOString() };
+      localStorage.setItem('menuLastVisits', JSON.stringify(updated));
+      return updated;
+    });
+    // Clear notification for this menu
+    setMenuNotifications(prev => ({ ...prev, [path]: false }));
     setTimeout(() => {
       navigate(path);
       setActiveButton(null);
@@ -254,7 +333,11 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
       const freshUser = await authAPI.getCurrentUser();
       setUser(freshUser);
       setEditedUser(freshUser);
+      // Update sessionStorage with fresh user data
+      sessionStorage.setItem('currentUser', JSON.stringify(freshUser));
       setProfileSnackbar({ open: true, message: 'Profile picture updated', severity: 'success' });
+      // Clear photo preview after successful upload since user state now has the updated picture
+      setPhotoPreview(null);
     } catch (error) {
       const msg = error.response?.data?.error || 'Failed to upload picture';
       setProfileSnackbar({ open: true, message: msg, severity: 'error' });
@@ -463,14 +546,14 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
                   }}>
                     {item.icon}
                   </ListItemIcon>
-                  <ListItemText 
-                    primary={item.text} 
+                  <ListItemText
+                    primary={item.text}
                     secondary={item.isViewOnly ? 'View Only' : null}
-                    secondaryTypographyProps={{ 
+                    secondaryTypographyProps={{
                       variant: 'caption',
                       sx: { fontSize: '0.7rem', opacity: 0.7, color: 'text.disabled' }
                     }}
-                    sx={{ 
+                    sx={{
                       color: location.pathname === item.path ? (item.hasColorCode ? 'secondary.main' : 'primary.main') : (item.isViewOnly ? 'text.disabled' : 'text.primary'),
                       '& .MuiTypography-root': {
                         fontWeight: location.pathname === item.path ? 600 : 500,
@@ -480,6 +563,18 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
                       },
                     }}
                   />
+                  {menuNotifications[item.path] && (
+                    <CircleIcon
+                      sx={{
+                        fontSize: 8,
+                        color: 'red',
+                        position: 'absolute',
+                        right: 16,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                      }}
+                    />
+                  )}
                 </ListItemButton>
               </ListItem>
             ))}
