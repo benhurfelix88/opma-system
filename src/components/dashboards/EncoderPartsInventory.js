@@ -31,6 +31,7 @@ import {
   Tabs,
   Tab,
   Snackbar,
+  Divider,
 } from '@mui/material';
 import { keyframes } from '@mui/system';
 import DashboardLayout from '../layout/DashboardLayout';
@@ -96,6 +97,14 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     const diffMs = now - recordTime;
     const diffMinutes = diffMs / 60000; // Convert to minutes
     return diffMinutes <= 1; // Within 1 minute
+  };
+
+  // Helper function to truncate text to word limit
+  const truncateText = (text, wordLimit = 5) => {
+    if (!text) return '';
+    const words = text.split(' ');
+    if (words.length <= wordLimit) return text;
+    return words.slice(0, wordLimit).join(' ') + '...';
   };
 
   // Force re-render every second to update highlights
@@ -1306,7 +1315,20 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                             </TableCell>
                             <TableCell align="center">{new Date(repair.date).toLocaleDateString()}</TableCell>
                             <TableCell align="center">{repair.ride}</TableCell>
-                            <TableCell align="center">{repair.issue}</TableCell>
+                            <TableCell align="center">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  maxWidth: 150,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                                title={repair.issue || 'N/A'}
+                              >
+                                {truncateText(repair.issue, 5)}
+                              </Typography>
+                            </TableCell>
                             <TableCell align="center">{repair.partsReplaced}</TableCell>
                             <TableCell align="center">₱{Number(repair.cost).toFixed(2)}</TableCell>
                             <TableCell align="center">
@@ -1327,7 +1349,20 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                 }}
                               />
                             </TableCell>
-                            <TableCell align="center">{repair.technician}</TableCell>
+                            <TableCell align="center">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  maxWidth: 100,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                                title={repair.technician || 'N/A'}
+                              >
+                                {truncateText(repair.technician, 3)}
+                              </Typography>
+                            </TableCell>
                             <TableCell align="center">
                               {repair.notes && repair.notes.length > 30 
                                 ? repair.notes.substring(0, 30) + '...' 
@@ -1343,6 +1378,16 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                     <InfoIcon />
                                   </IconButton>
                                 </Tooltip>
+                                {repair.status !== 'Completed' && (
+                                  <Tooltip title="Edit">
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => handleOpenRepairDialog(repair)}
+                                    >
+                                      <EditIcon />
+                                    </IconButton>
+                                  </Tooltip>
+                                )}
                                 <Tooltip title="Delete">
                                   <IconButton
                                     size="small"
@@ -2215,31 +2260,31 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
               <Box sx={{ mt: 2 }}>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2" color="text.secondary">Ride:</Typography>
-                    <Typography variant="body1">{detailsData.repair.ride}</Typography>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Ride:</Typography>
+                    <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{detailsData.repair.ride}</Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2" color="text.secondary">Date:</Typography>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Date:</Typography>
                     <Typography variant="body1">{new Date(detailsData.repair.date).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</Typography>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2" color="text.secondary">Issue:</Typography>
-                    <Typography variant="body1">{detailsData.repair.issue}</Typography>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Issue:</Typography>
+                    <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{detailsData.repair.issue}</Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2" color="text.secondary">Technician:</Typography>
-                    <Typography variant="body1">{detailsData.repair.technician}</Typography>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Technician:</Typography>
+                    <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{detailsData.repair.technician}</Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2" color="text.secondary">Parts Replaced:</Typography>
-                    <Typography variant="body1">{detailsData.repair.partsReplaced}</Typography>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Parts Replaced:</Typography>
+                    <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{detailsData.repair.partsReplaced}</Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2" color="text.secondary">Cost:</Typography>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Cost:</Typography>
                     <Typography variant="body1">₱{Number(detailsData.repair.cost).toFixed(2)}</Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2" color="text.secondary">Status:</Typography>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Status:</Typography>
                     <Chip
                       label={detailsData.repair.status}
                       variant="outlined"
@@ -2258,24 +2303,25 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     />
                   </Grid>
                   <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="text.secondary">Notes:</Typography>
-                    <Typography variant="body1">{detailsData.repair.notes || 'No notes'}</Typography>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Notes:</Typography>
+                    <Typography variant="body1" sx={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{detailsData.repair.notes || 'No notes'}</Typography>
                   </Grid>
                   {detailsData.stats && (
                     <>
                       <Grid item xs={12}>
-                        <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Repair Statistics</Typography>
+                        <Divider sx={{ my: 2 }} />
+                        <Typography variant="h6" sx={{ mb: 1 }}>Repair Statistics</Typography>
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Total Repairs:</Typography>
+                        <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Total Repairs:</Typography>
                         <Typography variant="body1">{detailsData.stats.totalRepairs}</Typography>
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Total Cost:</Typography>
+                        <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Total Cost:</Typography>
                         <Typography variant="body1">₱{detailsData.stats.totalCost.toFixed(2)}</Typography>
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Last Repair:</Typography>
+                        <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Last Repair:</Typography>
                         <Typography variant="body1">{detailsData.stats.lastRepair ? detailsData.stats.lastRepair.toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never'}</Typography>
                       </Grid>
                     </>
