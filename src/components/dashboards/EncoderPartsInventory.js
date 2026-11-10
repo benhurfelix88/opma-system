@@ -43,7 +43,8 @@ import {
   Info as InfoIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
-  Circle as CircleIcon
+  Circle as CircleIcon,
+  ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
 
 // Define animations
@@ -1285,6 +1286,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Rides</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride Location</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Issue</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Parts Replaced</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Technician</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Notes</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
@@ -1293,7 +1295,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   <TableBody>
                     {getSortedRepairs().length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={9} align="center">
+                        <TableCell colSpan={10} align="center">
                           <Typography variant="body1" color="text.secondary">
                             No repair records found
                           </Typography>
@@ -1317,7 +1319,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                             <TableCell align="center">{new Date(repair.date).toLocaleDateString()}</TableCell>
                             <TableCell align="center">{repair.ride}</TableCell>
                             <TableCell align="center">{repair.location || '-'}</TableCell>
-                            <TableCell align="center">
+                            <TableCell align="center" sx={{ verticalAlign: 'middle' }}>
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -1331,7 +1333,21 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                 {truncateText(repair.issue, 5)}
                               </Typography>
                             </TableCell>
-                            <TableCell align="center">
+                            <TableCell align="center" sx={{ verticalAlign: 'middle' }}>
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  maxWidth: 120,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                                title={repair.partsReplaced || 'N/A'}
+                              >
+                                {repair.partsReplaced || '-'}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="center" sx={{ verticalAlign: 'middle' }}>
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -1783,7 +1799,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
             {selectedTab === 0
               ? (selectedItem ? 'Edit Part' : 'Add New Part')
               : selectedTab === 1
-              ? (selectedRepair ? 'Edit Repair Record' : 'Add Repair Record')
+              ? (selectedRepair ? 'Edit Repair Record' : 'Add')
               : selectedTab === 2 && deploymentRemovalMode === 'deployment'
               ? (selectedDeployment ? 'Edit Deployment Record' : 'Add')
               : selectedTab === 2 && deploymentRemovalMode === 'removal'
@@ -1928,6 +1944,18 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     </Button>
                   )}
                 </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Ride Location"
+                    value={repairData.location || ''}
+                    onChange={(e) => setRepairData({ ...repairData, location: e.target.value })}
+                    InputProps={{
+                      readOnly: true,
+                      style: { backgroundColor: '#f5f5f5', borderRadius: '4px', padding: '8.5px 14px' }
+                    }}
+                  />
+                </Grid>
                 <Grid item xs={12}>
                   {repairData.ride ? (
                     <Button
@@ -1950,18 +1978,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     />
                   )}
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Ride Location"
-                    value={repairData.location || ''}
-                    onChange={(e) => setRepairData({ ...repairData, location: e.target.value })}
-                    InputProps={{
-                      readOnly: true,
-                      style: { backgroundColor: '#f5f5f5', borderRadius: '4px', padding: '8.5px 14px' }
-                    }}
-                  />
-                </Grid>
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
@@ -1970,6 +1986,18 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     onChange={(e) => setRepairData({ ...repairData, issue: e.target.value })}
                     multiline
                     rows={2}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Cost"
+                    type="number"
+                    value={repairData.cost}
+                    onChange={(e) => setRepairData({ ...repairData, cost: e.target.value })}
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">₱</InputAdornment>,
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -2176,7 +2204,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
               {selectedTab === 0
                 ? (selectedItem ? 'Save Changes' : 'Add')
                 : selectedTab === 1
-                ? (selectedRepair ? 'Save Changes' : 'Add Repair Record')
+                ? (selectedRepair ? 'Save Changes' : 'Add')
                 : selectedTab === 2 && deploymentRemovalMode === 'deployment'
                 ? (selectedDeployment ? 'Save Changes' : 'Add')
                 : selectedTab === 2 && deploymentRemovalMode === 'removal'
@@ -2322,7 +2350,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                     }}
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography variant="subtitle2" fontWeight="bold">
                           {ride.name}
                         </Typography>
@@ -2330,15 +2358,20 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           {ride.location}
                         </Typography>
                       </Box>
-                      <Chip
-                        label={rideStatus}
-                        size="small"
-                        sx={{ 
-                          color: statusColor,
-                          borderColor: statusColor,
-                          backgroundColor: 'transparent'
-                        }}
-                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Chip
+                          label={rideStatus}
+                          size="small"
+                          sx={{
+                            color: statusColor,
+                            borderColor: statusColor,
+                            backgroundColor: 'transparent'
+                          }}
+                        />
+                        {repairData.ride === ride.name && (
+                          <ArrowForwardIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                        )}
+                      </Box>
                     </Box>
                   </Box>
                 );
@@ -2389,9 +2422,14 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <Typography variant="subtitle2" fontWeight="bold">
                         {part.name}
                       </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Qty: {part.quantity}
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="caption" color="text.secondary">
+                          Qty: {part.quantity}
+                        </Typography>
+                        {repairData.partsReplaced === part.name && (
+                          <ArrowForwardIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                        )}
+                      </Box>
                     </Box>
                   </Box>
                 ))
