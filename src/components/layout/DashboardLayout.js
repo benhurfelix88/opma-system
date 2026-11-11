@@ -48,7 +48,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { keyframes } from '@mui/system';
 import Logo from '../common/Logo';
 import FadeInContent from '../common/FadeInContent';
-import { authAPI, sparePartsAPI, maintenanceAPI, incidentsAPI } from '../../services/api';
+import { authAPI, sparePartsAPI, maintenanceAPI, incidentsAPI, ridesAPI } from '../../services/api';
 import rideEntriesAPI from '../../services/rideEntriesAPI';
 
 const drawerWidth = 240;
@@ -246,6 +246,81 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
         setNotifications(prev => ({
           ...prev,
           '/encoder-dashboard/incidents': hasIncidentsNotification
+        }));
+
+        // Check customers count
+        const entries = await rideEntriesAPI.getAll();
+        const hasCustomersNotification = entries.some(entry =>
+          isRecent(entry.created_at)
+        );
+        setNotifications(prev => ({
+          ...prev,
+          '/admin-dashboard/customers-count': hasCustomersNotification
+        }));
+      } catch (error) {
+        console.error('Error checking notifications:', error);
+      }
+    };
+
+    // Check immediately
+    checkNotifications();
+
+    // Check every 10 seconds
+    const interval = setInterval(checkNotifications, 10000);
+
+    return () => clearInterval(interval);
+  }, [user?.role]);
+
+  // Periodically check for notifications for Operations Manager
+  useEffect(() => {
+    if (user?.role !== 'Operations Manager') return;
+
+    const checkNotifications = async () => {
+      try {
+        // Check ride status
+        const rides = await ridesAPI.getAll();
+        const hasRideStatusNotification = rides.some(ride =>
+          isRecent(ride.created_at) || isRecent(ride.updated_at)
+        );
+        setNotifications(prev => ({
+          ...prev,
+          '/manager-dashboard/ride-status': hasRideStatusNotification
+        }));
+
+        // Check parts inventory
+        const parts = await sparePartsAPI.getAll();
+        const hasPartsNotification = parts.some(part =>
+          (part.approval_status === 'Approved' && isRecent(part.updated_at)) ||
+          isRecent(part.created_at)
+        );
+        setNotifications(prev => ({
+          ...prev,
+          '/manager-dashboard/parts-inventory': hasPartsNotification
+        }));
+
+        // Check maintenance
+        const maintenance = await maintenanceAPI.getAll();
+        const hasMaintenanceNotification = maintenance.some(report =>
+          (report.approval_status === 'Approved' && isRecent(report.updated_at)) ||
+          isRecent(report.created_at)
+        );
+        setNotifications(prev => ({
+          ...prev,
+          '/manager-dashboard/maintenance': hasMaintenanceNotification
+        }));
+
+        // Check incidents
+        const incidents = await incidentsAPI.getAll();
+        const hasIncidentsNotification = incidents.some(incident => {
+          const reviewStatus = incident.review_status === 'Reviewed' ||
+                             incident.review_status === 'reviewed' ||
+                             incident.reviewStatus === 'REVIEWED';
+          return (reviewStatus && isRecent(incident.updated_at)) ||
+                 isRecent(incident.created_at);
+        });
+        setNotifications(prev => ({
+          ...prev,
+          '/manager-dashboard/incidents': hasIncidentsNotification
         }));
 
         // Check customers count
