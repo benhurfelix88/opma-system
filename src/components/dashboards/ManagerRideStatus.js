@@ -198,7 +198,7 @@ const ManagerRideStatus = () => {
     try {
       const ride = rides.find(r => r.id === rideId);
       if (ride) {
-        await ridesAPI.update(rideId, ride.name, newStatus);
+        await ridesAPI.update(rideId, ride.name, newStatus, ride.location || '');
         setSuccess('Ride status updated successfully');
         await loadData();
       }
@@ -308,9 +308,9 @@ const ManagerRideStatus = () => {
   };
 
   const getStatusStats = () => {
-    const operational = rides.filter(ride => rideStatusMap[ride.name] === 'operational').length;
-    const maintenance = rides.filter(ride => rideStatusMap[ride.name] === 'maintenance').length;
-    const malfunction = rides.filter(ride => rideStatusMap[ride.name] === 'malfunction').length;
+    const operational = rides.filter(ride => rideStatusMap[ride.id] === 'operational').length;
+    const maintenance = rides.filter(ride => rideStatusMap[ride.id] === 'maintenance').length;
+    const malfunction = rides.filter(ride => rideStatusMap[ride.id] === 'malfunction').length;
     
     return { operational, maintenance, malfunction, total: rides.length };
   };
@@ -475,7 +475,7 @@ const ManagerRideStatus = () => {
                     <TableCell align="center">
                       <FormControl size="small" sx={{ minWidth: 150 }}>
                         <Select
-                          value={rideStatusMap[ride.name] || 'operational'}
+                          value={rideStatusMap[ride.id] || 'operational'}
                           onChange={(e) => handleUpdateRideStatus(ride.id, e.target.value)}
                         >
                           <MenuItem value="operational">
@@ -679,16 +679,16 @@ const ManagerRideStatus = () => {
                         Current Status
                       </Typography>
                       <Chip 
-                        label={getStatusLabel(rideStatusMap[selectedRide.name] || 'operational')}
+                        label={getStatusLabel(rideStatusMap[selectedRide.id] || 'operational')}
                         variant="outlined"
                         size="small"
                         sx={{ 
-                          color: getStatusColor(rideStatusMap[selectedRide.name] || 'operational') === 'success' ? 'green' : 
-                                getStatusColor(rideStatusMap[selectedRide.name] || 'operational') === 'warning' ? 'orange' : 
-                                getStatusColor(rideStatusMap[selectedRide.name] || 'operational') === 'error' ? 'red' : 'blue',
-                          borderColor: getStatusColor(rideStatusMap[selectedRide.name] || 'operational') === 'success' ? 'green' : 
-                                       getStatusColor(rideStatusMap[selectedRide.name] || 'operational') === 'warning' ? 'orange' : 
-                                       getStatusColor(rideStatusMap[selectedRide.name] || 'operational') === 'error' ? 'red' : 'blue',
+                          color: getStatusColor(rideStatusMap[selectedRide.id] || 'operational') === 'success' ? 'green' : 
+                                getStatusColor(rideStatusMap[selectedRide.id] || 'operational') === 'warning' ? 'orange' : 
+                                getStatusColor(rideStatusMap[selectedRide.id] || 'operational') === 'error' ? 'red' : 'blue',
+                          borderColor: getStatusColor(rideStatusMap[selectedRide.id] || 'operational') === 'success' ? 'green' : 
+                                       getStatusColor(rideStatusMap[selectedRide.id] || 'operational') === 'warning' ? 'orange' : 
+                                       getStatusColor(rideStatusMap[selectedRide.id] || 'operational') === 'error' ? 'red' : 'blue',
                           backgroundColor: 'transparent'
                         }}
                       />
@@ -757,16 +757,16 @@ const ManagerRideStatus = () => {
               <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle2" color="text.secondary">Current Status:</Typography>
                 <Chip 
-                  label={getStatusLabel(rideStatusMap[rideToDelete.name] || 'operational')}
+                  label={getStatusLabel(rideStatusMap[rideToDelete.id] || 'operational')}
                   variant="outlined"
                   size="small"
                   sx={{ 
-                    color: getStatusColor(rideStatusMap[rideToDelete.name] || 'operational') === 'success' ? 'green' : 
-                          getStatusColor(rideStatusMap[rideToDelete.name] || 'operational') === 'warning' ? 'orange' : 
-                          getStatusColor(rideStatusMap[rideToDelete.name] || 'operational') === 'error' ? 'red' : 'blue',
-                    borderColor: getStatusColor(rideStatusMap[rideToDelete.name] || 'operational') === 'success' ? 'green' : 
-                                 getStatusColor(rideStatusMap[rideToDelete.name] || 'operational') === 'warning' ? 'orange' : 
-                                 getStatusColor(rideStatusMap[rideToDelete.name] || 'operational') === 'error' ? 'red' : 'blue',
+                    color: getStatusColor(rideStatusMap[rideToDelete.id] || 'operational') === 'success' ? 'green' : 
+                          getStatusColor(rideStatusMap[rideToDelete.id] || 'operational') === 'warning' ? 'orange' : 
+                          getStatusColor(rideStatusMap[rideToDelete.id] || 'operational') === 'error' ? 'red' : 'blue',
+                    borderColor: getStatusColor(rideStatusMap[rideToDelete.id] || 'operational') === 'success' ? 'green' : 
+                                 getStatusColor(rideStatusMap[rideToDelete.id] || 'operational') === 'warning' ? 'orange' : 
+                                 getStatusColor(rideStatusMap[rideToDelete.id] || 'operational') === 'error' ? 'red' : 'blue',
                     backgroundColor: 'transparent'
                   }}
                 />
@@ -816,7 +816,7 @@ const ManagerRideStatus = () => {
           id: ride.id,
           name: ride.name,
           location: ride.location || '',
-          status: getStatusLabel(rideStatusMap[ride.name] || 'operational'),
+          status: getStatusLabel(rideStatusMap[ride.id] || 'operational'),
           dateCreated: ride.created_at ? new Date(ride.created_at).toLocaleDateString() : 'N/A',
           timeCreated: ride.created_at ? new Date(ride.created_at).toLocaleTimeString() : 'N/A'
         }))}

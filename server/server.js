@@ -2891,9 +2891,9 @@ app.delete('/api/rides/:id', authenticateToken, async (req, res) => {
 // Ride status map endpoints
 app.get('/api/ride-status', authenticateToken, async (req, res) => {
   try {
-    const [rows] = await db.execute('SELECT name, status FROM rides');
+    const [rows] = await db.execute('SELECT id, status FROM rides');
     const map = {};
-    rows.forEach(r => { map[r.name] = r.status || 'operational'; });
+    rows.forEach(r => { map[r.id] = r.status || 'operational'; });
     res.json(map);
   } catch (e) {
     console.error('Get ride status error:', e);
@@ -2907,8 +2907,8 @@ app.put('/api/ride-status', authenticateToken, async (req, res) => {
     if (!statuses || typeof statuses !== 'object') {
       return res.status(400).json({ error: 'Invalid statuses payload' });
     }
-    for (const [name, status] of Object.entries(statuses)) {
-      await db.execute('UPDATE rides SET status = ? WHERE name = ?', [status, name]);
+    for (const [id, status] of Object.entries(statuses)) {
+      await db.execute('UPDATE rides SET status = ? WHERE id = ?', [status, id]);
     }
     res.json({ message: 'Ride statuses updated successfully' });
   } catch (e) {
