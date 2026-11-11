@@ -188,6 +188,8 @@ CREATE TABLE IF NOT EXISTS ride_repairs (
     notes TEXT,
     location VARCHAR(255),
     created_by INTEGER,
+    approval_status VARCHAR(50) DEFAULT 'Pending',
+    approval_date TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id)
@@ -210,6 +212,8 @@ CREATE TABLE IF NOT EXISTS part_deployments (
     missing_parts TEXT,
     encoded_by VARCHAR(255) NOT NULL,
     created_by INTEGER,
+    approval_status VARCHAR(50) DEFAULT 'Pending',
+    approval_date TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id)
@@ -232,6 +236,8 @@ CREATE TABLE IF NOT EXISTS part_removals (
     missing_parts TEXT,
     encoded_by VARCHAR(255) NOT NULL,
     created_by INTEGER,
+    approval_status VARCHAR(50) DEFAULT 'Pending',
+    approval_date TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id)
@@ -470,3 +476,17 @@ ON CONFLICT (name) DO NOTHING;
 -- run the fix_corrupted_photos.sql migration script
 -- The server also automatically fixes this on startup
 -- ============================================
+
+-- ============================================
+-- MIGRATION: Add approval columns to parts inventory tables
+-- ============================================
+-- Run these ALTER TABLE statements if the columns don't exist in existing databases
+
+ALTER TABLE ride_repairs ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'Pending';
+ALTER TABLE ride_repairs ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP;
+
+ALTER TABLE part_deployments ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'Pending';
+ALTER TABLE part_deployments ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP;
+
+ALTER TABLE part_removals ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'Pending';
+ALTER TABLE part_removals ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP;
