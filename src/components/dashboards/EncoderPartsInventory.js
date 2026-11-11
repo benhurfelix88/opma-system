@@ -274,6 +274,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         status: deployment.status,
         missingParts: deployment.missing_parts || '',
         encodedBy: deployment.encoded_by,
+        created_at: deployment.created_at,
+        updated_at: deployment.updated_at,
       }));
       setDeployments(mappedDeployments);
 
@@ -287,6 +289,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         status: removal.status,
         missingParts: removal.missing_parts || '',
         encodedBy: removal.encoded_by,
+        created_at: removal.created_at,
+        updated_at: removal.updated_at,
       }));
       setRemovals(mappedRemovals);
     } catch (e) {
@@ -836,6 +840,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         status: deployment.status,
         missingParts: deployment.missing_parts || '',
         encodedBy: deployment.encoded_by,
+        created_at: deployment.created_at,
+        updated_at: deployment.updated_at,
       }));
       setDeployments(mappedDeployments);
       handleCloseDeploymentDialog();
@@ -943,6 +949,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         status: removal.status,
         missingParts: removal.missing_parts || '',
         encodedBy: removal.encoded_by,
+        created_at: removal.created_at,
+        updated_at: removal.updated_at,
       }));
       setRemovals(mappedRemovals);
       handleCloseRemovalDialog();
@@ -1508,6 +1516,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableHead>
                         <TableRow sx={{ backgroundColor: '#f3f0f7' }}>
                           <TableCell align="center" sx={{ width: '30px', fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}></TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date Recorded</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date of Deployment</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Place of Installation</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Name of Ride</TableCell>
@@ -1519,7 +1528,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableBody>
                         {deployments.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={7} align="center">
+                            <TableCell colSpan={8} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No deployment records found
                               </Typography>
@@ -1538,6 +1547,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                   <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                                 )}
                               </TableCell>
+                              <TableCell align="center">{new Date(deployment.created_at).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{new Date(deployment.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{deployment.place}</TableCell>
                               <TableCell align="center">{deployment.ride}</TableCell>
@@ -1576,6 +1586,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableHead>
                         <TableRow sx={{ backgroundColor: '#f3f0f7' }}>
                           <TableCell align="center" sx={{ width: '30px', fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}></TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date Recorded</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date of Removal</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Place</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
@@ -1587,7 +1598,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableBody>
                         {removals.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={7} align="center">
+                            <TableCell colSpan={8} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No removal records found
                               </Typography>
@@ -1606,6 +1617,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                   <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                                 )}
                               </TableCell>
+                              <TableCell align="center">{new Date(removal.created_at).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{new Date(removal.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{removal.place}</TableCell>
                               <TableCell align="center">{removal.ride}</TableCell>

@@ -70,6 +70,7 @@ const ManagerRideStatus = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [dialogError, setDialogError] = useState('');
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [newRideName, setNewRideName] = useState('');
@@ -163,7 +164,7 @@ const ManagerRideStatus = () => {
 
   const handleAddRide = async () => {
     if (!newRideName.trim()) {
-      setError('Please enter a ride name');
+      setDialogError('Please enter a ride name');
       return;
     }
 
@@ -175,7 +176,7 @@ const ManagerRideStatus = () => {
     );
 
     if (duplicateRide) {
-      setError('A ride with this name and location already exists. Please use a different name or location.');
+      setDialogError('A ride with this name and location already exists. Please use a different name or location.');
       return;
     }
 
@@ -184,11 +185,12 @@ const ManagerRideStatus = () => {
       setSuccess('Ride added successfully');
       setNewRideName('');
       setNewRideLocation('');
+      setDialogError('');
       setOpenAddDialog(false);
       await loadData();
     } catch (e) {
       console.error('Error adding ride:', e);
-      setError('Failed to add ride');
+      setDialogError('Failed to add ride');
     }
   };
 
@@ -208,7 +210,20 @@ const ManagerRideStatus = () => {
 
   const handleEditRide = async () => {
     if (!editingRide || !editingRide.name.trim()) {
-      setError('Please enter a ride name');
+      setDialogError('Please enter a ride name');
+      return;
+    }
+
+    // Check for duplicate ride name + location combination (excluding current ride)
+    const duplicateRide = rides.find(
+      ride =>
+        ride.id !== editingRide.id &&
+        ride.name.toLowerCase() === editingRide.name.trim().toLowerCase() &&
+        (ride.location || '').toLowerCase() === (editingRide.location || '').toLowerCase()
+    );
+
+    if (duplicateRide) {
+      setDialogError('A ride with this name and location already exists. Please use a different name or location.');
       return;
     }
 
@@ -216,12 +231,13 @@ const ManagerRideStatus = () => {
       const currentStatus = rideStatusMap[editingRide.id] || 'operational';
       await ridesAPI.update(editingRide.id, editingRide.name.trim(), currentStatus, editingRide.location || '');
       setSuccess('Ride updated successfully');
+      setDialogError('');
       setEditingRide(null);
       setOpenEditDialog(false);
       await loadData();
     } catch (e) {
       console.error('Error updating ride:', e);
-      setError('Failed to update ride');
+      setDialogError('Failed to update ride');
     }
   };
 
@@ -553,9 +569,14 @@ const ManagerRideStatus = () => {
       )}
 
       {/* Add Ride Dialog */}
-      <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog open={openAddDialog} onClose={() => { setOpenAddDialog(false); setDialogError(''); }} maxWidth="sm" fullWidth>
         <DialogTitle>Add New Ride</DialogTitle>
         <DialogContent>
+          {dialogError && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setDialogError('')}>
+              {dialogError}
+            </Alert>
+          )}
           <TextField
             autoFocus
             margin="dense"
@@ -576,15 +597,20 @@ const ManagerRideStatus = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenAddDialog(false)}>Cancel</Button>
+          <Button onClick={() => { setOpenAddDialog(false); setDialogError(''); }}>Cancel</Button>
           <Button onClick={handleAddRide} variant="contained">Add Ride</Button>
         </DialogActions>
       </Dialog>
 
       {/* Edit Ride Dialog */}
-      <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog open={openEditDialog} onClose={() => { setOpenEditDialog(false); setDialogError(''); }} maxWidth="sm" fullWidth>
         <DialogTitle>Edit Ride</DialogTitle>
         <DialogContent>
+          {dialogError && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setDialogError('')}>
+              {dialogError}
+            </Alert>
+          )}
           <TextField
             autoFocus
             margin="dense"
@@ -605,7 +631,7 @@ const ManagerRideStatus = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
+          <Button onClick={() => { setOpenEditDialog(false); setDialogError(''); }}>Cancel</Button>
           <Button onClick={handleEditRide} variant="contained">Save Changes</Button>
         </DialogActions>
       </Dialog>

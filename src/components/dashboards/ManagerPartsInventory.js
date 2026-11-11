@@ -168,7 +168,9 @@ const ManagerPartsInventory = () => {
       const deployments = await partDeploymentsAPI.getAll();
       const mappedDeployments = deployments.map(deployment => ({
         ...deployment,
-        missing_parts: deployment.missing_parts || ''
+        missing_parts: deployment.missing_parts || '',
+        created_at: deployment.created_at,
+        updated_at: deployment.updated_at,
       }));
       setPartDeployments(mappedDeployments || []);
     } catch (error) {
@@ -181,7 +183,9 @@ const ManagerPartsInventory = () => {
       const removals = await partRemovalsAPI.getAll();
       const mappedRemovals = removals.map(removal => ({
         ...removal,
-        missing_parts: removal.missing_parts || ''
+        missing_parts: removal.missing_parts || '',
+        created_at: removal.created_at,
+        updated_at: removal.updated_at,
       }));
       setPartRemovals(mappedRemovals || []);
     } catch (error) {
@@ -802,18 +806,19 @@ const ManagerPartsInventory = () => {
                       <TableHead>
                         <TableRow>
                           <TableCell align="center" sx={{ width: '30px' }}></TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Date</TableCell>
-                          <TableCell align="center" sx={{ width: '20%' }}>Place</TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Ride</TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Status</TableCell>
-                          <TableCell align="center" sx={{ width: '20%' }}>Missing Parts</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Date Recorded</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Date</TableCell>
+                          <TableCell align="center" sx={{ width: '18%' }}>Place</TableCell>
+                          <TableCell align="center" sx={{ width: '13%' }}>Ride</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Status</TableCell>
+                          <TableCell align="center" sx={{ width: '18%' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ width: '15%' }}>Encoded By</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAndSortedDeployments.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={7} align="center">
+                            <TableCell colSpan={8} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No deployments found
                               </Typography>
@@ -832,6 +837,7 @@ const ManagerPartsInventory = () => {
                                   <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                                 )}
                               </TableCell>
+                              <TableCell align="center">{new Date(deployment.created_at).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{new Date(deployment.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{deployment.place}</TableCell>
                               <TableCell align="center">{deployment.ride}</TableCell>
@@ -928,18 +934,19 @@ const ManagerPartsInventory = () => {
                       <TableHead>
                         <TableRow>
                           <TableCell align="center" sx={{ width: '30px' }}></TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Date</TableCell>
-                          <TableCell align="center" sx={{ width: '20%' }}>Place</TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Ride</TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Status</TableCell>
-                          <TableCell align="center" sx={{ width: '20%' }}>Missing Parts</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Date Recorded</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Date</TableCell>
+                          <TableCell align="center" sx={{ width: '18%' }}>Place</TableCell>
+                          <TableCell align="center" sx={{ width: '13%' }}>Ride</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Status</TableCell>
+                          <TableCell align="center" sx={{ width: '18%' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ width: '15%' }}>Encoded By</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAndSortedRemovals.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={7} align="center">
+                            <TableCell colSpan={8} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No removals found
                               </Typography>
@@ -958,6 +965,7 @@ const ManagerPartsInventory = () => {
                                   <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                                 )}
                               </TableCell>
+                              <TableCell align="center">{new Date(removal.created_at).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{new Date(removal.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{removal.place}</TableCell>
                               <TableCell align="center">{removal.ride}</TableCell>
