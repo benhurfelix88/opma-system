@@ -42,7 +42,7 @@ import {
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
-import { ridesAPI, rideStatusAPI, sparePartsAPI } from '../../services/api';
+import { ridesAPI, rideStatusAPI, sparePartsAPI, usersAPI } from '../../services/api';
 import { getSocket } from '../../utils/socket';
 
 const ManagerRideStatus = () => {
@@ -75,7 +75,6 @@ const ManagerRideStatus = () => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [newRideName, setNewRideName] = useState('');
   const [newRideLocation, setNewRideLocation] = useState('');
-  const [newRideAssignedPersonnel, setNewRideAssignedPersonnel] = useState('');
   const [editingRide, setEditingRide] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [refreshing, setRefreshing] = useState(false);
@@ -98,9 +97,16 @@ const ManagerRideStatus = () => {
       loadData();
     });
 
+    // Listen for users updates (to refresh assigned personnel)
+    socket.on('users-updated', (data) => {
+      console.log('Users updated via WebSocket:', data);
+      loadData();
+    });
+
     // Cleanup on unmount
     return () => {
       socket.off('rides-updated');
+      socket.off('users-updated');
     };
   }, []);
 
@@ -109,10 +115,33 @@ const ManagerRideStatus = () => {
       setRefreshing(true);
       setError('');
       
-      const ridesData = await ridesAPI.getAll();
-      const statuses = await rideStatusAPI.get();
-      
-      setRides(ridesData || []);
+      const [ridesData, statuses, usersData] = await Promise.all([
+        ridesAPI.getAll(),
+        rideStatusAPI.get(),
+        usersAPI.getAll()
+      ]);
+
+      // Map users to rides based on assigned_ride
+      const rideToPersonnelMap = {};
+      usersData.forEach(user => {
+        if (user.assigned_ride) {
+          const rideName = typeof user.assigned_ride === 'object' ? user.assigned_ride.name : user.assigned_ride;
+          if (rideName) {
+            if (!rideToPersonnelMap[rideName]) {
+              rideToPersonnelMap[rideName] = [];
+            }
+            rideToPersonnelMap[rideName].push(user.fullName || user.username);
+          }
+        }
+      });
+
+      // Merge assigned personnel into rides data
+      const ridesWithPersonnel = ridesData.map(ride => ({
+        ...ride,
+        assigned_personnel: rideToPersonnelMap[ride.name] ? rideToPersonnelMap[ride.name].join(', ') : null
+      }));
+
+      setRides(ridesWithPersonnel || []);
       setRideStatusMap(statuses || {});
       
       // Show success snackbar
@@ -182,11 +211,10 @@ const ManagerRideStatus = () => {
     }
 
     try {
-      await ridesAPI.create(newRideName.trim(), 'operational', newRideLocation.trim(), newRideAssignedPersonnel.trim());
+      await ridesAPI.create(newRideName.trim(), 'operational', newRideLocation.trim());
       setSuccess('Ride added successfully');
       setNewRideName('');
       setNewRideLocation('');
-      setNewRideAssignedPersonnel('');
       setDialogError('');
       setOpenAddDialog(false);
       await loadData();
@@ -231,7 +259,7 @@ const ManagerRideStatus = () => {
 
     try {
       const currentStatus = rideStatusMap[editingRide.id] || 'operational';
-      await ridesAPI.update(editingRide.id, editingRide.name.trim(), currentStatus, editingRide.location || '', editingRide.assigned_personnel || '');
+      await ridesAPI.update(editingRide.id, editingRide.name.trim(), currentStatus, editingRide.location || '');
       setSuccess('Ride updated successfully');
       setDialogError('');
       setEditingRide(null);
@@ -607,8 +635,18 @@ const ManagerRideStatus = () => {
             label="Assigned Personnel"
             fullWidth
             variant="outlined"
-            value={newRideAssignedPersonnel}
-            onChange={(e) => setNewRideAssignedPersonnel(e.target.value)}
+            value="Managed through User Management"
+            InputProps={{
+              readOnly: true,
+              style: { 
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                cursor: 'default'
+              }
+            }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            helperText="Assign personnel to rides in Admin > User Management"
           />
         </DialogContent>
         <DialogActions>
@@ -650,8 +688,18 @@ const ManagerRideStatus = () => {
             label="Assigned Personnel"
             fullWidth
             variant="outlined"
-            value={editingRide?.assigned_personnel || ''}
-            onChange={(e) => setEditingRide({ ...editingRide, assigned_personnel: e.target.value })}
+            value={editingRide?.assigned_personnel || 'None'}
+            InputProps={{
+              readOnly: true,
+              style: { 
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                cursor: 'default'
+              }
+            }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            helperText="Assign personnel to rides in Admin > User Management"
           />
         </DialogContent>
         <DialogActions>

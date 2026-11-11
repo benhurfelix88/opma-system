@@ -168,21 +168,21 @@ export const ridesAPI = {
     const response = await api.get('/rides');
     return response.data;
   },
-  create: async (name, status = 'operational', location = '', assignedPersonnel = '') => {
+  create: async (name, status = 'operational', location = '') => {
     try {
-      const response = await api.post('/rides', { name, status, location, assigned_personnel: assignedPersonnel });
+      const response = await api.post('/rides', { name, status, location });
       return response.data;
     } catch (e) {
       // Fallback to alias if server path differs
       if (e?.response?.status === 404) {
-        const resp2 = await api.post('/ride', { name, status, location, assigned_personnel: assignedPersonnel });
+        const resp2 = await api.post('/ride', { name, status, location });
         return resp2.data;
       }
       throw e;
     }
   },
-  update: async (id, name, status = 'operational', location = '', assignedPersonnel = '') => {
-    const response = await api.put(`/rides/${id}`, { name, status, location, assigned_personnel: assignedPersonnel });
+  update: async (id, name, status = 'operational', location = '') => {
+    const response = await api.put(`/rides/${id}`, { name, status, location });
     return response.data;
   },
   delete: async (id) => {

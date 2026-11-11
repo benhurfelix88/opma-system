@@ -77,7 +77,6 @@ CREATE TABLE IF NOT EXISTS rides (
     name VARCHAR(255) NOT NULL,
     status VARCHAR(50) DEFAULT 'operational',
     location VARCHAR(255),
-    assigned_personnel VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -555,6 +554,12 @@ INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, d
 ('INC-2026-009', 'Funslides', 'Safety Incident', 'Low', 'Guest slip hazard reported', 1, '2026-01-23', '12:15:00', 'Resolved', 'Approved'),
 ('INC-2026-010', 'Moon Rocket', 'Mechanical Failure', 'Medium', 'Electrical panel indicator light failure', 1, '2026-01-24', '14:30:00', 'Under Investigation', 'Pending')
 ON CONFLICT DO NOTHING;
+
+-- ============================================
+-- MIGRATION: Remove assigned_personnel column from rides table (if it exists)
+-- ============================================
+-- Note: This column is no longer needed as assigned personnel is derived from users table
+-- ALTER TABLE rides DROP COLUMN IF EXISTS assigned_personnel;
 
 -- ============================================
 -- MIGRATION: Add assigned_personnel column to rides table
