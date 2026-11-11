@@ -1358,6 +1358,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Parts Replaced</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Technician</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Notes</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Status</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Date</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
@@ -1366,7 +1367,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   <TableBody>
                     {getSortedRepairs().length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={12} align="center">
+                        <TableCell colSpan={13} align="center">
                           <Typography variant="body1" color="text.secondary">
                             No repair records found
                           </Typography>
@@ -1443,6 +1444,21 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                             </TableCell>
                             <TableCell align="center">
                               <Chip
+                                label={repair.status || 'Pending'}
+                                size="small"
+                                sx={{
+                                  color: repair.status === 'Completed' ? 'green' :
+                                         repair.status === 'In Progress' ? 'orange' :
+                                         repair.status === 'Pending' ? 'blue' : 'gray',
+                                  borderColor: repair.status === 'Completed' ? 'green' :
+                                               repair.status === 'In Progress' ? 'orange' :
+                                               repair.status === 'Pending' ? 'blue' : 'gray',
+                                  backgroundColor: 'transparent'
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell align="center">
+                              <Chip
                                 label={repair.approval_status || 'Pending'}
                                 size="small"
                                 sx={{
@@ -1455,7 +1471,12 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               />
                             </TableCell>
                             <TableCell align="center">
-                              {repair.approval_date ? new Date(repair.approval_date).toLocaleDateString() : '-'}
+                              {repair.approval_date ? (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                  <Typography variant="body2">{new Date(repair.approval_date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</Typography>
+                                  <Typography variant="body2">{new Date(repair.approval_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</Typography>
+                                </Box>
+                              ) : '-'}
                             </TableCell>
                             <TableCell align="center">
                               <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>

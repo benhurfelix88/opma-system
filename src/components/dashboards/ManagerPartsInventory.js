@@ -917,7 +917,9 @@ const ManagerPartsInventory = () => {
                                   <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                                 )}
                               </TableCell>
-                              <TableCell align="center">{new Date(repair.date).toLocaleDateString()}</TableCell>
+                              <TableCell align="center">
+                                {new Date(repair.date).toLocaleDateString()} {new Date(repair.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              </TableCell>
                               <TableCell align="center">{repair.ride}</TableCell>
                               <TableCell align="center">{repair.location || '-'}</TableCell>
                               <TableCell align="center" sx={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{repair.issue}</TableCell>
@@ -958,7 +960,12 @@ const ManagerPartsInventory = () => {
                                 />
                               </TableCell>
                               <TableCell align="center">
-                                {repair.approval_date ? new Date(repair.approval_date).toLocaleDateString() : '-'}
+                                {repair.approval_date ? (
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <Typography variant="body2">{new Date(repair.approval_date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</Typography>
+                                    <Typography variant="body2">{new Date(repair.approval_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</Typography>
+                                  </Box>
+                                ) : '-'}
                               </TableCell>
                               <TableCell align="center">
                                 <Tooltip title="Edit">
