@@ -1573,6 +1573,10 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
       }
     }
 
+    // Check if role is being changed
+    const [existingUsers] = await db.execute('SELECT role FROM users WHERE id = $1', [req.params.id]);
+    const roleChanged = existingUsers.length > 0 && existingUsers[0].role !== role;
+
     let updateQuery = 'UPDATE users SET username = $1, email = $2, full_name = $3, mobile_number = $4, role = $5, assigned_ride = $6, status = $7';
     let params = [username, email, full_name, mobile_number, role, normalizedAssignedRide, status];
     let paramIndex = 8;
@@ -1588,6 +1592,35 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
     params.push(req.params.id);
 
     await db.execute(updateQuery, params);
+
+    // If role was changed, issue a new token
+    if (roleChanged) {
+      const [updatedUser] = await db.execute('SELECT * FROM users WHERE id = $1', [req.params.id]);
+      if (updatedUser.length > 0) {
+        const token = jwt.sign(
+          { userId: updatedUser[0].id, username: updatedUser[0].username, role: updatedUser[0].role },
+          JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+        
+        // Update session with new token
+        const authHeader = req.headers['authorization'];
+        const oldToken = authHeader && authHeader.split(' ')[1];
+        if (oldToken) {
+          await db.execute(
+            'UPDATE sessions SET token = $1 WHERE token = $2',
+            [token, oldToken]
+          );
+        }
+        
+        return res.json({ 
+          message: 'User updated successfully. Please log in again with your new role.',
+          newToken: token,
+          requiresReauth: true
+        });
+      }
+    }
+
     res.json({ message: 'User updated successfully' });
   } catch (error) {
     console.error('Update user error:', error);

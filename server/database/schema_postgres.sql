@@ -556,12 +556,16 @@ INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, d
 ON CONFLICT DO NOTHING;
 
 -- ============================================
--- MIGRATION: Remove assigned_personnel column from rides table (if it exists)
+-- SAMPLE DATA: Rides
 -- ============================================
--- Note: This column is no longer needed as assigned personnel is derived from users table
--- ALTER TABLE rides DROP COLUMN IF EXISTS assigned_personnel;
-
--- ============================================
--- MIGRATION: Add assigned_personnel column to rides table
--- ============================================
-ALTER TABLE rides ADD COLUMN IF NOT EXISTS assigned_personnel VARCHAR(255);
+INSERT INTO rides (name, status, location) VALUES
+('Moon Rocket', 'operational', 'Mandaluyong Area'),
+('Flash Dance', 'operational', 'Sta. Rosa Laguna Area'),
+('Viking', 'operational', 'Tarlac Area'),
+('Caterpillar', 'operational', 'Mandaluyong Area'),
+('Ferris Wheel', 'operational', 'Sta. Rosa Laguna Area'),
+('Balloon Wheel', 'operational', 'Tarlac Area'),
+('Horror Cab', 'operational', 'Mandaluyong Area'),
+('Freesbee', 'operational', 'Sta. Rosa Laguna Area'),
+('Funslides', 'operational', 'Tarlac Area')
+ON CONFLICT DO NOTHING;

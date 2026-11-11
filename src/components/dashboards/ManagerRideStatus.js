@@ -135,9 +135,6 @@ const ManagerRideStatus = () => {
         }
       });
 
-      console.log('Users data:', usersData);
-      console.log('Ride to personnel map:', rideToPersonnelMap);
-
       // Merge assigned personnel into rides data
       const ridesWithPersonnel = ridesData.map(ride => ({
         ...ride,

@@ -399,7 +399,25 @@ const UserManagement = () => {
           updateData.password = formData.password;
         }
         
-        await usersAPI.update(editingUser.id, updateData);
+        const response = await usersAPI.update(editingUser.id, updateData);
+        
+        // Check if response requires reauth (only if editing own account)
+        if (response?.requiresReauth) {
+          const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+          if (currentUser.id === editingUser.id) {
+            setSnackbar({ 
+              open: true, 
+              message: 'Your role has been changed. Please log in again.', 
+              severity: 'warning' 
+            });
+            setTimeout(() => {
+              sessionStorage.removeItem('authToken');
+              sessionStorage.removeItem('currentUser');
+              window.location.href = '/login';
+            }, 2000);
+            return;
+          }
+        }
       } else {
         if (!formData.username || !formData.password || !formData.email || !formData.fullName || !formData.role) {
           setSnackbar({ open: true, message: 'Please fill in all required fields', severity: 'error' });
