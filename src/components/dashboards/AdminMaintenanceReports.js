@@ -403,10 +403,10 @@ const AdminMaintenanceReports = () => {
                 <TableCell align="center" sx={{ width: '30px', fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}></TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Date Recorded</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Location</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Maintenance Schedule</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Description</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Technician</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Location</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Status</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Date</TableCell>
@@ -437,9 +437,15 @@ const AdminMaintenanceReports = () => {
                         </TableCell>
                         <TableCell align="center">{formatDate(report.date)}</TableCell>
                         <TableCell align="center">{report.ride || 'N/A'}</TableCell>
-                        <TableCell align="center">{report.location || '-'}</TableCell>
                         <TableCell align="center">
-                          {report.nextMaintenance ? formatDate(report.nextMaintenance) : 'Not scheduled'}
+                          {report.nextMaintenance ? (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                              <Typography variant="body2">{new Date(report.nextMaintenance).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</Typography>
+                              <Typography variant="body2">{new Date(report.nextMaintenance).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</Typography>
+                            </Box>
+                          ) : (
+                            'Not scheduled'
+                          )}
                         </TableCell>
                         <TableCell align="center">
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
@@ -489,6 +495,7 @@ const AdminMaintenanceReports = () => {
                             {truncateText(report.technician, 3)}
                           </Typography>
                         </TableCell>
+                        <TableCell align="center">{report.location || '-'}</TableCell>
                         <TableCell align="center">
                           <Chip
                             label={report.status || 'Unknown'}

@@ -523,9 +523,14 @@ const EncoderMaintenanceReports = () => {
                   <TableCell align="center">{new Date(record.date).toLocaleDateString()}</TableCell>
                   <TableCell align="center">{record.ride}</TableCell>
                   <TableCell align="center">
-                    {record.nextMaintenance
-                      ? new Date(record.nextMaintenance).toLocaleDateString()
-                      : 'Not scheduled'}
+                    {record.nextMaintenance ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Typography variant="body2">{new Date(record.nextMaintenance).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</Typography>
+                        <Typography variant="body2">{new Date(record.nextMaintenance).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</Typography>
+                      </Box>
+                    ) : (
+                      'Not scheduled'
+                    )}
                   </TableCell>
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
