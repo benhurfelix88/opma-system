@@ -2902,8 +2902,8 @@ app.get('/api/rides', authenticateToken, async (req, res) => {
 // Create ride
 app.post('/api/rides', authenticateToken, async (req, res) => {
   try {
-    const { name, status, location } = req.body;
-    await db.execute('INSERT INTO rides (name, status, location) VALUES ($1, $2, $3)', [name, status || 'operational', location || '']);
+    const { name, status, location, assigned_personnel } = req.body;
+    await db.execute('INSERT INTO rides (name, status, location, assigned_personnel) VALUES ($1, $2, $3, $4)', [name, status || 'operational', location || '', assigned_personnel || null]);
     
     // Emit socket event for real-time update
     io.emit('rides-updated', { action: 'create' });
@@ -2918,8 +2918,8 @@ app.post('/api/rides', authenticateToken, async (req, res) => {
 // Alias: some clients may call singular path
 app.post('/api/ride', authenticateToken, async (req, res) => {
   try {
-    const { name, status, location } = req.body;
-    await db.execute('INSERT INTO rides (name, status, location) VALUES ($1, $2, $3)', [name, status || 'operational', location || '']);
+    const { name, status, location, assigned_personnel } = req.body;
+    await db.execute('INSERT INTO rides (name, status, location, assigned_personnel) VALUES ($1, $2, $3, $4)', [name, status || 'operational', location || '', assigned_personnel || null]);
     
     // Emit socket event for real-time update
     io.emit('rides-updated', { action: 'create' });
@@ -2934,8 +2934,8 @@ app.post('/api/ride', authenticateToken, async (req, res) => {
 // Update ride
 app.put('/api/rides/:id', authenticateToken, async (req, res) => {
   try {
-    const { name, status, location } = req.body;
-    await db.execute('UPDATE rides SET name = $1, status = $2, location = $3 WHERE id = $4', [name, status || 'operational', location || '', req.params.id]);
+    const { name, status, location, assigned_personnel } = req.body;
+    await db.execute('UPDATE rides SET name = $1, status = $2, location = $3, assigned_personnel = $4 WHERE id = $5', [name, status || 'operational', location || '', assigned_personnel || null, req.params.id]);
     
     // Emit socket event for real-time update
     io.emit('rides-updated', { action: 'update', id: req.params.id });

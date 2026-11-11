@@ -75,6 +75,7 @@ const ManagerRideStatus = () => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [newRideName, setNewRideName] = useState('');
   const [newRideLocation, setNewRideLocation] = useState('');
+  const [newRideAssignedPersonnel, setNewRideAssignedPersonnel] = useState('');
   const [editingRide, setEditingRide] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [refreshing, setRefreshing] = useState(false);
@@ -181,10 +182,11 @@ const ManagerRideStatus = () => {
     }
 
     try {
-      await ridesAPI.create(newRideName.trim(), 'operational', newRideLocation.trim());
+      await ridesAPI.create(newRideName.trim(), 'operational', newRideLocation.trim(), newRideAssignedPersonnel.trim());
       setSuccess('Ride added successfully');
       setNewRideName('');
       setNewRideLocation('');
+      setNewRideAssignedPersonnel('');
       setDialogError('');
       setOpenAddDialog(false);
       await loadData();
@@ -229,7 +231,7 @@ const ManagerRideStatus = () => {
 
     try {
       const currentStatus = rideStatusMap[editingRide.id] || 'operational';
-      await ridesAPI.update(editingRide.id, editingRide.name.trim(), currentStatus, editingRide.location || '');
+      await ridesAPI.update(editingRide.id, editingRide.name.trim(), currentStatus, editingRide.location || '', editingRide.assigned_personnel || '');
       setSuccess('Ride updated successfully');
       setDialogError('');
       setEditingRide(null);
@@ -439,6 +441,7 @@ const ManagerRideStatus = () => {
                 <TableCell align="center" sx={{ width: '30px' }}></TableCell>
                 <TableCell align="center"><Typography fontWeight="bold">Ride Name</Typography></TableCell>
                 <TableCell align="center"><Typography fontWeight="bold">Location</Typography></TableCell>
+                <TableCell align="center"><Typography fontWeight="bold">Assigned Personnel</Typography></TableCell>
                 <TableCell align="center"><Typography fontWeight="bold">Status</Typography></TableCell>
                 <TableCell align="center"><Typography fontWeight="bold">Created</Typography></TableCell>
                 <TableCell align="center"><Typography fontWeight="bold">Actions</Typography></TableCell>
@@ -471,6 +474,9 @@ const ManagerRideStatus = () => {
                     </TableCell>
                     <TableCell align="center">
                       <Typography variant="body2">{ride.location || '-'}</Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Typography variant="body2">{ride.assigned_personnel || '-'}</Typography>
                     </TableCell>
                     <TableCell align="center">
                       <FormControl size="small" sx={{ minWidth: 150 }}>
@@ -594,6 +600,15 @@ const ManagerRideStatus = () => {
             variant="outlined"
             value={newRideLocation}
             onChange={(e) => setNewRideLocation(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            label="Assigned Personnel"
+            fullWidth
+            variant="outlined"
+            value={newRideAssignedPersonnel}
+            onChange={(e) => setNewRideAssignedPersonnel(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
@@ -628,6 +643,15 @@ const ManagerRideStatus = () => {
             variant="outlined"
             value={editingRide?.location || ''}
             onChange={(e) => setEditingRide({ ...editingRide, location: e.target.value })}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            label="Assigned Personnel"
+            fullWidth
+            variant="outlined"
+            value={editingRide?.assigned_personnel || ''}
+            onChange={(e) => setEditingRide({ ...editingRide, assigned_personnel: e.target.value })}
           />
         </DialogContent>
         <DialogActions>
@@ -699,6 +723,22 @@ const ManagerRideStatus = () => {
                       </Typography>
                       <Typography variant="body1" fontWeight="medium">
                         {selectedRide.id}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Location
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {selectedRide.location || 'N/A'}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Assigned Personnel
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {selectedRide.assigned_personnel || 'N/A'}
                       </Typography>
                     </Box>
                   </Box>
