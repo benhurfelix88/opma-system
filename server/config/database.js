@@ -94,6 +94,18 @@ module.exports = {
       const result = await originalQuery.call(connection, convertedQuery, params);
       return result.rows;
     };
+    // Add beginTransaction method for transaction support
+    connection.beginTransaction = async () => {
+      await originalQuery.call(connection, 'BEGIN');
+    };
+    // Add commit method for transaction support
+    connection.commit = async () => {
+      await originalQuery.call(connection, 'COMMIT');
+    };
+    // Add rollback method for transaction support
+    connection.rollback = async () => {
+      await originalQuery.call(connection, 'ROLLBACK');
+    };
     return connection;
   }
 };
