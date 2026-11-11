@@ -490,3 +490,51 @@ ALTER TABLE part_deployments ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP;
 
 ALTER TABLE part_removals ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'Pending';
 ALTER TABLE part_removals ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP;
+
+-- ============================================
+-- SAMPLE DATA: Ride Repairs
+-- ============================================
+INSERT INTO ride_repairs (ride, date, issue, parts_replaced, cost, technician, status, notes, location, approval_status) VALUES
+('Moon Rocket', '2026-01-15', 'Hydraulic system malfunction', 'Hydraulic pump, seals', 15000.00, 'John Doe', 'Completed', 'Replaced main hydraulic pump', 'Mandaluyong Area', 'Approved'),
+('Flash Dance', '2026-01-16', 'Electrical wiring issue', 'Wiring harness, fuses', 5000.00, 'Jane Smith', 'In Progress', 'Rewiring control panel', 'Sta. Rosa Laguna Area', 'Pending'),
+('Viking', '2026-01-17', 'Safety belt replacement', 'Safety belts, buckles', 8000.00, 'Mike Johnson', 'Completed', 'Updated all safety belts', 'Tarlac Area', 'Approved'),
+('Caterpillar', '2026-01-18', 'Engine overheating', 'Coolant system, radiator', 12000.00, 'Sarah Williams', 'Pending', 'Needs further diagnosis', 'Mandaluyong Area', 'Pending'),
+('Ferris Wheel', '2026-01-19', 'Lighting system failure', 'LED lights, controller', 3000.00, 'Tom Brown', 'Completed', 'Replaced LED strips', 'Sta. Rosa Laguna Area', 'Approved'),
+('Balloon Wheel', '2026-01-20', 'Motor replacement', 'Electric motor, bearings', 20000.00, 'Emily Davis', 'In Progress', 'Installing new motor', 'Tarlac Area', 'Pending'),
+('Horror Cab', '2026-01-21', 'Sound system repair', 'Speakers, amplifier', 4000.00, 'Chris Wilson', 'Completed', 'Upgraded audio system', 'Mandaluyong Area', 'Approved'),
+('Freesbee', '2026-01-22', 'Structural crack', 'Steel plates, welding', 10000.00, 'Amanda Miller', 'Pending', 'Reinforcement needed', 'Sta. Rosa Laguna Area', 'Pending'),
+('Funslides', '2026-01-23', 'Water pump failure', 'Water pump, hoses', 6000.00, 'David Garcia', 'Completed', 'Replaced pump assembly', 'Tarlac Area', 'Approved'),
+('Moon Rocket', '2026-01-24', 'Control panel issue', 'Circuit board, buttons', 7000.00, 'Lisa Anderson', 'In Progress', 'Troubleshooting electronics', 'Mandaluyong Area', 'Pending')
+ON CONFLICT DO NOTHING;
+
+-- ============================================
+-- SAMPLE DATA: Part Deployments
+-- ============================================
+INSERT INTO part_deployments (date, place, ride, status, missing_parts, encoded_by, approval_status) VALUES
+('2026-01-15', 'Mandaluyong Area', 'Moon Rocket', 'Complete', '', 'John Doe', 'Approved'),
+('2026-01-16', 'Sta. Rosa Laguna Area', 'Flash Dance', 'Complete', '', 'Jane Smith', 'Approved'),
+('2026-01-17', 'Tarlac Area', 'Viking', 'Complete', '', 'Mike Johnson', 'Approved'),
+('2026-01-18', 'Mandaluyong Area', 'Caterpillar', 'With missing parts', 'Safety belts', 'Sarah Williams', 'Pending'),
+('2026-01-19', 'Sta. Rosa Laguna Area', 'Ferris Wheel', 'Complete', '', 'Tom Brown', 'Approved'),
+('2026-01-20', 'Tarlac Area', 'Balloon Wheel', 'Complete', '', 'Emily Davis', 'Approved'),
+('2026-01-21', 'Mandaluyong Area', 'Horror Cab', 'With missing parts', 'Audio cables', 'Chris Wilson', 'Pending'),
+('2026-01-22', 'Sta. Rosa Laguna Area', 'Freesbee', 'Complete', '', 'Amanda Miller', 'Approved'),
+('2026-01-23', 'Tarlac Area', 'Funslides', 'Complete', '', 'David Garcia', 'Approved'),
+('2026-01-24', 'Mandaluyong Area', 'Moon Rocket', 'With missing parts', 'Control switches', 'Lisa Anderson', 'Pending')
+ON CONFLICT DO NOTHING;
+
+-- ============================================
+-- SAMPLE DATA: Part Removals
+-- ============================================
+INSERT INTO part_removals (date, place, ride, status, missing_parts, encoded_by, approval_status) VALUES
+('2026-01-15', 'Mandaluyong Area', 'Moon Rocket', 'Complete', '', 'John Doe', 'Approved'),
+('2026-01-16', 'Sta. Rosa Laguna Area', 'Flash Dance', 'Complete', '', 'Jane Smith', 'Approved'),
+('2026-01-17', 'Tarlac Area', 'Viking', 'Complete', '', 'Mike Johnson', 'Approved'),
+('2026-01-18', 'Mandaluyong Area', 'Caterpillar', 'With missing parts', 'Old parts', 'Sarah Williams', 'Pending'),
+('2026-01-19', 'Sta. Rosa Laguna Area', 'Ferris Wheel', 'Complete', '', 'Tom Brown', 'Approved'),
+('2026-01-20', 'Tarlac Area', 'Balloon Wheel', 'Complete', '', 'Emily Davis', 'Approved'),
+('2026-01-21', 'Mandaluyong Area', 'Horror Cab', 'With missing parts', 'Removed components', 'Chris Wilson', 'Pending'),
+('2026-01-22', 'Sta. Rosa Laguna Area', 'Freesbee', 'Complete', '', 'Amanda Miller', 'Approved'),
+('2026-01-23', 'Tarlac Area', 'Funslides', 'Complete', '', 'David Garcia', 'Approved'),
+('2026-01-24', 'Mandaluyong Area', 'Moon Rocket', 'With missing parts', 'Motor parts', 'Lisa Anderson', 'Pending')
+ON CONFLICT DO NOTHING;
