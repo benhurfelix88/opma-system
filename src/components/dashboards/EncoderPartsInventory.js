@@ -166,7 +166,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   const [selectedDeployment, setSelectedDeployment] = useState(null);
   const [selectedRemoval, setSelectedRemoval] = useState(null);
   const [deploymentData, setDeploymentData] = useState({
-    date: '',
+    date: new Date().toISOString().slice(0, 16),
     place: '',
     ride: '',
     status: 'Complete',
@@ -174,7 +174,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     encodedBy: '',
   });
   const [removalData, setRemovalData] = useState({
-    date: '',
+    date: new Date().toISOString().slice(0, 16),
     place: '',
     ride: '',
     status: 'Complete',
@@ -190,6 +190,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     onConfirm: null,
   });
   const [repairSortBy, setRepairSortBy] = useState('date-desc');
+  const [deploymentsSortBy, setDeploymentsSortBy] = useState('date-desc');
+  const [removalsSortBy, setRemovalsSortBy] = useState('date-desc');
 
   const loadRidesFromManager = useCallback(async () => {
     try {
@@ -545,7 +547,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       setSelectedRepair(null);
       setRepairData({
         ride: '',
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toISOString().slice(0, 16),
         issue: '',
         partsReplaced: '',
         cost: '',
@@ -1481,12 +1483,15 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7', cursor: 'pointer' }} onClick={() => setDeploymentsSortBy(deploymentsSortBy === 'date-desc' ? 'date-asc' : 'date-desc')}>
+                            Sort {deploymentsSortBy === 'date-desc' ? '↓' : '↑'}
+                          </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {deployments.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={8} align="center">
+                            <TableCell colSpan={9} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No deployment records found
                               </Typography>
@@ -1559,12 +1564,15 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7', cursor: 'pointer' }} onClick={() => setRemovalsSortBy(removalsSortBy === 'date-desc' ? 'date-asc' : 'date-desc')}>
+                            Sort {removalsSortBy === 'date-desc' ? '↓' : '↑'}
+                          </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {removals.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={8} align="center">
+                            <TableCell colSpan={9} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No removal records found
                               </Typography>
