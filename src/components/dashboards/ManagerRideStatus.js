@@ -130,10 +130,13 @@ const ManagerRideStatus = () => {
             if (!rideToPersonnelMap[rideName]) {
               rideToPersonnelMap[rideName] = [];
             }
-            rideToPersonnelMap[rideName].push(user.fullName || user.username);
+            rideToPersonnelMap[rideName].push(user.username);
           }
         }
       });
+
+      console.log('Users data:', usersData);
+      console.log('Ride to personnel map:', rideToPersonnelMap);
 
       // Merge assigned personnel into rides data
       const ridesWithPersonnel = ridesData.map(ride => ({
