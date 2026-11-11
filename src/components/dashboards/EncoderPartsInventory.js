@@ -262,7 +262,9 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         technician: repair.technician,
         status: repair.status,
         notes: repair.notes || '',
-        timestamp: repair.created_at || new Date().toISOString(),
+        location: repair.location || '',
+        created_at: repair.created_at,
+        updated_at: repair.updated_at,
       }));
       setRepairs(mappedRepairs);
 
@@ -565,13 +567,14 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     setSelectedRepair(null);
     setRepairData({
       ride: '',
-      date: '',
+      date: new Date().toISOString().slice(0, 16),
       issue: '',
       partsReplaced: '',
       cost: '',
       technician: '',
       status: 'In Progress',
       notes: '',
+      location: '',
     });
   };
 
@@ -670,7 +673,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         status: repair.status,
         notes: repair.notes || '',
         location: repair.location || '',
-        timestamp: repair.created_at || new Date().toISOString(),
+        created_at: repair.created_at,
+        updated_at: repair.updated_at,
       }));
       setRepairs(mappedRepairs);
       handleCloseRepairDialog();
@@ -700,7 +704,9 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           technician: repair.technician,
           status: repair.status,
           notes: repair.notes || '',
-          timestamp: repair.created_at || new Date().toISOString(),
+          location: repair.location || '',
+          created_at: repair.created_at,
+          updated_at: repair.updated_at,
         }));
         setRepairs(mappedRepairs);
         setSnackbar({ open: true, message: 'Repair deleted successfully', severity: 'success' });
@@ -737,7 +743,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       missingParts: deployment.missing_parts || '',
       encodedBy: deployment.encodedBy
     } : {
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().slice(0, 16),
       place: '',
       ride: '',
       status: 'Complete',
@@ -750,7 +756,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   const handleCloseDeploymentDialog = () => {
     setSelectedDeployment(null);
     setDeploymentData({
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().slice(0, 16),
       place: '',
       ride: '',
       status: 'Complete',
@@ -823,6 +829,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           status: deployment.status,
           missingParts: deployment.missing_parts || '',
           encodedBy: deployment.encoded_by,
+          created_at: deployment.created_at,
+          updated_at: deployment.updated_at,
         }));
         setDeployments(mappedDeployments);
         setSnackbar({ open: true, message: 'Deployment deleted successfully', severity: 'success' });
@@ -846,7 +854,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       missingParts: removal.missing_parts || '',
       encodedBy: removal.encoded_by
     } : {
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().slice(0, 16),
       place: '',
       ride: '',
       status: 'Complete',
@@ -859,7 +867,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   const handleCloseRemovalDialog = () => {
     setSelectedRemoval(null);
     setRemovalData({
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().slice(0, 16),
       place: '',
       ride: '',
       status: 'Complete',
@@ -932,6 +940,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           status: removal.status,
           missingParts: removal.missing_parts || '',
           encodedBy: removal.encoded_by,
+          created_at: removal.created_at,
+          updated_at: removal.updated_at,
         }));
         setRemovals(mappedRemovals);
         setSnackbar({ open: true, message: 'Removal deleted successfully', severity: 'success' });
@@ -1325,11 +1335,11 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableRow
                             key={repair.id}
                             sx={{
-                              backgroundColor: isRecent(repair.updated_at) || isRecent(repair.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                              backgroundColor: isRecent(repair.updated_at || repair.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
                             }}
                           >
                             <TableCell align="center" sx={{ width: '30px' }}>
-                              {(isRecent(repair.updated_at) || isRecent(repair.created_at)) && (
+                              {isRecent(repair.updated_at || repair.created_at) && (
                                 <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                               )}
                             </TableCell>
@@ -1439,7 +1449,35 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         ) : selectedTab === 2 ? (
           // Deployment/Removal Content (merged single page)
           <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ mb: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <FormControl size="small" sx={{ minWidth: 180 }}>
+                    <InputLabel>Sort by</InputLabel>
+                    <Select
+                      value={deploymentRemovalMode === 'deployment' ? deploymentsSortBy : removalsSortBy}
+                      label="Sort by"
+                      onChange={(e) => {
+                        if (deploymentRemovalMode === 'deployment') {
+                          setDeploymentsSortBy(e.target.value);
+                        } else {
+                          setRemovalsSortBy(e.target.value);
+                        }
+                      }}
+                    >
+                      <MenuItem value="date-desc">Date (Newest)</MenuItem>
+                      <MenuItem value="date-asc">Date (Oldest)</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => deploymentRemovalMode === 'deployment' ? handleOpenDeploymentDialog() : handleOpenRemovalDialog()}
+                >
+                  Add
+                </Button>
+              </Box>
               <Tabs
                 value={deploymentRemovalMode}
                 onChange={handleDeploymentRemovalModeChange}
@@ -1448,13 +1486,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                 <Tab value="deployment" label="Deployment" sx={{ minHeight: 40 }} />
                 <Tab value="removal" label="Removal" sx={{ minHeight: 40 }} />
               </Tabs>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => deploymentRemovalMode === 'deployment' ? handleOpenDeploymentDialog() : handleOpenRemovalDialog()}
-              >
-                Add
-              </Button>
             </Box>
             <Paper sx={{ p: 2, position: 'relative' }}>
               <TableContainer
@@ -1486,15 +1517,12 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7', cursor: 'pointer' }} onClick={() => setDeploymentsSortBy(deploymentsSortBy === 'date-desc' ? 'date-asc' : 'date-desc')}>
-                            Sort {deploymentsSortBy === 'date-desc' ? '↓' : '↑'}
-                          </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {deployments.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={9} align="center">
+                            <TableCell colSpan={8} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No deployment records found
                               </Typography>
@@ -1505,11 +1533,11 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                             <TableRow
                               key={deployment.id}
                               sx={{
-                                backgroundColor: isRecent(deployment.updated_at) || isRecent(deployment.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                                backgroundColor: isRecent(deployment.updated_at || deployment.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
                               }}
                             >
                               <TableCell align="center" sx={{ width: '30px' }}>
-                                {(isRecent(deployment.updated_at) || isRecent(deployment.created_at)) && (
+                                {isRecent(deployment.updated_at || deployment.created_at) && (
                                   <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                                 )}
                               </TableCell>
@@ -1567,15 +1595,12 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
-                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7', cursor: 'pointer' }} onClick={() => setRemovalsSortBy(removalsSortBy === 'date-desc' ? 'date-asc' : 'date-desc')}>
-                            Sort {removalsSortBy === 'date-desc' ? '↓' : '↑'}
-                          </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {removals.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={9} align="center">
+                            <TableCell colSpan={8} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No removal records found
                               </Typography>
@@ -1586,11 +1611,11 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                             <TableRow
                               key={removal.id}
                               sx={{
-                                backgroundColor: isRecent(removal.updated_at) || isRecent(removal.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
+                                backgroundColor: isRecent(removal.updated_at || removal.created_at) ? 'rgba(255, 0, 0, 0.05)' : 'inherit',
                               }}
                             >
                               <TableCell align="center" sx={{ width: '30px' }}>
-                                {(isRecent(removal.updated_at) || isRecent(removal.created_at)) && (
+                                {isRecent(removal.updated_at || removal.created_at) && (
                                   <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                                 )}
                               </TableCell>
