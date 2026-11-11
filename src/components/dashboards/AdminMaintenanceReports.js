@@ -601,18 +601,15 @@ const AdminMaintenanceReports = () => {
                     {viewRecord.description || 'No description provided'}
                   </Typography>
                 </Paper>
-                <Typography><strong>Maintenance Schedule:</strong>
-                  {viewRecord.nextMaintenance
-                    ? ` ${new Date(viewRecord.nextMaintenance).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true
-                      })}`
-                    : ' Not scheduled'}
-                </Typography>
+                <Typography><strong>Maintenance Schedule:</strong></Typography>
+                {viewRecord.nextMaintenance ? (
+                  <Box>
+                    <Typography>{new Date(viewRecord.nextMaintenance).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</Typography>
+                    <Typography>{new Date(viewRecord.nextMaintenance).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</Typography>
+                  </Box>
+                ) : (
+                  <Typography>Not scheduled</Typography>
+                )}
               </Box>
             )}
           </DialogContent>

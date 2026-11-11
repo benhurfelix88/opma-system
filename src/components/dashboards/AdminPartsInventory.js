@@ -18,24 +18,16 @@ import {
   MenuItem,
   Tabs,
   Tab,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Grid,
-  IconButton,
-  Tooltip,
+  Card,
+  CardContent,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   PictureAsPdf as ReportIcon,
   Circle as CircleIcon,
-  Info as InfoIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import { sparePartsAPI, rideRepairsAPI, partDeploymentsAPI, partRemovalsAPI } from '../../services/api';
 import { getSocket } from '../../utils/socket';
 
@@ -84,12 +76,6 @@ const AdminPartsInventory = () => {
   const [removalsSortOrder, setRemovalsSortOrder] = useState('desc');
   const [loading, setLoading] = useState(true);
   const [openReportDialog, setOpenReportDialog] = useState(false);
-  const [openRepairDetailsDialog, setOpenRepairDetailsDialog] = useState(false);
-  const [selectedRepairDetails, setSelectedRepairDetails] = useState(null);
-  const [openDeploymentDetailsDialog, setOpenDeploymentDetailsDialog] = useState(false);
-  const [selectedDeploymentDetails, setSelectedDeploymentDetails] = useState(null);
-  const [openRemovalDetailsDialog, setOpenRemovalDetailsDialog] = useState(false);
-  const [selectedRemovalDetails, setSelectedRemovalDetails] = useState(null);
 
   const loadParts = useCallback(async () => {
     try {
@@ -292,36 +278,6 @@ const AdminPartsInventory = () => {
     if (statusLower.includes('low stock')) return 'warning';
     if (statusLower.includes('out of stock')) return 'error';
     return 'default';
-  };
-
-  const handleOpenRepairDetails = (repair) => {
-    setSelectedRepairDetails(repair);
-    setOpenRepairDetailsDialog(true);
-  };
-
-  const handleCloseRepairDetails = () => {
-    setOpenRepairDetailsDialog(false);
-    setSelectedRepairDetails(null);
-  };
-
-  const handleOpenDeploymentDetails = (deployment) => {
-    setSelectedDeploymentDetails(deployment);
-    setOpenDeploymentDetailsDialog(true);
-  };
-
-  const handleCloseDeploymentDetails = () => {
-    setOpenDeploymentDetailsDialog(false);
-    setSelectedDeploymentDetails(null);
-  };
-
-  const handleOpenRemovalDetails = (removal) => {
-    setSelectedRemovalDetails(removal);
-    setOpenRemovalDetailsDialog(true);
-  };
-
-  const handleCloseRemovalDetails = () => {
-    setOpenRemovalDetailsDialog(false);
-    setSelectedRemovalDetails(null);
   };
 
   const filteredAndSortedRepairs = rideRepairs
@@ -686,13 +642,12 @@ const AdminPartsInventory = () => {
                           <TableCell align="center" sx={{ width: '8%' }}>Cost</TableCell>
                           <TableCell align="center" sx={{ width: '8%' }}>Approval Status</TableCell>
                           <TableCell align="center" sx={{ width: '8%' }}>Approval Date</TableCell>
-                          <TableCell align="center" sx={{ width: '5%' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAndSortedRepairs.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={13} align="center">
+                            <TableCell colSpan={12} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No ride repairs found
                               </Typography>
@@ -751,16 +706,6 @@ const AdminPartsInventory = () => {
                               </TableCell>
                               <TableCell align="center">
                                 {repair.approval_date ? new Date(repair.approval_date).toLocaleDateString() : '-'}
-                              </TableCell>
-                              <TableCell align="center">
-                                <Tooltip title="View Details">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleOpenRepairDetails(repair)}
-                                  >
-                                    <InfoIcon />
-                                  </IconButton>
-                                </Tooltip>
                               </TableCell>
                             </TableRow>
                           ))
@@ -913,16 +858,6 @@ const AdminPartsInventory = () => {
                               <TableCell align="center">
                                 {deployment.approval_date ? new Date(deployment.approval_date).toLocaleDateString() : '-'}
                               </TableCell>
-                              <TableCell align="center">
-                                <Tooltip title="View Details">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleOpenDeploymentDetails(deployment)}
-                                  >
-                                    <InfoIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              </TableCell>
                             </TableRow>
                           ))
                         )}
@@ -1074,16 +1009,6 @@ const AdminPartsInventory = () => {
                               <TableCell align="center">
                                 {removal.approval_date ? new Date(removal.approval_date).toLocaleDateString() : '-'}
                               </TableCell>
-                              <TableCell align="center">
-                                <Tooltip title="View Details">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleOpenRemovalDetails(removal)}
-                                  >
-                                    <InfoIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              </TableCell>
                             </TableRow>
                           ))
                         )}
@@ -1128,53 +1053,22 @@ const AdminPartsInventory = () => {
             title="Ride Repairs Report"
             reportType="repairs"
             columns={[
-              { header: 'Ride', field: 'ride' },
               { header: 'Date', field: 'date' },
+              { header: 'Ride', field: 'ride' },
+              { header: 'Ride Location', field: 'location' },
               { header: 'Issue', field: 'issue' },
+              { header: 'Parts Replaced', field: 'parts_replaced' },
               { header: 'Technician', field: 'technician' },
-              { header: 'Status', field: 'status' }
+              { header: 'Notes', field: 'notes' },
+              { header: 'Status', field: 'status' },
+              { header: 'Cost', field: 'cost' },
+              { header: 'Approval Status', field: 'approval_status' },
+              { header: 'Approval Date', field: 'approval_date' }
             ]}
           />
         )}
 
-        {/* Repair Details Dialog */}
-        <Dialog open={openRepairDetailsDialog} onClose={handleCloseRepairDetails} maxWidth="md" fullWidth>
-          <DialogTitle>Repair Details</DialogTitle>
-          <DialogContent>
-            {selectedRepairDetails && (
-              <Box sx={{ mt: 2 }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Date:</Typography>
-                    <Typography variant="body1">{new Date(selectedRepairDetails.date).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Ride:</Typography>
-                    <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedRepairDetails.ride}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Ride Location:</Typography>
-                    <Typography variant="body1">{selectedRepairDetails.location || 'Not specified'}</Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Issue:</Typography>
-                    <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedRepairDetails.issue}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Technician:</Typography>
-                    <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedRepairDetails.technician}</Typography>
-                  </Grid>
-                </Grid>
-              </Box>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseRepairDetails}>Close</Button>
-          </DialogActions>
-        </Dialog>
-
         {tabValue === 2 && (
-          <>
           <ReportGenerator
             open={openReportDialog}
             onClose={() => setOpenReportDialog(false)}
@@ -1182,55 +1076,20 @@ const AdminPartsInventory = () => {
             title="Part Deployments Report"
             reportType="deployments"
             columns={[
-              { header: 'Date', field: 'date' },
+              { header: 'Date Recorded', field: 'created_at' },
+              { header: 'Date of Deployment', field: 'date' },
               { header: 'Place', field: 'place' },
               { header: 'Ride', field: 'ride' },
               { header: 'Status', field: 'status' },
               { header: 'Missing Parts', field: 'missing_parts' },
-              { header: 'Encoded By', field: 'encoded_by' }
+              { header: 'Encoded By', field: 'encoded_by' },
+              { header: 'Approval Status', field: 'approval_status' },
+              { header: 'Approval Date', field: 'approval_date' }
             ]}
           />
-
-          {/* Deployment Details Dialog */}
-          <Dialog open={openDeploymentDetailsDialog} onClose={handleCloseDeploymentDetails} maxWidth="md" fullWidth>
-            <DialogTitle>Deployment Details</DialogTitle>
-            <DialogContent>
-              {selectedDeploymentDetails && (
-                <Box sx={{ mt: 2 }}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Date:</Typography>
-                      <Typography variant="body1">{new Date(selectedDeploymentDetails.date).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Place:</Typography>
-                      <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedDeploymentDetails.place}</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Ride:</Typography>
-                      <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedDeploymentDetails.ride}</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Status:</Typography>
-                      <Typography variant="body1">{selectedDeploymentDetails.status}</Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Missing Parts:</Typography>
-                      <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedDeploymentDetails.missing_parts || 'None'}</Typography>
-                    </Grid>
-                  </Grid>
-                </Box>
-              )}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseDeploymentDetails}>Close</Button>
-            </DialogActions>
-          </Dialog>
-          </>
         )}
 
         {tabValue === 3 && (
-          <>
           <ReportGenerator
             open={openReportDialog}
             onClose={() => setOpenReportDialog(false)}
@@ -1238,51 +1097,17 @@ const AdminPartsInventory = () => {
             title="Part Removals Report"
             reportType="removals"
             columns={[
-              { header: 'Date', field: 'date' },
+              { header: 'Date Recorded', field: 'created_at' },
+              { header: 'Date of Removal', field: 'date' },
               { header: 'Place', field: 'place' },
               { header: 'Ride', field: 'ride' },
               { header: 'Status', field: 'status' },
               { header: 'Missing Parts', field: 'missing_parts' },
-              { header: 'Encoded By', field: 'encoded_by' }
+              { header: 'Encoded By', field: 'encoded_by' },
+              { header: 'Approval Status', field: 'approval_status' },
+              { header: 'Approval Date', field: 'approval_date' }
             ]}
           />
-
-          {/* Removal Details Dialog */}
-          <Dialog open={openRemovalDetailsDialog} onClose={handleCloseRemovalDetails} maxWidth="md" fullWidth>
-            <DialogTitle>Removal Details</DialogTitle>
-            <DialogContent>
-              {selectedRemovalDetails && (
-                <Box sx={{ mt: 2 }}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Date:</Typography>
-                      <Typography variant="body1">{new Date(selectedRemovalDetails.date).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Place:</Typography>
-                      <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedRemovalDetails.place}</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Ride:</Typography>
-                      <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedRemovalDetails.ride}</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Status:</Typography>
-                      <Typography variant="body1">{selectedRemovalDetails.status}</Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Missing Parts:</Typography>
-                      <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedRemovalDetails.missing_parts || 'None'}</Typography>
-                    </Grid>
-                  </Grid>
-                </Box>
-              )}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseRemovalDetails}>Close</Button>
-            </DialogActions>
-          </Dialog>
-          </>
         )}
       </Box>
     </DashboardLayout>

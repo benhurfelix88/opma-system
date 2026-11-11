@@ -1396,11 +1396,17 @@ const ManagerPartsInventory = () => {
             title="Ride Repairs Report"
             reportType="repairs"
             columns={[
-              { header: 'Ride', field: 'ride' },
               { header: 'Date', field: 'date' },
+              { header: 'Ride', field: 'ride' },
+              { header: 'Ride Location', field: 'location' },
               { header: 'Issue', field: 'issue' },
+              { header: 'Parts Replaced', field: 'parts_replaced' },
               { header: 'Technician', field: 'technician' },
-              { header: 'Status', field: 'status' }
+              { header: 'Notes', field: 'notes' },
+              { header: 'Status', field: 'status' },
+              { header: 'Cost', field: 'cost' },
+              { header: 'Approval Status', field: 'approval_status' },
+              { header: 'Approval Date', field: 'approval_date' }
             ]}
           />
 
@@ -1442,12 +1448,15 @@ const ManagerPartsInventory = () => {
             title="Part Deployments Report"
             reportType="deployments"
             columns={[
-              { header: 'Date', field: 'date' },
+              { header: 'Date Recorded', field: 'created_at' },
+              { header: 'Date of Deployment', field: 'date' },
               { header: 'Place', field: 'place' },
               { header: 'Ride', field: 'ride' },
               { header: 'Status', field: 'status' },
               { header: 'Missing Parts', field: 'missing_parts' },
-              { header: 'Encoded By', field: 'encoded_by' }
+              { header: 'Encoded By', field: 'encoded_by' },
+              { header: 'Approval Status', field: 'approval_status' },
+              { header: 'Approval Date', field: 'approval_date' }
             ]}
           />
 
@@ -1489,12 +1498,15 @@ const ManagerPartsInventory = () => {
             title="Part Removals Report"
             reportType="removals"
             columns={[
-              { header: 'Date', field: 'date' },
+              { header: 'Date Recorded', field: 'created_at' },
+              { header: 'Date of Removal', field: 'date' },
               { header: 'Place', field: 'place' },
               { header: 'Ride', field: 'ride' },
               { header: 'Status', field: 'status' },
               { header: 'Missing Parts', field: 'missing_parts' },
-              { header: 'Encoded By', field: 'encoded_by' }
+              { header: 'Encoded By', field: 'encoded_by' },
+              { header: 'Approval Status', field: 'approval_status' },
+              { header: 'Approval Date', field: 'approval_date' }
             ]}
           />
 
