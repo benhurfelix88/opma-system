@@ -1142,9 +1142,12 @@ const ReportGenerator = ({
                       filteredData.slice(0, 8).map((item, index) => (
                         <TableRow key={index} hover>
                           {columns.map((column, colIndex) => (
-                            <TableCell key={colIndex} align="center">
-                              {column.render ? 
-                                column.render(item) : 
+                            <TableCell
+                              key={colIndex}
+                              align={(column.field === 'description' || column.header?.toLowerCase().includes('description')) ? 'left' : 'center'}
+                            >
+                              {column.render ?
+                                column.render(item) :
                                 (column.field === 'description' || column.header?.toLowerCase().includes('description')) ?
                                   <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {truncateText(item[column.field] || 'N/A')}

@@ -48,6 +48,8 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LockIcon from '@mui/icons-material/Lock';
 import BadgeIcon from '@mui/icons-material/Badge';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { usersAPI, ridesAPI, rideStatusAPI } from '../../services/api';
 
 const UserManagement = () => {
@@ -87,6 +89,7 @@ const UserManagement = () => {
     lastUpdated: new Date().toISOString(),
     createdAt: new Date().toISOString(),
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [formErrors, setFormErrors] = useState({
     email: '',
     mobileNumber: ''
@@ -1102,13 +1105,22 @@ const UserManagement = () => {
                 <TextField
                   label="Password"
                   name="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={handleInputChange}
                   fullWidth
                   required
                   InputProps={{
-                    startAdornment: <LockIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                    startAdornment: <LockIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                    endAdornment: (
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    )
                   }}
                 />
                 <TextField

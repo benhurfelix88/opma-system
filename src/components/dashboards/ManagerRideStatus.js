@@ -167,6 +167,18 @@ const ManagerRideStatus = () => {
       return;
     }
 
+    // Check for duplicate ride name + location combination
+    const duplicateRide = rides.find(
+      ride =>
+        ride.name.toLowerCase() === newRideName.trim().toLowerCase() &&
+        (ride.location || '').toLowerCase() === (newRideLocation || '').toLowerCase()
+    );
+
+    if (duplicateRide) {
+      setError('A ride with this name and location already exists. Please use a different name or location.');
+      return;
+    }
+
     try {
       await ridesAPI.create(newRideName.trim(), 'operational', newRideLocation.trim());
       setSuccess('Ride added successfully');
