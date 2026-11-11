@@ -152,7 +152,12 @@ const AdminPartsInventory = () => {
   const loadRideRepairs = useCallback(async () => {
     try {
       const repairs = await rideRepairsAPI.getAll();
-      setRideRepairs(repairs || []);
+      const mappedRepairs = repairs.map(repair => ({
+        ...repair,
+        approval_status: repair.approval_status || 'Pending',
+        approval_date: repair.approval_date
+      }));
+      setRideRepairs(mappedRepairs || []);
     } catch (error) {
       console.error('Error loading ride repairs:', error);
     }
@@ -163,7 +168,9 @@ const AdminPartsInventory = () => {
       const deployments = await partDeploymentsAPI.getAll();
       const mappedDeployments = deployments.map(deployment => ({
         ...deployment,
-        missing_parts: deployment.missing_parts || ''
+        missing_parts: deployment.missing_parts || '',
+        approval_status: deployment.approval_status || 'Pending',
+        approval_date: deployment.approval_date
       }));
       setPartDeployments(mappedDeployments || []);
     } catch (error) {
@@ -176,7 +183,9 @@ const AdminPartsInventory = () => {
       const removals = await partRemovalsAPI.getAll();
       const mappedRemovals = removals.map(removal => ({
         ...removal,
-        missing_parts: removal.missing_parts || ''
+        missing_parts: removal.missing_parts || '',
+        approval_status: removal.approval_status || 'Pending',
+        approval_date: removal.approval_date
       }));
       setPartRemovals(mappedRemovals || []);
     } catch (error) {
@@ -649,13 +658,15 @@ const AdminPartsInventory = () => {
                           <TableCell align="center" sx={{ width: '12%' }}>Technician</TableCell>
                           <TableCell align="center" sx={{ width: '12%' }}>Status</TableCell>
                           <TableCell align="center" sx={{ width: '10%' }}>Cost</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Approval Status</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Approval Date</TableCell>
                           <TableCell align="center" sx={{ width: '7%' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAndSortedRepairs.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={9} align="center">
+                            <TableCell colSpan={11} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No ride repairs found
                               </Typography>
@@ -696,6 +707,23 @@ const AdminPartsInventory = () => {
                                 />
                               </TableCell>
                               <TableCell align="center">₱{Number(repair.cost || 0).toFixed(2)}</TableCell>
+                              <TableCell align="center">
+                                <Chip
+                                  label={repair.approval_status || 'Pending'}
+                                  variant="outlined"
+                                  size="small"
+                                  sx={{
+                                    color: repair.approval_status === 'Approved' ? 'green' :
+                                           repair.approval_status === 'Rejected' ? 'red' : 'orange',
+                                    borderColor: repair.approval_status === 'Approved' ? 'green' :
+                                                 repair.approval_status === 'Rejected' ? 'red' : 'orange',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                {repair.approval_date ? new Date(repair.approval_date).toLocaleDateString() : '-'}
+                              </TableCell>
                               <TableCell align="center">
                                 <Tooltip title="View Details">
                                   <IconButton
@@ -788,12 +816,14 @@ const AdminPartsInventory = () => {
                           <TableCell align="center" sx={{ width: '11%' }}>Status</TableCell>
                           <TableCell align="center" sx={{ width: '16%' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ width: '12%' }}>Encoded By</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Approval Status</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Approval Date</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAndSortedDeployments.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={8} align="center">
+                            <TableCell colSpan={10} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No deployments found
                               </Typography>
@@ -838,6 +868,23 @@ const AdminPartsInventory = () => {
                               </TableCell>
                               <TableCell align="center" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{deployment.missing_parts || '-'}</TableCell>
                               <TableCell align="center">{deployment.encoded_by}</TableCell>
+                              <TableCell align="center">
+                                <Chip
+                                  label={deployment.approval_status || 'Pending'}
+                                  variant="outlined"
+                                  size="small"
+                                  sx={{
+                                    color: deployment.approval_status === 'Approved' ? 'green' :
+                                           deployment.approval_status === 'Rejected' ? 'red' : 'orange',
+                                    borderColor: deployment.approval_status === 'Approved' ? 'green' :
+                                                 deployment.approval_status === 'Rejected' ? 'red' : 'orange',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                {deployment.approval_date ? new Date(deployment.approval_date).toLocaleDateString() : '-'}
+                              </TableCell>
                             </TableRow>
                           ))
                         )}
@@ -920,12 +967,14 @@ const AdminPartsInventory = () => {
                           <TableCell align="center" sx={{ width: '11%' }}>Status</TableCell>
                           <TableCell align="center" sx={{ width: '16%' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ width: '12%' }}>Encoded By</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Approval Status</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Approval Date</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAndSortedRemovals.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={8} align="center">
+                            <TableCell colSpan={10} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No removals found
                               </Typography>
@@ -970,6 +1019,23 @@ const AdminPartsInventory = () => {
                               </TableCell>
                               <TableCell align="center" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{removal.missing_parts || '-'}</TableCell>
                               <TableCell align="center">{removal.encoded_by}</TableCell>
+                              <TableCell align="center">
+                                <Chip
+                                  label={removal.approval_status || 'Pending'}
+                                  variant="outlined"
+                                  size="small"
+                                  sx={{
+                                    color: removal.approval_status === 'Approved' ? 'green' :
+                                           removal.approval_status === 'Rejected' ? 'red' : 'orange',
+                                    borderColor: removal.approval_status === 'Approved' ? 'green' :
+                                                 removal.approval_status === 'Rejected' ? 'red' : 'orange',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                {removal.approval_date ? new Date(removal.approval_date).toLocaleDateString() : '-'}
+                              </TableCell>
                             </TableRow>
                           ))
                         )}

@@ -730,6 +730,8 @@ async function ensureRideRepairs() {
         technician VARCHAR(255) NOT NULL,
         status VARCHAR(50) DEFAULT 'In Progress',
         notes TEXT,
+        approval_status VARCHAR(50) DEFAULT 'Pending',
+        approval_date TIMESTAMP,
         created_by INTEGER,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -741,6 +743,18 @@ async function ensureRideRepairs() {
       await db.execute('ALTER TABLE ride_repairs ALTER COLUMN date TYPE TIMESTAMP');
     } catch (alterError) {
       // Column already has correct type or doesn't need modification
+    }
+    // Add approval_status column if it doesn't exist
+    try {
+      await db.execute('ALTER TABLE ride_repairs ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT \'Pending\'');
+    } catch (alterError) {
+      // Column likely already exists, ignore error
+    }
+    // Add approval_date column if it doesn't exist
+    try {
+      await db.execute('ALTER TABLE ride_repairs ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP');
+    } catch (alterError) {
+      // Column likely already exists, ignore error
     }
     console.log('✓ Ride repairs table ensured');
   } catch (e) {
@@ -760,6 +774,8 @@ async function ensurePartDeployments() {
         status VARCHAR(50) DEFAULT 'Complete',
         missing_parts TEXT,
         encoded_by VARCHAR(255) NOT NULL,
+        approval_status VARCHAR(50) DEFAULT 'Pending',
+        approval_date TIMESTAMP,
         created_by INTEGER,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -777,6 +793,18 @@ async function ensurePartDeployments() {
       await db.execute('ALTER TABLE part_deployments ALTER COLUMN date TYPE TIMESTAMP');
     } catch (alterError) {
       // Column already has correct type or doesn't need modification
+    }
+    // Add approval_status column if it doesn't exist
+    try {
+      await db.execute('ALTER TABLE part_deployments ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT \'Pending\'');
+    } catch (alterError) {
+      // Column likely already exists, ignore error
+    }
+    // Add approval_date column if it doesn't exist
+    try {
+      await db.execute('ALTER TABLE part_deployments ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP');
+    } catch (alterError) {
+      // Column likely already exists, ignore error
     }
     console.log('✓ Part deployments table ensured');
   } catch (e) {
@@ -796,6 +824,8 @@ async function ensurePartRemovals() {
         status VARCHAR(50) DEFAULT 'Complete',
         missing_parts TEXT,
         encoded_by VARCHAR(255) NOT NULL,
+        approval_status VARCHAR(50) DEFAULT 'Pending',
+        approval_date TIMESTAMP,
         created_by INTEGER,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -813,6 +843,18 @@ async function ensurePartRemovals() {
       await db.execute('ALTER TABLE part_removals ALTER COLUMN date TYPE TIMESTAMP');
     } catch (alterError) {
       // Column already has correct type or doesn't need modification
+    }
+    // Add approval_status column if it doesn't exist
+    try {
+      await db.execute('ALTER TABLE part_removals ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT \'Pending\'');
+    } catch (alterError) {
+      // Column likely already exists, ignore error
+    }
+    // Add approval_date column if it doesn't exist
+    try {
+      await db.execute('ALTER TABLE part_removals ADD COLUMN IF NOT EXISTS approval_date TIMESTAMP');
+    } catch (alterError) {
+      // Column likely already exists, ignore error
     }
     console.log('✓ Part removals table ensured');
   } catch (e) {
@@ -2616,12 +2658,25 @@ app.post('/api/ride-repairs', authenticateToken, async (req, res) => {
 // Update ride repair
 app.put('/api/ride-repairs/:id', authenticateToken, async (req, res) => {
   try {
-    const { ride, date, issue, parts_replaced, cost, technician, status, notes, location } = req.body;
+    const { ride, date, issue, parts_replaced, cost, technician, status, notes, location, approval_status, approval_date } = req.body;
 
-    await db.execute(
-      'UPDATE ride_repairs SET ride = ?, date = ?, issue = ?, parts_replaced = ?, cost = ?, technician = ?, status = ?, notes = ?, location = ? WHERE id = ?',
-      [ride, date, issue, parts_replaced || null, cost || 0, technician, status, notes || null, location || null, req.params.id]
-    );
+    let query = 'UPDATE ride_repairs SET ride = ?, date = ?, issue = ?, parts_replaced = ?, cost = ?, technician = ?, status = ?, notes = ?, location = ?';
+    const params = [ride, date, issue, parts_replaced || null, cost || 0, technician, status, notes || null, location || null];
+    
+    if (approval_status !== undefined) {
+      query += ', approval_status = ?';
+      params.push(approval_status);
+    }
+    
+    if (approval_date !== undefined) {
+      query += ', approval_date = ?';
+      params.push(approval_date);
+    }
+    
+    query += ' WHERE id = ?';
+    params.push(req.params.id);
+
+    await db.execute(query, params);
 
     // Emit ride-repairs-updated event
     io.emit('ride-repairs-updated', { action: 'update', id: req.params.id });
@@ -2688,12 +2743,25 @@ app.post('/api/part-deployments', authenticateToken, async (req, res) => {
 // Update part deployment
 app.put('/api/part-deployments/:id', authenticateToken, async (req, res) => {
   try {
-    const { date, place, ride, status, missing_parts, encoded_by } = req.body;
+    const { date, place, ride, status, missing_parts, encoded_by, approval_status, approval_date } = req.body;
 
-    await db.execute(
-      'UPDATE part_deployments SET date = ?, place = ?, ride = ?, status = ?, missing_parts = ?, encoded_by = ? WHERE id = ?',
-      [date, place, ride, status, missing_parts || null, encoded_by, req.params.id]
-    );
+    let query = 'UPDATE part_deployments SET date = ?, place = ?, ride = ?, status = ?, missing_parts = ?, encoded_by = ?';
+    const params = [date, place, ride, status, missing_parts || null, encoded_by];
+    
+    if (approval_status !== undefined) {
+      query += ', approval_status = ?';
+      params.push(approval_status);
+    }
+    
+    if (approval_date !== undefined) {
+      query += ', approval_date = ?';
+      params.push(approval_date);
+    }
+    
+    query += ' WHERE id = ?';
+    params.push(req.params.id);
+
+    await db.execute(query, params);
 
     // Emit part-deployments-updated event
     io.emit('part-deployments-updated', { action: 'update', id: req.params.id });
@@ -2760,12 +2828,25 @@ app.post('/api/part-removals', authenticateToken, async (req, res) => {
 // Update part removal
 app.put('/api/part-removals/:id', authenticateToken, async (req, res) => {
   try {
-    const { date, place, ride, status, missing_parts, encoded_by } = req.body;
+    const { date, place, ride, status, missing_parts, encoded_by, approval_status, approval_date } = req.body;
 
-    await db.execute(
-      'UPDATE part_removals SET date = ?, place = ?, ride = ?, status = ?, missing_parts = ?, encoded_by = ? WHERE id = ?',
-      [date, place, ride, status, missing_parts || null, encoded_by, req.params.id]
-    );
+    let query = 'UPDATE part_removals SET date = ?, place = ?, ride = ?, status = ?, missing_parts = ?, encoded_by = ?';
+    const params = [date, place, ride, status, missing_parts || null, encoded_by];
+    
+    if (approval_status !== undefined) {
+      query += ', approval_status = ?';
+      params.push(approval_status);
+    }
+    
+    if (approval_date !== undefined) {
+      query += ', approval_date = ?';
+      params.push(approval_date);
+    }
+    
+    query += ' WHERE id = ?';
+    params.push(req.params.id);
+
+    await db.execute(query, params);
 
     // Emit part-removals-updated event
     io.emit('part-removals-updated', { action: 'update', id: req.params.id });

@@ -34,6 +34,7 @@ import {
   PictureAsPdf as ReportIcon,
   Search as SearchIcon,
   Circle as CircleIcon,
+  Check as CheckIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -83,6 +84,21 @@ const ManagerPartsInventory = () => {
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [openReportDialog, setOpenReportDialog] = useState(false);
+  const [openRepairApprovalDialog, setOpenRepairApprovalDialog] = useState(false);
+  const [selectedRepair, setSelectedRepair] = useState(null);
+  const [repairFormData, setRepairFormData] = useState({
+    approvalStatus: '',
+  });
+  const [openDeploymentApprovalDialog, setOpenDeploymentApprovalDialog] = useState(false);
+  const [selectedDeployment, setSelectedDeployment] = useState(null);
+  const [deploymentFormData, setDeploymentFormData] = useState({
+    approvalStatus: '',
+  });
+  const [openRemovalApprovalDialog, setOpenRemovalApprovalDialog] = useState(false);
+  const [selectedRemoval, setSelectedRemoval] = useState(null);
+  const [removalFormData, setRemovalFormData] = useState({
+    approvalStatus: '',
+  });
 
   useEffect(() => {
     loadParts();
@@ -157,7 +173,12 @@ const ManagerPartsInventory = () => {
   const loadRideRepairs = async () => {
     try {
       const repairs = await rideRepairsAPI.getAll();
-      setRideRepairs(repairs || []);
+      const mappedRepairs = repairs.map(repair => ({
+        ...repair,
+        approval_status: repair.approval_status || 'Pending',
+        approval_date: repair.approval_date
+      }));
+      setRideRepairs(mappedRepairs || []);
     } catch (error) {
       console.error('Error loading ride repairs:', error);
     }
@@ -171,6 +192,8 @@ const ManagerPartsInventory = () => {
         missing_parts: deployment.missing_parts || '',
         created_at: deployment.created_at,
         updated_at: deployment.updated_at,
+        approval_status: deployment.approval_status || 'Pending',
+        approval_date: deployment.approval_date
       }));
       setPartDeployments(mappedDeployments || []);
     } catch (error) {
@@ -186,6 +209,8 @@ const ManagerPartsInventory = () => {
         missing_parts: removal.missing_parts || '',
         created_at: removal.created_at,
         updated_at: removal.updated_at,
+        approval_status: removal.approval_status || 'Pending',
+        approval_date: removal.approval_date
       }));
       setPartRemovals(mappedRemovals || []);
     } catch (error) {
@@ -268,6 +293,183 @@ const ManagerPartsInventory = () => {
       console.error('Error updating part:', error);
       console.error('Error response:', error.response);
       setSnackbar({ open: true, message: `Failed to update approval status: ${error.response?.data?.details || error.message}`, severity: 'error' });
+    }
+  };
+
+  const handleOpenRepairApprovalDialog = (repair = null) => {
+    if (repair) {
+      setSelectedRepair(repair);
+      setRepairFormData({
+        approvalStatus: repair.approval_status || 'Pending',
+      });
+    }
+    setOpenRepairApprovalDialog(true);
+  };
+
+  const handleCloseRepairApprovalDialog = () => {
+    setOpenRepairApprovalDialog(false);
+    setSelectedRepair(null);
+    setRepairFormData({
+      approvalStatus: '',
+    });
+  };
+
+  const handleRepairApprovalSubmit = async () => {
+    if (!selectedRepair || !repairFormData.approvalStatus) {
+      setSnackbar({ open: true, message: 'Please select an approval status', severity: 'warning' });
+      return;
+    }
+
+    try {
+      const allRepairs = await rideRepairsAPI.getAll();
+      const originalRepair = allRepairs.find(r => String(r.id) === String(selectedRepair.id));
+
+      const updatePayload = {
+        ride: originalRepair?.ride || selectedRepair.ride,
+        date: originalRepair?.date || selectedRepair.date,
+        issue: originalRepair?.issue || selectedRepair.issue,
+        parts_replaced: originalRepair?.parts_replaced || selectedRepair.parts_replaced || '',
+        cost: originalRepair?.cost || selectedRepair.cost || 0,
+        technician: originalRepair?.technician || selectedRepair.technician,
+        status: originalRepair?.status || selectedRepair.status,
+        notes: originalRepair?.notes || selectedRepair.notes || '',
+        location: originalRepair?.location || selectedRepair.location || '',
+        approval_status: repairFormData.approvalStatus,
+        approval_date: repairFormData.approvalStatus === 'Approved' ? new Date().toISOString() : null,
+      };
+
+      await rideRepairsAPI.update(selectedRepair.id, updatePayload);
+
+      setRideRepairs((prev) =>
+        prev.map((r) =>
+          String(r.id) === String(selectedRepair.id)
+            ? { ...r, approval_status: repairFormData.approvalStatus, approval_date: updatePayload.approval_date }
+            : r
+        )
+      );
+
+      handleCloseRepairApprovalDialog();
+      setSnackbar({ open: true, message: `Repair has been ${repairFormData.approvalStatus.toLowerCase()} successfully!`, severity: 'success' });
+      await loadRideRepairs();
+    } catch (error) {
+      console.error('Error updating repair approval:', error);
+      setSnackbar({ open: true, message: `Failed to update approval status: ${error.message}`, severity: 'error' });
+    }
+  };
+
+  const handleOpenDeploymentApprovalDialog = (deployment = null) => {
+    if (deployment) {
+      setSelectedDeployment(deployment);
+      setDeploymentFormData({
+        approvalStatus: deployment.approval_status || 'Pending',
+      });
+    }
+    setOpenDeploymentApprovalDialog(true);
+  };
+
+  const handleCloseDeploymentApprovalDialog = () => {
+    setOpenDeploymentApprovalDialog(false);
+    setSelectedDeployment(null);
+    setDeploymentFormData({
+      approvalStatus: '',
+    });
+  };
+
+  const handleDeploymentApprovalSubmit = async () => {
+    if (!selectedDeployment || !deploymentFormData.approvalStatus) {
+      setSnackbar({ open: true, message: 'Please select an approval status', severity: 'warning' });
+      return;
+    }
+
+    try {
+      const allDeployments = await partDeploymentsAPI.getAll();
+      const originalDeployment = allDeployments.find(d => String(d.id) === String(selectedDeployment.id));
+
+      const updatePayload = {
+        date: originalDeployment?.date || selectedDeployment.date,
+        place: originalDeployment?.place || selectedDeployment.place,
+        ride: originalDeployment?.ride || selectedDeployment.ride,
+        status: originalDeployment?.status || selectedDeployment.status,
+        missing_parts: originalDeployment?.missing_parts || selectedDeployment.missing_parts || '',
+        encoded_by: originalDeployment?.encoded_by || selectedDeployment.encoded_by,
+        approval_status: deploymentFormData.approvalStatus,
+        approval_date: deploymentFormData.approvalStatus === 'Approved' ? new Date().toISOString() : null,
+      };
+
+      await partDeploymentsAPI.update(selectedDeployment.id, updatePayload);
+
+      setPartDeployments((prev) =>
+        prev.map((d) =>
+          String(d.id) === String(selectedDeployment.id)
+            ? { ...d, approval_status: deploymentFormData.approvalStatus, approval_date: updatePayload.approval_date }
+            : d
+        )
+      );
+
+      handleCloseDeploymentApprovalDialog();
+      setSnackbar({ open: true, message: `Deployment has been ${deploymentFormData.approvalStatus.toLowerCase()} successfully!`, severity: 'success' });
+      await loadPartDeployments();
+    } catch (error) {
+      console.error('Error updating deployment approval:', error);
+      setSnackbar({ open: true, message: `Failed to update approval status: ${error.message}`, severity: 'error' });
+    }
+  };
+
+  const handleOpenRemovalApprovalDialog = (removal = null) => {
+    if (removal) {
+      setSelectedRemoval(removal);
+      setRemovalFormData({
+        approvalStatus: removal.approval_status || 'Pending',
+      });
+    }
+    setOpenRemovalApprovalDialog(true);
+  };
+
+  const handleCloseRemovalApprovalDialog = () => {
+    setOpenRemovalApprovalDialog(false);
+    setSelectedRemoval(null);
+    setRemovalFormData({
+      approvalStatus: '',
+    });
+  };
+
+  const handleRemovalApprovalSubmit = async () => {
+    if (!selectedRemoval || !removalFormData.approvalStatus) {
+      setSnackbar({ open: true, message: 'Please select an approval status', severity: 'warning' });
+      return;
+    }
+
+    try {
+      const allRemovals = await partRemovalsAPI.getAll();
+      const originalRemoval = allRemovals.find(r => String(r.id) === String(selectedRemoval.id));
+
+      const updatePayload = {
+        date: originalRemoval?.date || selectedRemoval.date,
+        place: originalRemoval?.place || selectedRemoval.place,
+        ride: originalRemoval?.ride || selectedRemoval.ride,
+        status: originalRemoval?.status || selectedRemoval.status,
+        missing_parts: originalRemoval?.missing_parts || selectedRemoval.missing_parts || '',
+        encoded_by: originalRemoval?.encoded_by || selectedRemoval.encoded_by,
+        approval_status: removalFormData.approvalStatus,
+        approval_date: removalFormData.approvalStatus === 'Approved' ? new Date().toISOString() : null,
+      };
+
+      await partRemovalsAPI.update(selectedRemoval.id, updatePayload);
+
+      setPartRemovals((prev) =>
+        prev.map((r) =>
+          String(r.id) === String(selectedRemoval.id)
+            ? { ...r, approval_status: removalFormData.approvalStatus, approval_date: updatePayload.approval_date }
+            : r
+        )
+      );
+
+      handleCloseRemovalApprovalDialog();
+      setSnackbar({ open: true, message: `Removal has been ${removalFormData.approvalStatus.toLowerCase()} successfully!`, severity: 'success' });
+      await loadPartRemovals();
+    } catch (error) {
+      console.error('Error updating removal approval:', error);
+      setSnackbar({ open: true, message: `Failed to update approval status: ${error.message}`, severity: 'error' });
     }
   };
 
@@ -686,12 +888,15 @@ const ManagerPartsInventory = () => {
                           <TableCell align="center" sx={{ width: '15%' }}>Technician</TableCell>
                           <TableCell align="center" sx={{ width: '15%' }}>Status</TableCell>
                           <TableCell align="center" sx={{ width: '10%' }}>Cost</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Approval Status</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Approval Date</TableCell>
+                          <TableCell align="center" sx={{ width: '5%' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAndSortedRepairs.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={7} align="center">
+                            <TableCell colSpan={9} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No ride repairs found
                               </Typography>
@@ -731,6 +936,35 @@ const ManagerPartsInventory = () => {
                                 />
                               </TableCell>
                               <TableCell align="center">₱{Number(repair.cost || 0).toFixed(2)}</TableCell>
+                              <TableCell align="center">
+                                <Chip
+                                  label={repair.approval_status || 'Pending'}
+                                  variant="outlined"
+                                  size="small"
+                                  sx={{
+                                    color: getApprovalColor(repair.approval_status) === 'success' ? 'green' :
+                                          getApprovalColor(repair.approval_status) === 'warning' ? 'orange' :
+                                          getApprovalColor(repair.approval_status) === 'error' ? 'red' : 'gray',
+                                    borderColor: getApprovalColor(repair.approval_status) === 'success' ? 'green' :
+                                                 getApprovalColor(repair.approval_status) === 'warning' ? 'orange' :
+                                                 getApprovalColor(repair.approval_status) === 'error' ? 'red' : 'gray',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                {repair.approval_date ? new Date(repair.approval_date).toLocaleDateString() : '-'}
+                              </TableCell>
+                              <TableCell align="center">
+                                <Tooltip title="Approve/Reject">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleOpenRepairApprovalDialog(repair)}
+                                  >
+                                    <CheckIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              </TableCell>
                             </TableRow>
                           ))
                         )}
@@ -813,13 +1047,15 @@ const ManagerPartsInventory = () => {
                           <TableCell align="center" sx={{ width: '11%' }}>Status</TableCell>
                           <TableCell align="center" sx={{ width: '16%' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ width: '12%' }}>Encoded By</TableCell>
-                          <TableCell align="center" sx={{ width: '5%' }}>Sort</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Approval Status</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Approval Date</TableCell>
+                          <TableCell align="center" sx={{ width: '5%' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAndSortedDeployments.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={9} align="center">
+                            <TableCell colSpan={11} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No deployments found
                               </Typography>
@@ -865,9 +1101,33 @@ const ManagerPartsInventory = () => {
                               <TableCell align="center" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{deployment.missing_parts || '-'}</TableCell>
                               <TableCell align="center">{deployment.encoded_by}</TableCell>
                               <TableCell align="center">
-                                <IconButton size="small" onClick={() => setDeploymentsSortOrder(deploymentsSortOrder === 'asc' ? 'desc' : 'asc')}>
-                                  {deploymentsSortOrder === 'asc' ? '↑' : '↓'}
-                                </IconButton>
+                                <Chip
+                                  label={deployment.approval_status || 'Pending'}
+                                  variant="outlined"
+                                  size="small"
+                                  sx={{
+                                    color: getApprovalColor(deployment.approval_status) === 'success' ? 'green' :
+                                          getApprovalColor(deployment.approval_status) === 'warning' ? 'orange' :
+                                          getApprovalColor(deployment.approval_status) === 'error' ? 'red' : 'gray',
+                                    borderColor: getApprovalColor(deployment.approval_status) === 'success' ? 'green' :
+                                                 getApprovalColor(deployment.approval_status) === 'warning' ? 'orange' :
+                                                 getApprovalColor(deployment.approval_status) === 'error' ? 'red' : 'gray',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                {deployment.approval_date ? new Date(deployment.approval_date).toLocaleDateString() : '-'}
+                              </TableCell>
+                              <TableCell align="center">
+                                <Tooltip title="Approve/Reject">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleOpenDeploymentApprovalDialog(deployment)}
+                                  >
+                                    <CheckIcon />
+                                  </IconButton>
+                                </Tooltip>
                               </TableCell>
                             </TableRow>
                           ))
@@ -951,13 +1211,15 @@ const ManagerPartsInventory = () => {
                           <TableCell align="center" sx={{ width: '11%' }}>Status</TableCell>
                           <TableCell align="center" sx={{ width: '16%' }}>Missing Parts</TableCell>
                           <TableCell align="center" sx={{ width: '12%' }}>Encoded By</TableCell>
-                          <TableCell align="center" sx={{ width: '5%' }}>Sort</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Approval Status</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Approval Date</TableCell>
+                          <TableCell align="center" sx={{ width: '5%' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAndSortedRemovals.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={9} align="center">
+                            <TableCell colSpan={11} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No removals found
                               </Typography>
@@ -1003,9 +1265,33 @@ const ManagerPartsInventory = () => {
                               <TableCell align="center" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{removal.missing_parts || '-'}</TableCell>
                               <TableCell align="center">{removal.encoded_by}</TableCell>
                               <TableCell align="center">
-                                <IconButton size="small" onClick={() => setRemovalsSortOrder(removalsSortOrder === 'asc' ? 'desc' : 'asc')}>
-                                  {removalsSortOrder === 'asc' ? '↑' : '↓'}
-                                </IconButton>
+                                <Chip
+                                  label={removal.approval_status || 'Pending'}
+                                  variant="outlined"
+                                  size="small"
+                                  sx={{
+                                    color: getApprovalColor(removal.approval_status) === 'success' ? 'green' :
+                                          getApprovalColor(removal.approval_status) === 'warning' ? 'orange' :
+                                          getApprovalColor(removal.approval_status) === 'error' ? 'red' : 'gray',
+                                    borderColor: getApprovalColor(removal.approval_status) === 'success' ? 'green' :
+                                                 getApprovalColor(removal.approval_status) === 'warning' ? 'orange' :
+                                                 getApprovalColor(removal.approval_status) === 'error' ? 'red' : 'gray',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                {removal.approval_date ? new Date(removal.approval_date).toLocaleDateString() : '-'}
+                              </TableCell>
+                              <TableCell align="center">
+                                <Tooltip title="Approve/Reject">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleOpenRemovalApprovalDialog(removal)}
+                                  >
+                                    <CheckIcon />
+                                  </IconButton>
+                                </Tooltip>
                               </TableCell>
                             </TableRow>
                           ))
@@ -1052,6 +1338,87 @@ const ManagerPartsInventory = () => {
           <DialogActions>
             <Button onClick={handleCloseDialog}>Cancel</Button>
             <Button onClick={handleSubmit} variant="contained" color="primary">
+              Update
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Repair Approval Dialog */}
+        <Dialog open={openRepairApprovalDialog} onClose={handleCloseRepairApprovalDialog} maxWidth="sm" fullWidth>
+          <DialogTitle>Review Repair</DialogTitle>
+          <DialogContent>
+            <Box sx={{ mt: 2 }}>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Approval Status</InputLabel>
+                <Select
+                  value={repairFormData.approvalStatus}
+                  label="Approval Status"
+                  onChange={(e) => setRepairFormData({ ...repairFormData, approvalStatus: e.target.value })}
+                >
+                  <MenuItem value="Approved">Approve</MenuItem>
+                  <MenuItem value="Rejected">Reject</MenuItem>
+                  <MenuItem value="Pending">Pending</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseRepairApprovalDialog}>Cancel</Button>
+            <Button onClick={handleRepairApprovalSubmit} variant="contained" color="primary">
+              Update
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Deployment Approval Dialog */}
+        <Dialog open={openDeploymentApprovalDialog} onClose={handleCloseDeploymentApprovalDialog} maxWidth="sm" fullWidth>
+          <DialogTitle>Review Deployment</DialogTitle>
+          <DialogContent>
+            <Box sx={{ mt: 2 }}>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Approval Status</InputLabel>
+                <Select
+                  value={deploymentFormData.approvalStatus}
+                  label="Approval Status"
+                  onChange={(e) => setDeploymentFormData({ ...deploymentFormData, approvalStatus: e.target.value })}
+                >
+                  <MenuItem value="Approved">Approve</MenuItem>
+                  <MenuItem value="Rejected">Reject</MenuItem>
+                  <MenuItem value="Pending">Pending</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDeploymentApprovalDialog}>Cancel</Button>
+            <Button onClick={handleDeploymentApprovalSubmit} variant="contained" color="primary">
+              Update
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Removal Approval Dialog */}
+        <Dialog open={openRemovalApprovalDialog} onClose={handleCloseRemovalApprovalDialog} maxWidth="sm" fullWidth>
+          <DialogTitle>Review Removal</DialogTitle>
+          <DialogContent>
+            <Box sx={{ mt: 2 }}>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Approval Status</InputLabel>
+                <Select
+                  value={removalFormData.approvalStatus}
+                  label="Approval Status"
+                  onChange={(e) => setRemovalFormData({ ...removalFormData, approvalStatus: e.target.value })}
+                >
+                  <MenuItem value="Approved">Approve</MenuItem>
+                  <MenuItem value="Rejected">Reject</MenuItem>
+                  <MenuItem value="Pending">Pending</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseRemovalApprovalDialog}>Cancel</Button>
+            <Button onClick={handleRemovalApprovalSubmit} variant="contained" color="primary">
               Update
             </Button>
           </DialogActions>

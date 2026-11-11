@@ -265,6 +265,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         status: repair.status,
         notes: repair.notes || '',
         location: repair.location || '',
+        approval_status: repair.approval_status || 'Pending',
+        approval_date: repair.approval_date,
         created_at: repair.created_at,
         updated_at: repair.updated_at,
       }));
@@ -280,6 +282,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         status: deployment.status,
         missingParts: deployment.missing_parts || '',
         encodedBy: deployment.encoded_by,
+        approval_status: deployment.approval_status || 'Pending',
+        approval_date: deployment.approval_date,
         created_at: deployment.created_at,
         updated_at: deployment.updated_at,
       }));
@@ -295,6 +299,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         status: removal.status,
         missingParts: removal.missing_parts || '',
         encodedBy: removal.encoded_by,
+        approval_status: removal.approval_status || 'Pending',
+        approval_date: removal.approval_date,
         created_at: removal.created_at,
         updated_at: removal.updated_at,
       }));
@@ -1352,13 +1358,15 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Parts Replaced</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Technician</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Notes</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Status</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Date</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {getSortedRepairs().length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={10} align="center">
+                        <TableCell colSpan={12} align="center">
                           <Typography variant="body1" color="text.secondary">
                             No repair records found
                           </Typography>
@@ -1432,6 +1440,22 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               {repair.notes && repair.notes.length > 30
                                 ? repair.notes.substring(0, 30) + '...'
                                 : repair.notes}
+                            </TableCell>
+                            <TableCell align="center">
+                              <Chip
+                                label={repair.approval_status || 'Pending'}
+                                size="small"
+                                sx={{
+                                  color: repair.approval_status === 'Approved' ? 'green' :
+                                         repair.approval_status === 'Rejected' ? 'red' : 'orange',
+                                  borderColor: repair.approval_status === 'Approved' ? 'green' :
+                                               repair.approval_status === 'Rejected' ? 'red' : 'orange',
+                                  backgroundColor: 'transparent'
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell align="center">
+                              {repair.approval_date ? new Date(repair.approval_date).toLocaleDateString() : '-'}
                             </TableCell>
                             <TableCell align="center">
                               <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
@@ -1569,13 +1593,15 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Name of Ride</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Missing Parts</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Status</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Date</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {getFilteredDeployments().length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={8} align="center">
+                            <TableCell colSpan={10} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No deployment records found
                               </Typography>
@@ -1620,6 +1646,22 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               </TableCell>
                               <TableCell align="center">{deployment.missingParts || '-'}</TableCell>
                               <TableCell align="center">
+                                <Chip
+                                  label={deployment.approval_status || 'Pending'}
+                                  size="small"
+                                  sx={{
+                                    color: deployment.approval_status === 'Approved' ? 'green' :
+                                           deployment.approval_status === 'Rejected' ? 'red' : 'orange',
+                                    borderColor: deployment.approval_status === 'Approved' ? 'green' :
+                                                 deployment.approval_status === 'Rejected' ? 'red' : 'orange',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                {deployment.approval_date ? new Date(deployment.approval_date).toLocaleDateString() : '-'}
+                              </TableCell>
+                              <TableCell align="center">
                                 <Tooltip title="Edit">
                                   <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleOpenDeploymentDialog(deployment); }}>
                                     <EditIcon />
@@ -1647,13 +1689,15 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Ride</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Status</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Missing Parts</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Status</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Approval Date</TableCell>
                           <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '0.875rem', py: 2, borderBottom: '2px solid #e0e0e0', backgroundColor: '#f3f0f7' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {getFilteredRemovals().length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={8} align="center">
+                            <TableCell colSpan={10} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No removal records found
                               </Typography>
@@ -1697,6 +1741,22 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                 />
                               </TableCell>
                               <TableCell align="center">{removal.missingParts || '-'}</TableCell>
+                              <TableCell align="center">
+                                <Chip
+                                  label={removal.approval_status || 'Pending'}
+                                  size="small"
+                                  sx={{
+                                    color: removal.approval_status === 'Approved' ? 'green' :
+                                           removal.approval_status === 'Rejected' ? 'red' : 'orange',
+                                    borderColor: removal.approval_status === 'Approved' ? 'green' :
+                                                 removal.approval_status === 'Rejected' ? 'red' : 'orange',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                {removal.approval_date ? new Date(removal.approval_date).toLocaleDateString() : '-'}
+                              </TableCell>
                               <TableCell align="center">
                                 <Tooltip title="Edit">
                                   <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleOpenRemovalDialog(removal); }}>
