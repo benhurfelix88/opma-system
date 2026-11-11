@@ -723,7 +723,7 @@ async function ensureRideRepairs() {
       CREATE TABLE IF NOT EXISTS ride_repairs (
         id SERIAL PRIMARY KEY,
         ride VARCHAR(255) NOT NULL,
-        date DATE NOT NULL,
+        date TIMESTAMP NOT NULL,
         issue TEXT NOT NULL,
         parts_replaced TEXT,
         cost DECIMAL(10, 2) DEFAULT 0,
@@ -736,6 +736,12 @@ async function ensureRideRepairs() {
         FOREIGN KEY (created_by) REFERENCES users(id)
       )
     `);
+    // Migrate date column from DATE to TIMESTAMP if needed
+    try {
+      await db.execute('ALTER TABLE ride_repairs ALTER COLUMN date TYPE TIMESTAMP');
+    } catch (alterError) {
+      // Column already has correct type or doesn't need modification
+    }
     console.log('✓ Ride repairs table ensured');
   } catch (e) {
     console.error('Ride repairs table ensure failed:', e.message);
@@ -748,7 +754,7 @@ async function ensurePartDeployments() {
     await db.execute(`
       CREATE TABLE IF NOT EXISTS part_deployments (
         id SERIAL PRIMARY KEY,
-        date DATE NOT NULL,
+        date TIMESTAMP NOT NULL,
         place VARCHAR(255) NOT NULL,
         ride VARCHAR(255) NOT NULL,
         status VARCHAR(50) DEFAULT 'Complete',
@@ -766,6 +772,12 @@ async function ensurePartDeployments() {
     } catch (e) {
       // Column likely already exists, ignore error
     }
+    // Migrate date column from DATE to TIMESTAMP if needed
+    try {
+      await db.execute('ALTER TABLE part_deployments ALTER COLUMN date TYPE TIMESTAMP');
+    } catch (alterError) {
+      // Column already has correct type or doesn't need modification
+    }
     console.log('✓ Part deployments table ensured');
   } catch (e) {
     console.error('Part deployments table ensure failed:', e.message);
@@ -778,7 +790,7 @@ async function ensurePartRemovals() {
     await db.execute(`
       CREATE TABLE IF NOT EXISTS part_removals (
         id SERIAL PRIMARY KEY,
-        date DATE NOT NULL,
+        date TIMESTAMP NOT NULL,
         place VARCHAR(255) NOT NULL,
         ride VARCHAR(255) NOT NULL,
         status VARCHAR(50) DEFAULT 'Complete',
@@ -795,6 +807,12 @@ async function ensurePartRemovals() {
       await db.execute('ALTER TABLE part_removals ADD COLUMN IF NOT EXISTS missing_parts TEXT');
     } catch (e) {
       // Column likely already exists, ignore error
+    }
+    // Migrate date column from DATE to TIMESTAMP if needed
+    try {
+      await db.execute('ALTER TABLE part_removals ALTER COLUMN date TYPE TIMESTAMP');
+    } catch (alterError) {
+      // Column already has correct type or doesn't need modification
     }
     console.log('✓ Part removals table ensured');
   } catch (e) {

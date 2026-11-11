@@ -192,6 +192,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
   const [repairSortBy, setRepairSortBy] = useState('date-desc');
   const [deploymentsSortBy, setDeploymentsSortBy] = useState('date-desc');
   const [removalsSortBy, setRemovalsSortBy] = useState('date-desc');
+  const [deploymentSearchQuery, setDeploymentSearchQuery] = useState('');
+  const [removalSearchQuery, setRemovalSearchQuery] = useState('');
 
   const loadRidesFromManager = useCallback(async () => {
     try {
@@ -629,6 +631,40 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       default:
         return sortedRepairs;
     }
+  };
+
+  const getFilteredDeployments = () => {
+    let filtered = [...deployments];
+    if (deploymentSearchQuery) {
+      const q = deploymentSearchQuery.toLowerCase();
+      filtered = filtered.filter((deployment) => {
+        return (
+          deployment.ride?.toLowerCase().includes(q) ||
+          deployment.place?.toLowerCase().includes(q) ||
+          deployment.status?.toLowerCase().includes(q) ||
+          deployment.missingParts?.toLowerCase().includes(q) ||
+          new Date(deployment.date).toLocaleDateString().toLowerCase().includes(q)
+        );
+      });
+    }
+    return filtered;
+  };
+
+  const getFilteredRemovals = () => {
+    let filtered = [...removals];
+    if (removalSearchQuery) {
+      const q = removalSearchQuery.toLowerCase();
+      filtered = filtered.filter((removal) => {
+        return (
+          removal.ride?.toLowerCase().includes(q) ||
+          removal.place?.toLowerCase().includes(q) ||
+          removal.status?.toLowerCase().includes(q) ||
+          removal.missingParts?.toLowerCase().includes(q) ||
+          new Date(removal.date).toLocaleDateString().toLowerCase().includes(q)
+        );
+      });
+    }
+    return filtered;
   };
 
   const handleSubmitRepair = async () => {
@@ -1452,6 +1488,23 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
             <Box sx={{ mb: 2 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <TextField
+                    placeholder={deploymentRemovalMode === 'deployment' ? "Search deployments..." : "Search removals..."}
+                    variant="outlined"
+                    size="small"
+                    value={deploymentRemovalMode === 'deployment' ? deploymentSearchQuery : removalSearchQuery}
+                    onChange={(e) => {
+                      if (deploymentRemovalMode === 'deployment') {
+                        setDeploymentSearchQuery(e.target.value);
+                      } else {
+                        setRemovalSearchQuery(e.target.value);
+                      }
+                    }}
+                    InputProps={{
+                      startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                    }}
+                    sx={{ minWidth: 200 }}
+                  />
                   <FormControl size="small" sx={{ minWidth: 180 }}>
                     <InputLabel>Sort by</InputLabel>
                     <Select
@@ -1520,7 +1573,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {deployments.length === 0 ? (
+                        {getFilteredDeployments().length === 0 ? (
                           <TableRow>
                             <TableCell colSpan={8} align="center">
                               <Typography variant="body1" color="text.secondary">
@@ -1529,7 +1582,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                             </TableCell>
                           </TableRow>
                         ) : (
-                          deployments.map((deployment) => (
+                          getFilteredDeployments().map((deployment) => (
                             <TableRow
                               key={deployment.id}
                               sx={{
@@ -1598,7 +1651,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {removals.length === 0 ? (
+                        {getFilteredRemovals().length === 0 ? (
                           <TableRow>
                             <TableCell colSpan={8} align="center">
                               <Typography variant="body1" color="text.secondary">
@@ -1607,7 +1660,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                             </TableCell>
                           </TableRow>
                         ) : (
-                          removals.map((removal) => (
+                          getFilteredRemovals().map((removal) => (
                             <TableRow
                               key={removal.id}
                               sx={{
