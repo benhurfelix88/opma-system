@@ -23,9 +23,6 @@ import {
   ListItem,
   ListItemText,
   Alert,
-  FormControl,
-  InputLabel,
-  Select,
   InputAdornment,
   Tooltip,
   Tabs,
@@ -723,54 +720,6 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
 
   const handleDeploymentRemovalModeChange = (event, newValue) => {
     setDeploymentRemovalMode(newValue ?? event.target.value);
-  };
-
-  const handleDeploymentStatusChange = async (id, newStatus) => {
-    const deployment = deployments.find((item) => item.id === id);
-    if (!deployment || deployment.status === newStatus) return;
-    try {
-      await partDeploymentsAPI.update(id, {
-        date: deployment.date,
-        place: deployment.place,
-        ride: deployment.ride,
-        parts: deployment.parts,
-        quantity: Number(deployment.quantity),
-        status: newStatus,
-        missing_parts: deployment.missingParts,
-        encoded_by: deployment.encodedBy,
-      });
-      setDeployments((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
-      );
-      setSnackbar({ open: true, message: 'Deployment status updated', severity: 'success' });
-    } catch (error) {
-      console.error('Error updating deployment status:', error);
-      setSnackbar({ open: true, message: 'Failed to update deployment status', severity: 'error' });
-    }
-  };
-
-  const handleRemovalStatusChange = async (id, newStatus) => {
-    const removal = removals.find((item) => item.id === id);
-    if (!removal || removal.status === newStatus) return;
-    try {
-      await partRemovalsAPI.update(id, {
-        date: removal.date,
-        place: removal.place,
-        ride: removal.ride,
-        parts: removal.parts,
-        quantity: Number(removal.quantity),
-        status: newStatus,
-        missing_parts: removal.missingParts,
-        encoded_by: removal.encodedBy,
-      });
-      setRemovals((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
-      );
-      setSnackbar({ open: true, message: 'Removal status updated', severity: 'success' });
-    } catch (error) {
-      console.error('Error updating removal status:', error);
-      setSnackbar({ open: true, message: 'Failed to update removal status', severity: 'error' });
-    }
   };
 
   const handleOpenDeploymentDialog = (deployment = null) => {
@@ -1552,16 +1501,20 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               <TableCell align="center">{deployment.place}</TableCell>
                               <TableCell align="center">{deployment.ride}</TableCell>
                               <TableCell align="center">
-                                <FormControl size="small" sx={{ minWidth: 130 }}>
-                                  <Select
-                                    value={deployment.status}
-                                    onChange={(e) => handleDeploymentStatusChange(deployment.id, e.target.value)}
-                                  >
-                                    {DEPLOYMENT_REMOVAL_STATUS_OPTIONS.map((status) => (
-                                      <MenuItem key={status} value={status}>{status}</MenuItem>
-                                    ))}
-                                  </Select>
-                                </FormControl>
+                                <Chip
+                                  label={deployment.status}
+                                  variant="outlined"
+                                  size="small"
+                                  sx={{
+                                    color: deployment.status === 'Complete' ? 'green' :
+                                           deployment.status === 'Defective' ? 'red' :
+                                           deployment.status === 'With missing parts' ? 'orange' : 'gray',
+                                    borderColor: deployment.status === 'Complete' ? 'green' :
+                                                 deployment.status === 'Defective' ? 'red' :
+                                                 deployment.status === 'With missing parts' ? 'orange' : 'gray',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
                               </TableCell>
                               <TableCell align="center">{deployment.missingParts || '-'}</TableCell>
                               <TableCell align="center">
@@ -1622,16 +1575,20 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               <TableCell align="center">{removal.place}</TableCell>
                               <TableCell align="center">{removal.ride}</TableCell>
                               <TableCell align="center">
-                                <FormControl size="small" sx={{ minWidth: 130 }}>
-                                  <Select
-                                    value={removal.status}
-                                    onChange={(e) => handleRemovalStatusChange(removal.id, e.target.value)}
-                                  >
-                                    {DEPLOYMENT_REMOVAL_STATUS_OPTIONS.map((status) => (
-                                      <MenuItem key={status} value={status}>{status}</MenuItem>
-                                    ))}
-                                  </Select>
-                                </FormControl>
+                                <Chip
+                                  label={removal.status}
+                                  variant="outlined"
+                                  size="small"
+                                  sx={{
+                                    color: removal.status === 'Complete' ? 'green' :
+                                           removal.status === 'Defective' ? 'red' :
+                                           removal.status === 'With missing parts' ? 'orange' : 'gray',
+                                    borderColor: removal.status === 'Complete' ? 'green' :
+                                                 removal.status === 'Defective' ? 'red' :
+                                                 removal.status === 'With missing parts' ? 'orange' : 'gray',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
                               </TableCell>
                               <TableCell align="center">{removal.missingParts || '-'}</TableCell>
                               <TableCell align="center">
