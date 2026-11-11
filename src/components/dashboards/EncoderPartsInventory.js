@@ -23,6 +23,9 @@ import {
   ListItem,
   ListItemText,
   Alert,
+  FormControl,
+  InputLabel,
+  Select,
   InputAdornment,
   Tooltip,
   Tabs,
@@ -2560,3 +2563,4 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
 };
 
 export default EncoderPartsInventory; 
+
