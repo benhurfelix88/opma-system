@@ -538,3 +538,19 @@ INSERT INTO part_removals (date, place, ride, status, missing_parts, encoded_by,
 ('2026-01-23', 'Tarlac Area', 'Funslides', 'Complete', '', 'David Garcia', 'Approved'),
 ('2026-01-24', 'Mandaluyong Area', 'Moon Rocket', 'With missing parts', 'Motor parts', 'Lisa Anderson', 'Pending')
 ON CONFLICT DO NOTHING;
+
+-- ============================================
+-- SAMPLE DATA: Incident Reports
+-- ============================================
+INSERT INTO incident_reports (incident_id, ride_name, incident_type, severity, description, reported_by, date_reported, time_reported, status, review_status) VALUES
+('INC-2026-001', 'Moon Rocket', 'Mechanical Failure', 'High', 'Hydraulic system malfunction during operation', 1, '2026-01-15', '10:30:00', 'Resolved', 'Approved'),
+('INC-2026-002', 'Flash Dance', 'Safety Incident', 'Medium', 'Guest tripped near exit ramp', 1, '2026-01-16', '14:45:00', 'Resolved', 'Approved'),
+('INC-2026-003', 'Viking', 'Weather Related', 'Low', 'Operation suspended due to heavy rain', 1, '2026-01-17', '09:15:00', 'Resolved', 'Approved'),
+('INC-2026-004', 'Caterpillar', 'Mechanical Failure', 'High', 'Engine overheating during peak hours', 1, '2026-01-18', '16:20:00', 'Under Investigation', 'Pending'),
+('INC-2026-005', 'Ferris Wheel', 'Safety Incident', 'Medium', 'Minor injury reported by guest', 1, '2026-01-19', '11:00:00', 'Resolved', 'Approved'),
+('INC-2026-006', 'Balloon Wheel', 'Weather Related', 'Low', 'Strong winds required temporary shutdown', 1, '2026-01-20', '13:30:00', 'Resolved', 'Approved'),
+('INC-2026-007', 'Horror Cab', 'Safety Incident', 'High', 'Emergency stop activated due to malfunction', 1, '2026-01-21', '15:45:00', 'Under Investigation', 'Pending'),
+('INC-2026-008', 'Freesbee', 'Mechanical Failure', 'Medium', 'Sensor malfunction in control system', 1, '2026-01-22', '10:00:00', 'Resolved', 'Approved'),
+('INC-2026-009', 'Funslides', 'Safety Incident', 'Low', 'Guest slip hazard reported', 1, '2026-01-23', '12:15:00', 'Resolved', 'Approved'),
+('INC-2026-010', 'Moon Rocket', 'Mechanical Failure', 'Medium', 'Electrical panel indicator light failure', 1, '2026-01-24', '14:30:00', 'Under Investigation', 'Pending')
+ON CONFLICT DO NOTHING;

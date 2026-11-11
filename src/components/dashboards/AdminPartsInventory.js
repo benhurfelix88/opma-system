@@ -25,11 +25,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Tooltip,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   PictureAsPdf as ReportIcon,
   Circle as CircleIcon,
+  Info as InfoIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -735,12 +737,22 @@ const AdminPartsInventory = () => {
                                 ) : '-'}
                               </TableCell>
                               <TableCell align="center">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleOpenRepairDetailsDialog(repair)}
-                                >
-                                  <CircleIcon sx={{ fontSize: 18 }} />
-                                </IconButton>
+                                <Tooltip title="View Details">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleOpenRepairDetailsDialog(repair)}
+                                    sx={{
+                                      transition: 'all 0.2s ease',
+                                      '&:hover': {
+                                        backgroundColor: 'info.main',
+                                        color: 'white',
+                                        transform: 'scale(1.1)',
+                                      },
+                                    }}
+                                  >
+                                    <InfoIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
                               </TableCell>
                             </TableRow>
                           ))
