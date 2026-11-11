@@ -330,6 +330,12 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       loadRidesFromManager();
     });
 
+    // Listen for ride repairs updates
+    socket.on('ride-repairs-updated', (data) => {
+      console.log('Ride repairs updated via WebSocket:', data);
+      loadData();
+    });
+
     // Listen for part deployments updates
     socket.on('part-deployments-updated', (data) => {
       console.log('Part deployments updated via WebSocket:', data);
@@ -346,6 +352,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     return () => {
       socket.off('spare-parts-updated');
       socket.off('rides-updated');
+      socket.off('ride-repairs-updated');
       socket.off('part-deployments-updated');
       socket.off('part-removals-updated');
     };

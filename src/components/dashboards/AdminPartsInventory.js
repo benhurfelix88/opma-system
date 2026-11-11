@@ -467,6 +467,7 @@ const AdminPartsInventory = () => {
                 <TableCell align="center" sx={{ width: '30px' }}></TableCell>
                 <TableCell align="center" sx={{ width: '12%' }}>Part Name</TableCell>
                 <TableCell align="center" sx={{ width: '10%' }}>Ride</TableCell>
+                <TableCell align="center" sx={{ width: '10%' }}>Ride Location</TableCell>
                 <TableCell align="center" sx={{ width: '8%' }}>Quantity</TableCell>
                 <TableCell align="center" sx={{ width: '8%' }}>Unit</TableCell>
                 <TableCell align="center" sx={{ width: '10%' }}>Price</TableCell>
@@ -482,7 +483,7 @@ const AdminPartsInventory = () => {
             <TableBody>
               {filteredAndSortedParts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={13} align="center">
+                  <TableCell colSpan={14} align="center">
                     <Typography variant="body1" color="text.secondary">
                       No parts found
                     </Typography>
@@ -503,6 +504,7 @@ const AdminPartsInventory = () => {
                     </TableCell>
                     <TableCell align="center" sx={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{part.name}</TableCell>
                     <TableCell align="center">{part.ride || 'N/A'}</TableCell>
+                    <TableCell align="center">{part.ride_location || 'N/A'}</TableCell>
                     <TableCell align="center">{part.quantity}</TableCell>
                     <TableCell align="center">{part.unit || 'N/A'}</TableCell>
                     <TableCell align="center">₱{Number(part.price || 0).toFixed(2)}</TableCell>
