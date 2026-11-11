@@ -1392,7 +1392,10 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                 <Tooltip title="View Details">
                                   <IconButton
                                     size="small"
-                                    onClick={() => handleOpenDetailsDialog(repair, stats)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenDetailsDialog(repair, stats);
+                                    }}
                                   >
                                     <InfoIcon />
                                   </IconButton>
