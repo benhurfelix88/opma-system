@@ -781,19 +781,20 @@ const AdminPartsInventory = () => {
                       <TableHead>
                         <TableRow>
                           <TableCell align="center" sx={{ width: '30px' }}></TableCell>
-                          <TableCell align="center" sx={{ width: '12%' }}>Date Recorded</TableCell>
-                          <TableCell align="center" sx={{ width: '12%' }}>Date</TableCell>
-                          <TableCell align="center" sx={{ width: '18%' }}>Place</TableCell>
-                          <TableCell align="center" sx={{ width: '13%' }}>Ride</TableCell>
-                          <TableCell align="center" sx={{ width: '12%' }}>Status</TableCell>
-                          <TableCell align="center" sx={{ width: '18%' }}>Missing Parts</TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Encoded By</TableCell>
+                          <TableCell align="center" sx={{ width: '14%' }}>Date Recorded</TableCell>
+                          <TableCell align="center" sx={{ width: '14%' }}>Date of Deployment</TableCell>
+                          <TableCell align="center" sx={{ width: '16%' }}>Place</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Ride</TableCell>
+                          <TableCell align="center" sx={{ width: '11%' }}>Status</TableCell>
+                          <TableCell align="center" sx={{ width: '16%' }}>Missing Parts</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Encoded By</TableCell>
+                          <TableCell align="center" sx={{ width: '5%' }}>Sort</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAndSortedDeployments.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={8} align="center">
+                            <TableCell colSpan={9} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No deployments found
                               </Typography>
@@ -812,8 +813,12 @@ const AdminPartsInventory = () => {
                                   <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                                 )}
                               </TableCell>
-                              <TableCell align="center">{new Date(deployment.created_at).toLocaleDateString()}</TableCell>
-                              <TableCell align="center">{new Date(deployment.date).toLocaleDateString()}</TableCell>
+                              <TableCell align="center">
+                                {new Date(deployment.created_at).toLocaleDateString()} {new Date(deployment.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              </TableCell>
+                              <TableCell align="center">
+                                {new Date(deployment.date).toLocaleDateString()} {new Date(deployment.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              </TableCell>
                               <TableCell align="center">{deployment.place}</TableCell>
                               <TableCell align="center">{deployment.ride}</TableCell>
                               <TableCell align="center">
@@ -834,6 +839,11 @@ const AdminPartsInventory = () => {
                               </TableCell>
                               <TableCell align="center" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{deployment.missing_parts || '-'}</TableCell>
                               <TableCell align="center">{deployment.encoded_by}</TableCell>
+                              <TableCell align="center">
+                                <IconButton size="small" onClick={() => setDeploymentsSortOrder(deploymentsSortOrder === 'asc' ? 'desc' : 'asc')}>
+                                  {deploymentsSortOrder === 'asc' ? '↑' : '↓'}
+                                </IconButton>
+                              </TableCell>
                             </TableRow>
                           ))
                         )}
@@ -909,19 +919,20 @@ const AdminPartsInventory = () => {
                       <TableHead>
                         <TableRow>
                           <TableCell align="center" sx={{ width: '30px' }}></TableCell>
-                          <TableCell align="center" sx={{ width: '12%' }}>Date Recorded</TableCell>
-                          <TableCell align="center" sx={{ width: '12%' }}>Date</TableCell>
-                          <TableCell align="center" sx={{ width: '18%' }}>Place</TableCell>
-                          <TableCell align="center" sx={{ width: '13%' }}>Ride</TableCell>
-                          <TableCell align="center" sx={{ width: '12%' }}>Status</TableCell>
-                          <TableCell align="center" sx={{ width: '18%' }}>Missing Parts</TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Encoded By</TableCell>
+                          <TableCell align="center" sx={{ width: '14%' }}>Date Recorded</TableCell>
+                          <TableCell align="center" sx={{ width: '14%' }}>Date of Removal</TableCell>
+                          <TableCell align="center" sx={{ width: '16%' }}>Place</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Ride</TableCell>
+                          <TableCell align="center" sx={{ width: '11%' }}>Status</TableCell>
+                          <TableCell align="center" sx={{ width: '16%' }}>Missing Parts</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Encoded By</TableCell>
+                          <TableCell align="center" sx={{ width: '5%' }}>Sort</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAndSortedRemovals.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={8} align="center">
+                            <TableCell colSpan={9} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No removals found
                               </Typography>
@@ -940,8 +951,12 @@ const AdminPartsInventory = () => {
                                   <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                                 )}
                               </TableCell>
-                              <TableCell align="center">{new Date(removal.created_at).toLocaleDateString()}</TableCell>
-                              <TableCell align="center">{new Date(removal.date).toLocaleDateString()}</TableCell>
+                              <TableCell align="center">
+                                {new Date(removal.created_at).toLocaleDateString()} {new Date(removal.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              </TableCell>
+                              <TableCell align="center">
+                                {new Date(removal.date).toLocaleDateString()} {new Date(removal.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              </TableCell>
                               <TableCell align="center">{removal.place}</TableCell>
                               <TableCell align="center">{removal.ride}</TableCell>
                               <TableCell align="center">
@@ -962,6 +977,11 @@ const AdminPartsInventory = () => {
                               </TableCell>
                               <TableCell align="center" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{removal.missing_parts || '-'}</TableCell>
                               <TableCell align="center">{removal.encoded_by}</TableCell>
+                              <TableCell align="center">
+                                <IconButton size="small" onClick={() => setRemovalsSortOrder(removalsSortOrder === 'asc' ? 'desc' : 'asc')}>
+                                  {removalsSortOrder === 'asc' ? '↑' : '↓'}
+                                </IconButton>
+                              </TableCell>
                             </TableRow>
                           ))
                         )}

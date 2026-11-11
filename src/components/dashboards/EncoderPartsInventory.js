@@ -1331,7 +1331,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                 <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                               )}
                             </TableCell>
-                            <TableCell align="center">{new Date(repair.date).toLocaleDateString()}</TableCell>
+                            <TableCell align="center">{new Date(repair.date).toLocaleDateString()} {new Date(repair.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</TableCell>
                             <TableCell align="center">{repair.ride}</TableCell>
                             <TableCell align="center">{repair.location || '-'}</TableCell>
                             <TableCell align="center" sx={{ verticalAlign: 'middle' }}>
@@ -1399,7 +1399,10 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                   <Tooltip title="Edit">
                                     <IconButton
                                       size="small"
-                                      onClick={() => handleOpenRepairDialog(repair)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOpenRepairDialog(repair);
+                                      }}
                                     >
                                       <EditIcon />
                                     </IconButton>
@@ -1408,7 +1411,10 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                 <Tooltip title="Delete">
                                   <IconButton
                                     size="small"
-                                    onClick={() => handleDeleteRepair(repair.id)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteRepair(repair.id);
+                                    }}
                                   >
                                     <DeleteIcon />
                                   </IconButton>
@@ -1499,8 +1505,12 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                   <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                                 )}
                               </TableCell>
-                              <TableCell align="center">{new Date(deployment.created_at).toLocaleDateString()}</TableCell>
-                              <TableCell align="center">{new Date(deployment.date).toLocaleDateString()}</TableCell>
+                              <TableCell align="center">
+                                {new Date(deployment.created_at).toLocaleDateString()} {new Date(deployment.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              </TableCell>
+                              <TableCell align="center">
+                                {new Date(deployment.date).toLocaleDateString()} {new Date(deployment.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              </TableCell>
                               <TableCell align="center">{deployment.place}</TableCell>
                               <TableCell align="center">{deployment.ride}</TableCell>
                               <TableCell align="center">
@@ -1522,12 +1532,12 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               <TableCell align="center">{deployment.missingParts || '-'}</TableCell>
                               <TableCell align="center">
                                 <Tooltip title="Edit">
-                                  <IconButton size="small" onClick={() => handleOpenDeploymentDialog(deployment)}>
+                                  <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleOpenDeploymentDialog(deployment); }}>
                                     <EditIcon />
                                   </IconButton>
                                 </Tooltip>
                                 <Tooltip title="Delete">
-                                  <IconButton size="small" onClick={() => handleDeleteDeployment(deployment.id)}>
+                                  <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleDeleteDeployment(deployment.id); }}>
                                     <DeleteIcon />
                                   </IconButton>
                                 </Tooltip>
@@ -1573,8 +1583,12 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                   <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                                 )}
                               </TableCell>
-                              <TableCell align="center">{new Date(removal.created_at).toLocaleDateString()}</TableCell>
-                              <TableCell align="center">{new Date(removal.date).toLocaleDateString()}</TableCell>
+                              <TableCell align="center">
+                                {new Date(removal.created_at).toLocaleDateString()} {new Date(removal.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              </TableCell>
+                              <TableCell align="center">
+                                {new Date(removal.date).toLocaleDateString()} {new Date(removal.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                              </TableCell>
                               <TableCell align="center">{removal.place}</TableCell>
                               <TableCell align="center">{removal.ride}</TableCell>
                               <TableCell align="center">
@@ -1596,12 +1610,12 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               <TableCell align="center">{removal.missingParts || '-'}</TableCell>
                               <TableCell align="center">
                                 <Tooltip title="Edit">
-                                  <IconButton size="small" onClick={() => handleOpenRemovalDialog(removal)}>
+                                  <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleOpenRemovalDialog(removal); }}>
                                     <EditIcon />
                                   </IconButton>
                                 </Tooltip>
                                 <Tooltip title="Delete">
-                                  <IconButton size="small" onClick={() => handleDeleteRemoval(removal.id)}>
+                                  <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleDeleteRemoval(removal.id); }}>
                                     <DeleteIcon />
                                   </IconButton>
                                 </Tooltip>
@@ -1947,8 +1961,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   <TextField
                     fullWidth
                     label="Date"
-                    type="date"
-                    value={repairData.date ? String(repairData.date).split('T')[0] : ''}
+                    type="datetime-local"
+                    value={repairData.date ? new Date(repairData.date).toISOString().slice(0, 16) : ''}
                     onChange={(e) => setRepairData({ ...repairData, date: e.target.value })}
                     InputLabelProps={{ shrink: true }}
                   />
@@ -2072,8 +2086,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   <TextField
                     fullWidth
                     label="Date of Deployment"
-                    type="date"
-                    value={deploymentData.date}
+                    type="datetime-local"
+                    value={deploymentData.date ? new Date(deploymentData.date).toISOString().slice(0, 16) : ''}
                     onChange={(e) => setDeploymentData({ ...deploymentData, date: e.target.value })}
                     InputLabelProps={{ shrink: true }}
                   />
@@ -2139,8 +2153,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                   <TextField
                     fullWidth
                     label="Date of Removal"
-                    type="date"
-                    value={removalData.date}
+                    type="datetime-local"
+                    value={removalData.date ? new Date(removalData.date).toISOString().slice(0, 16) : ''}
                     onChange={(e) => setRemovalData({ ...removalData, date: e.target.value })}
                     InputLabelProps={{ shrink: true }}
                   />
