@@ -86,6 +86,10 @@ const AdminPartsInventory = () => {
   const [openReportDialog, setOpenReportDialog] = useState(false);
   const [openRepairDetailsDialog, setOpenRepairDetailsDialog] = useState(false);
   const [selectedRepairDetails, setSelectedRepairDetails] = useState(null);
+  const [openDeploymentDetailsDialog, setOpenDeploymentDetailsDialog] = useState(false);
+  const [selectedDeploymentDetails, setSelectedDeploymentDetails] = useState(null);
+  const [openRemovalDetailsDialog, setOpenRemovalDetailsDialog] = useState(false);
+  const [selectedRemovalDetails, setSelectedRemovalDetails] = useState(null);
 
   const loadParts = useCallback(async () => {
     try {
@@ -298,6 +302,26 @@ const AdminPartsInventory = () => {
   const handleCloseRepairDetails = () => {
     setOpenRepairDetailsDialog(false);
     setSelectedRepairDetails(null);
+  };
+
+  const handleOpenDeploymentDetails = (deployment) => {
+    setSelectedDeploymentDetails(deployment);
+    setOpenDeploymentDetailsDialog(true);
+  };
+
+  const handleCloseDeploymentDetails = () => {
+    setOpenDeploymentDetailsDialog(false);
+    setSelectedDeploymentDetails(null);
+  };
+
+  const handleOpenRemovalDetails = (removal) => {
+    setSelectedRemovalDetails(removal);
+    setOpenRemovalDetailsDialog(true);
+  };
+
+  const handleCloseRemovalDetails = () => {
+    setOpenRemovalDetailsDialog(false);
+    setSelectedRemovalDetails(null);
   };
 
   const filteredAndSortedRepairs = rideRepairs
@@ -651,22 +675,24 @@ const AdminPartsInventory = () => {
                       <TableHead>
                         <TableRow>
                           <TableCell align="center" sx={{ width: '30px' }}></TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Ride</TableCell>
-                          <TableCell align="center" sx={{ width: '12%' }}>Ride Location</TableCell>
                           <TableCell align="center" sx={{ width: '12%' }}>Date</TableCell>
-                          <TableCell align="center" sx={{ width: '20%' }}>Issue</TableCell>
-                          <TableCell align="center" sx={{ width: '12%' }}>Technician</TableCell>
-                          <TableCell align="center" sx={{ width: '12%' }}>Status</TableCell>
-                          <TableCell align="center" sx={{ width: '10%' }}>Cost</TableCell>
-                          <TableCell align="center" sx={{ width: '10%' }}>Approval Status</TableCell>
-                          <TableCell align="center" sx={{ width: '10%' }}>Approval Date</TableCell>
-                          <TableCell align="center" sx={{ width: '7%' }}>Actions</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Ride</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Ride Location</TableCell>
+                          <TableCell align="center" sx={{ width: '18%' }}>Issue</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Parts Replaced</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Technician</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Notes</TableCell>
+                          <TableCell align="center" sx={{ width: '8%' }}>Status</TableCell>
+                          <TableCell align="center" sx={{ width: '8%' }}>Cost</TableCell>
+                          <TableCell align="center" sx={{ width: '8%' }}>Approval Status</TableCell>
+                          <TableCell align="center" sx={{ width: '8%' }}>Approval Date</TableCell>
+                          <TableCell align="center" sx={{ width: '5%' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAndSortedRepairs.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={11} align="center">
+                            <TableCell colSpan={13} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No ride repairs found
                               </Typography>
@@ -685,11 +711,13 @@ const AdminPartsInventory = () => {
                                   <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                                 )}
                               </TableCell>
+                              <TableCell align="center">{new Date(repair.date).toLocaleDateString()}</TableCell>
                               <TableCell align="center">{repair.ride}</TableCell>
                               <TableCell align="center">{repair.location || '-'}</TableCell>
-                              <TableCell align="center">{new Date(repair.date).toLocaleDateString()}</TableCell>
-                              <TableCell align="center" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{repair.issue}</TableCell>
+                              <TableCell align="center" sx={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{repair.issue}</TableCell>
+                              <TableCell align="center" sx={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{repair.parts_replaced || '-'}</TableCell>
                               <TableCell align="center">{repair.technician}</TableCell>
+                              <TableCell align="center" sx={{ maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{repair.notes || '-'}</TableCell>
                               <TableCell align="center">
                                 <Chip
                                   label={repair.status}
@@ -885,6 +913,16 @@ const AdminPartsInventory = () => {
                               <TableCell align="center">
                                 {deployment.approval_date ? new Date(deployment.approval_date).toLocaleDateString() : '-'}
                               </TableCell>
+                              <TableCell align="center">
+                                <Tooltip title="View Details">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleOpenDeploymentDetails(deployment)}
+                                  >
+                                    <InfoIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              </TableCell>
                             </TableRow>
                           ))
                         )}
@@ -1036,6 +1074,16 @@ const AdminPartsInventory = () => {
                               <TableCell align="center">
                                 {removal.approval_date ? new Date(removal.approval_date).toLocaleDateString() : '-'}
                               </TableCell>
+                              <TableCell align="center">
+                                <Tooltip title="View Details">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleOpenRemovalDetails(removal)}
+                                  >
+                                    <InfoIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              </TableCell>
                             </TableRow>
                           ))
                         )}
@@ -1126,6 +1174,7 @@ const AdminPartsInventory = () => {
         </Dialog>
 
         {tabValue === 2 && (
+          <>
           <ReportGenerator
             open={openReportDialog}
             onClose={() => setOpenReportDialog(false)}
@@ -1141,9 +1190,47 @@ const AdminPartsInventory = () => {
               { header: 'Encoded By', field: 'encoded_by' }
             ]}
           />
+
+          {/* Deployment Details Dialog */}
+          <Dialog open={openDeploymentDetailsDialog} onClose={handleCloseDeploymentDetails} maxWidth="md" fullWidth>
+            <DialogTitle>Deployment Details</DialogTitle>
+            <DialogContent>
+              {selectedDeploymentDetails && (
+                <Box sx={{ mt: 2 }}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Date:</Typography>
+                      <Typography variant="body1">{new Date(selectedDeploymentDetails.date).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Place:</Typography>
+                      <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedDeploymentDetails.place}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Ride:</Typography>
+                      <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedDeploymentDetails.ride}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Status:</Typography>
+                      <Typography variant="body1">{selectedDeploymentDetails.status}</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Missing Parts:</Typography>
+                      <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedDeploymentDetails.missing_parts || 'None'}</Typography>
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDeploymentDetails}>Close</Button>
+            </DialogActions>
+          </Dialog>
+          </>
         )}
 
         {tabValue === 3 && (
+          <>
           <ReportGenerator
             open={openReportDialog}
             onClose={() => setOpenReportDialog(false)}
@@ -1159,6 +1246,43 @@ const AdminPartsInventory = () => {
               { header: 'Encoded By', field: 'encoded_by' }
             ]}
           />
+
+          {/* Removal Details Dialog */}
+          <Dialog open={openRemovalDetailsDialog} onClose={handleCloseRemovalDetails} maxWidth="md" fullWidth>
+            <DialogTitle>Removal Details</DialogTitle>
+            <DialogContent>
+              {selectedRemovalDetails && (
+                <Box sx={{ mt: 2 }}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Date:</Typography>
+                      <Typography variant="body1">{new Date(selectedRemovalDetails.date).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Place:</Typography>
+                      <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedRemovalDetails.place}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Ride:</Typography>
+                      <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedRemovalDetails.ride}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Status:</Typography>
+                      <Typography variant="body1">{selectedRemovalDetails.status}</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Missing Parts:</Typography>
+                      <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>{selectedRemovalDetails.missing_parts || 'None'}</Typography>
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseRemovalDetails}>Close</Button>
+            </DialogActions>
+          </Dialog>
+          </>
         )}
       </Box>
     </DashboardLayout>

@@ -34,7 +34,6 @@ import {
   PictureAsPdf as ReportIcon,
   Search as SearchIcon,
   Circle as CircleIcon,
-  Check as CheckIcon,
 } from '@mui/icons-material';
 import DashboardLayout from '../layout/DashboardLayout';
 import ReportGenerator from '../common/ReportGenerator';
@@ -882,21 +881,24 @@ const ManagerPartsInventory = () => {
                       <TableHead>
                         <TableRow>
                           <TableCell align="center" sx={{ width: '30px' }}></TableCell>
-                          <TableCell align="center" sx={{ width: '20%' }}>Ride</TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Date</TableCell>
-                          <TableCell align="center" sx={{ width: '25%' }}>Issue</TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Technician</TableCell>
-                          <TableCell align="center" sx={{ width: '15%' }}>Status</TableCell>
-                          <TableCell align="center" sx={{ width: '10%' }}>Cost</TableCell>
-                          <TableCell align="center" sx={{ width: '10%' }}>Approval Status</TableCell>
-                          <TableCell align="center" sx={{ width: '10%' }}>Approval Date</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Date</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Ride</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Ride Location</TableCell>
+                          <TableCell align="center" sx={{ width: '18%' }}>Issue</TableCell>
+                          <TableCell align="center" sx={{ width: '12%' }}>Parts Replaced</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Technician</TableCell>
+                          <TableCell align="center" sx={{ width: '10%' }}>Notes</TableCell>
+                          <TableCell align="center" sx={{ width: '8%' }}>Status</TableCell>
+                          <TableCell align="center" sx={{ width: '8%' }}>Cost</TableCell>
+                          <TableCell align="center" sx={{ width: '8%' }}>Approval Status</TableCell>
+                          <TableCell align="center" sx={{ width: '8%' }}>Approval Date</TableCell>
                           <TableCell align="center" sx={{ width: '5%' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {filteredAndSortedRepairs.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={9} align="center">
+                            <TableCell colSpan={13} align="center">
                               <Typography variant="body1" color="text.secondary">
                                 No ride repairs found
                               </Typography>
@@ -915,10 +917,13 @@ const ManagerPartsInventory = () => {
                                   <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
                                 )}
                               </TableCell>
-                              <TableCell align="center">{repair.ride}</TableCell>
                               <TableCell align="center">{new Date(repair.date).toLocaleDateString()}</TableCell>
-                              <TableCell align="center" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{repair.issue}</TableCell>
+                              <TableCell align="center">{repair.ride}</TableCell>
+                              <TableCell align="center">{repair.location || '-'}</TableCell>
+                              <TableCell align="center" sx={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{repair.issue}</TableCell>
+                              <TableCell align="center" sx={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{repair.parts_replaced || '-'}</TableCell>
                               <TableCell align="center">{repair.technician}</TableCell>
+                              <TableCell align="center" sx={{ maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{repair.notes || '-'}</TableCell>
                               <TableCell align="center">
                                 <Chip
                                   label={repair.status}
@@ -956,12 +961,12 @@ const ManagerPartsInventory = () => {
                                 {repair.approval_date ? new Date(repair.approval_date).toLocaleDateString() : '-'}
                               </TableCell>
                               <TableCell align="center">
-                                <Tooltip title="Approve/Reject">
+                                <Tooltip title="Edit">
                                   <IconButton
                                     size="small"
                                     onClick={() => handleOpenRepairApprovalDialog(repair)}
                                   >
-                                    <CheckIcon />
+                                    <EditIcon />
                                   </IconButton>
                                 </Tooltip>
                               </TableCell>
@@ -1120,12 +1125,12 @@ const ManagerPartsInventory = () => {
                                 {deployment.approval_date ? new Date(deployment.approval_date).toLocaleDateString() : '-'}
                               </TableCell>
                               <TableCell align="center">
-                                <Tooltip title="Approve/Reject">
+                                <Tooltip title="Edit">
                                   <IconButton
                                     size="small"
                                     onClick={() => handleOpenDeploymentApprovalDialog(deployment)}
                                   >
-                                    <CheckIcon />
+                                    <EditIcon />
                                   </IconButton>
                                 </Tooltip>
                               </TableCell>
@@ -1284,12 +1289,12 @@ const ManagerPartsInventory = () => {
                                 {removal.approval_date ? new Date(removal.approval_date).toLocaleDateString() : '-'}
                               </TableCell>
                               <TableCell align="center">
-                                <Tooltip title="Approve/Reject">
+                                <Tooltip title="Edit">
                                   <IconButton
                                     size="small"
                                     onClick={() => handleOpenRemovalApprovalDialog(removal)}
                                   >
-                                    <CheckIcon />
+                                    <EditIcon />
                                   </IconButton>
                                 </Tooltip>
                               </TableCell>
@@ -1343,87 +1348,6 @@ const ManagerPartsInventory = () => {
           </DialogActions>
         </Dialog>
 
-        {/* Repair Approval Dialog */}
-        <Dialog open={openRepairApprovalDialog} onClose={handleCloseRepairApprovalDialog} maxWidth="sm" fullWidth>
-          <DialogTitle>Review Repair</DialogTitle>
-          <DialogContent>
-            <Box sx={{ mt: 2 }}>
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Approval Status</InputLabel>
-                <Select
-                  value={repairFormData.approvalStatus}
-                  label="Approval Status"
-                  onChange={(e) => setRepairFormData({ ...repairFormData, approvalStatus: e.target.value })}
-                >
-                  <MenuItem value="Approved">Approve</MenuItem>
-                  <MenuItem value="Rejected">Reject</MenuItem>
-                  <MenuItem value="Pending">Pending</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseRepairApprovalDialog}>Cancel</Button>
-            <Button onClick={handleRepairApprovalSubmit} variant="contained" color="primary">
-              Update
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Deployment Approval Dialog */}
-        <Dialog open={openDeploymentApprovalDialog} onClose={handleCloseDeploymentApprovalDialog} maxWidth="sm" fullWidth>
-          <DialogTitle>Review Deployment</DialogTitle>
-          <DialogContent>
-            <Box sx={{ mt: 2 }}>
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Approval Status</InputLabel>
-                <Select
-                  value={deploymentFormData.approvalStatus}
-                  label="Approval Status"
-                  onChange={(e) => setDeploymentFormData({ ...deploymentFormData, approvalStatus: e.target.value })}
-                >
-                  <MenuItem value="Approved">Approve</MenuItem>
-                  <MenuItem value="Rejected">Reject</MenuItem>
-                  <MenuItem value="Pending">Pending</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDeploymentApprovalDialog}>Cancel</Button>
-            <Button onClick={handleDeploymentApprovalSubmit} variant="contained" color="primary">
-              Update
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Removal Approval Dialog */}
-        <Dialog open={openRemovalApprovalDialog} onClose={handleCloseRemovalApprovalDialog} maxWidth="sm" fullWidth>
-          <DialogTitle>Review Removal</DialogTitle>
-          <DialogContent>
-            <Box sx={{ mt: 2 }}>
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Approval Status</InputLabel>
-                <Select
-                  value={removalFormData.approvalStatus}
-                  label="Approval Status"
-                  onChange={(e) => setRemovalFormData({ ...removalFormData, approvalStatus: e.target.value })}
-                >
-                  <MenuItem value="Approved">Approve</MenuItem>
-                  <MenuItem value="Rejected">Reject</MenuItem>
-                  <MenuItem value="Pending">Pending</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseRemovalApprovalDialog}>Cancel</Button>
-            <Button onClick={handleRemovalApprovalSubmit} variant="contained" color="primary">
-              Update
-            </Button>
-          </DialogActions>
-        </Dialog>
-
         <Snackbar
           open={snackbar.open}
           autoHideDuration={4000}
@@ -1464,6 +1388,7 @@ const ManagerPartsInventory = () => {
         )}
 
         {tabValue === 1 && (
+          <>
           <ReportGenerator
             open={openReportDialog}
             onClose={() => setOpenReportDialog(false)}
@@ -1478,9 +1403,38 @@ const ManagerPartsInventory = () => {
               { header: 'Status', field: 'status' }
             ]}
           />
+
+          {/* Repair Approval Dialog */}
+          <Dialog open={openRepairApprovalDialog} onClose={handleCloseRepairApprovalDialog} maxWidth="sm" fullWidth>
+            <DialogTitle>Edit Repair</DialogTitle>
+            <DialogContent>
+              <Box sx={{ mt: 2 }}>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel>Approval Status</InputLabel>
+                  <Select
+                    value={repairFormData.approvalStatus}
+                    label="Approval Status"
+                    onChange={(e) => setRepairFormData({ ...repairFormData, approvalStatus: e.target.value })}
+                  >
+                    <MenuItem value="Approved">Approve</MenuItem>
+                    <MenuItem value="Rejected">Reject</MenuItem>
+                    <MenuItem value="Pending">Pending</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseRepairApprovalDialog}>Cancel</Button>
+              <Button onClick={handleRepairApprovalSubmit} variant="contained" color="primary">
+                Update
+              </Button>
+            </DialogActions>
+          </Dialog>
+          </>
         )}
 
         {tabValue === 2 && (
+          <>
           <ReportGenerator
             open={openReportDialog}
             onClose={() => setOpenReportDialog(false)}
@@ -1496,9 +1450,38 @@ const ManagerPartsInventory = () => {
               { header: 'Encoded By', field: 'encoded_by' }
             ]}
           />
+
+          {/* Deployment Approval Dialog */}
+          <Dialog open={openDeploymentApprovalDialog} onClose={handleCloseDeploymentApprovalDialog} maxWidth="sm" fullWidth>
+            <DialogTitle>Edit Deployment</DialogTitle>
+            <DialogContent>
+              <Box sx={{ mt: 2 }}>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel>Approval Status</InputLabel>
+                  <Select
+                    value={deploymentFormData.approvalStatus}
+                    label="Approval Status"
+                    onChange={(e) => setDeploymentFormData({ ...deploymentFormData, approvalStatus: e.target.value })}
+                  >
+                    <MenuItem value="Approved">Approve</MenuItem>
+                    <MenuItem value="Rejected">Reject</MenuItem>
+                    <MenuItem value="Pending">Pending</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDeploymentApprovalDialog}>Cancel</Button>
+              <Button onClick={handleDeploymentApprovalSubmit} variant="contained" color="primary">
+                Update
+              </Button>
+            </DialogActions>
+          </Dialog>
+          </>
         )}
 
         {tabValue === 3 && (
+          <>
           <ReportGenerator
             open={openReportDialog}
             onClose={() => setOpenReportDialog(false)}
@@ -1514,6 +1497,34 @@ const ManagerPartsInventory = () => {
               { header: 'Encoded By', field: 'encoded_by' }
             ]}
           />
+
+          {/* Removal Approval Dialog */}
+          <Dialog open={openRemovalApprovalDialog} onClose={handleCloseRemovalApprovalDialog} maxWidth="sm" fullWidth>
+            <DialogTitle>Edit Removal</DialogTitle>
+            <DialogContent>
+              <Box sx={{ mt: 2 }}>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel>Approval Status</InputLabel>
+                  <Select
+                    value={removalFormData.approvalStatus}
+                    label="Approval Status"
+                    onChange={(e) => setRemovalFormData({ ...removalFormData, approvalStatus: e.target.value })}
+                  >
+                    <MenuItem value="Approved">Approve</MenuItem>
+                    <MenuItem value="Rejected">Reject</MenuItem>
+                    <MenuItem value="Pending">Pending</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseRemovalApprovalDialog}>Cancel</Button>
+              <Button onClick={handleRemovalApprovalSubmit} variant="contained" color="primary">
+                Update
+              </Button>
+            </DialogActions>
+          </Dialog>
+          </>
         )}
       </Box>
     </DashboardLayout>
