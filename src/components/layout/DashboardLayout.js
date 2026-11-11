@@ -50,6 +50,7 @@ import Logo from '../common/Logo';
 import FadeInContent from '../common/FadeInContent';
 import { authAPI, sparePartsAPI, maintenanceAPI, incidentsAPI, ridesAPI } from '../../services/api';
 import rideEntriesAPI from '../../services/rideEntriesAPI';
+import { getSocket } from '../../utils/socket';
 
 const drawerWidth = 240;
 
@@ -344,6 +345,64 @@ const DashboardLayout = ({ children, title = 'Dashboard', menuItems }) => {
     const interval = setInterval(checkNotifications, 10000);
 
     return () => clearInterval(interval);
+  }, [user?.role]);
+
+  // Periodically check for notifications for Amusement Park Personnel (real-time via WebSocket)
+  useEffect(() => {
+    if (user?.role !== 'Amusement Park Personnel') return;
+
+    const checkNotifications = async () => {
+      try {
+        // Check incidents (new submissions or newly approved/disapproved)
+        const incidents = await incidentsAPI.getAll();
+        const hasIncidentsNotification = incidents.some(incident => {
+          const reviewStatus = incident.review_status || incident.reviewStatus || '';
+          const isReviewed = ['Approved', 'Disapproved', 'Reviewed', 'Validated', 'reviewed', 'REVIEWED'].includes(reviewStatus);
+          return (isReviewed && isRecent(incident.updated_at)) ||
+                 isRecent(incident.created_at);
+        });
+        setNotifications(prev => ({
+          ...prev,
+          '/personnel-dashboard/incidents': hasIncidentsNotification
+        }));
+
+        // Check ride counters (new ride entries or newly added rides)
+        const entries = await rideEntriesAPI.getAll();
+        const hasEntriesNotification = entries.some(entry =>
+          isRecent(entry.created_at) || isRecent(entry.updated_at)
+        );
+        const rides = await ridesAPI.getAll();
+        const hasRidesNotification = rides.some(ride =>
+          isRecent(ride.created_at) || isRecent(ride.updated_at)
+        );
+        setNotifications(prev => ({
+          ...prev,
+          '/personnel-dashboard/ride-counters': hasEntriesNotification || hasRidesNotification
+        }));
+      } catch (error) {
+        console.error('Error checking notifications:', error);
+      }
+    };
+
+    // Check immediately
+    checkNotifications();
+
+    // Re-check in real-time when backend emits update events
+    const socket = getSocket();
+    const handleUpdate = () => checkNotifications();
+    socket.on('incidents-updated', handleUpdate);
+    socket.on('ride-entries-updated', handleUpdate);
+    socket.on('rides-updated', handleUpdate);
+
+    // Poll every 10 seconds as a fallback
+    const interval = setInterval(checkNotifications, 10000);
+
+    return () => {
+      clearInterval(interval);
+      socket.off('incidents-updated', handleUpdate);
+      socket.off('ride-entries-updated', handleUpdate);
+      socket.off('rides-updated', handleUpdate);
+    };
   }, [user?.role]);
 
   const getMenuItems = () => {
