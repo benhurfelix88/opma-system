@@ -20,6 +20,11 @@ import {
   Tab,
   Card,
   CardContent,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -76,6 +81,8 @@ const AdminPartsInventory = () => {
   const [removalsSortOrder, setRemovalsSortOrder] = useState('desc');
   const [loading, setLoading] = useState(true);
   const [openReportDialog, setOpenReportDialog] = useState(false);
+  const [openRepairDetailsDialog, setOpenRepairDetailsDialog] = useState(false);
+  const [selectedRepairDetails, setSelectedRepairDetails] = useState(null);
 
   const loadParts = useCallback(async () => {
     try {
@@ -337,6 +344,16 @@ const AdminPartsInventory = () => {
       const dateB = new Date(b.date).getTime();
       return removalsSortOrder === 'asc' ? dateA - dateB : dateB - dateA;
     });
+
+  const handleOpenRepairDetailsDialog = (repair) => {
+    setSelectedRepairDetails(repair);
+    setOpenRepairDetailsDialog(true);
+  };
+
+  const handleCloseRepairDetailsDialog = () => {
+    setOpenRepairDetailsDialog(false);
+    setSelectedRepairDetails(null);
+  };
 
   if (loading) {
     return <Typography>Loading...</Typography>;
@@ -641,6 +658,7 @@ const AdminPartsInventory = () => {
                           <TableCell align="center" sx={{ width: '8%' }}>Status</TableCell>
                           <TableCell align="center" sx={{ width: '8%' }}>Cost</TableCell>
                           <TableCell align="center" sx={{ width: '8%' }}>Approval Status</TableCell>
+                          <TableCell align="center" sx={{ width: '6%' }}>View</TableCell>
                           <TableCell align="center" sx={{ width: '8%' }}>Approval Date</TableCell>
                         </TableRow>
                       </TableHead>
@@ -705,6 +723,14 @@ const AdminPartsInventory = () => {
                                     backgroundColor: 'transparent'
                                   }}
                                 />
+                              </TableCell>
+                              <TableCell align="center">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleOpenRepairDetailsDialog(repair)}
+                                >
+                                  <ReportIcon />
+                                </IconButton>
                               </TableCell>
                               <TableCell align="center">
                                 {repair.approval_date ? (
@@ -863,7 +889,12 @@ const AdminPartsInventory = () => {
                                 />
                               </TableCell>
                               <TableCell align="center">
-                                {deployment.approval_date ? new Date(deployment.approval_date).toLocaleDateString() : '-'}
+                                {deployment.approval_date ? (
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <Typography variant="body2">{new Date(deployment.approval_date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</Typography>
+                                    <Typography variant="body2">{new Date(deployment.approval_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</Typography>
+                                  </Box>
+                                ) : '-'}
                               </TableCell>
                             </TableRow>
                           ))
@@ -1014,7 +1045,12 @@ const AdminPartsInventory = () => {
                                 />
                               </TableCell>
                               <TableCell align="center">
-                                {removal.approval_date ? new Date(removal.approval_date).toLocaleDateString() : '-'}
+                                {removal.approval_date ? (
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <Typography variant="body2">{new Date(removal.approval_date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</Typography>
+                                    <Typography variant="body2">{new Date(removal.approval_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</Typography>
+                                  </Box>
+                                ) : '-'}
                               </TableCell>
                             </TableRow>
                           ))
@@ -1116,6 +1152,38 @@ const AdminPartsInventory = () => {
             ]}
           />
         )}
+
+        {/* Repair Details Dialog */}
+        <Dialog open={openRepairDetailsDialog} onClose={handleCloseRepairDetailsDialog} maxWidth="sm" fullWidth>
+          <DialogTitle>Ride Repair Details</DialogTitle>
+          <DialogContent>
+            {selectedRepairDetails && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  <strong>Ride:</strong> {selectedRepairDetails.ride}
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  <strong>Ride Location:</strong> {selectedRepairDetails.location || '-'}
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  <strong>Issue:</strong> {selectedRepairDetails.issue}
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  <strong>Parts Replaced:</strong> {selectedRepairDetails.parts_replaced || '-'}
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  <strong>Technician:</strong> {selectedRepairDetails.technician}
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  <strong>Notes:</strong> {selectedRepairDetails.notes || '-'}
+                </Typography>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseRepairDetailsDialog}>Close</Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </DashboardLayout>
   );

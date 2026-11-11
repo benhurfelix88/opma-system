@@ -1129,7 +1129,12 @@ const ManagerPartsInventory = () => {
                                 />
                               </TableCell>
                               <TableCell align="center">
-                                {deployment.approval_date ? new Date(deployment.approval_date).toLocaleDateString() : '-'}
+                                {deployment.approval_date ? (
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <Typography variant="body2">{new Date(deployment.approval_date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</Typography>
+                                    <Typography variant="body2">{new Date(deployment.approval_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</Typography>
+                                  </Box>
+                                ) : '-'}
                               </TableCell>
                               <TableCell align="center">
                                 <Tooltip title="Edit">
@@ -1293,7 +1298,12 @@ const ManagerPartsInventory = () => {
                                 />
                               </TableCell>
                               <TableCell align="center">
-                                {removal.approval_date ? new Date(removal.approval_date).toLocaleDateString() : '-'}
+                                {removal.approval_date ? (
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <Typography variant="body2">{new Date(removal.approval_date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</Typography>
+                                    <Typography variant="body2">{new Date(removal.approval_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</Typography>
+                                  </Box>
+                                ) : '-'}
                               </TableCell>
                               <TableCell align="center">
                                 <Tooltip title="Edit">

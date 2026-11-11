@@ -697,6 +697,9 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
       };
 
       if (selectedRepair) {
+        // Preserve approval fields when editing
+        repairPayload.approval_status = selectedRepair.approval_status || 'Pending';
+        repairPayload.approval_date = selectedRepair.approval_date || null;
         await rideRepairsAPI.update(selectedRepair.id, repairPayload);
       } else {
         await rideRepairsAPI.create(repairPayload);
@@ -715,6 +718,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
         status: repair.status,
         notes: repair.notes || '',
         location: repair.location || '',
+        approval_status: repair.approval_status || 'Pending',
+        approval_date: repair.approval_date,
         created_at: repair.created_at,
         updated_at: repair.updated_at,
       }));
@@ -1443,32 +1448,42 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                 : repair.notes}
                             </TableCell>
                             <TableCell align="center">
-                              <Chip
-                                label={repair.status || 'Pending'}
-                                size="small"
-                                sx={{
-                                  color: repair.status === 'Completed' ? 'green' :
-                                         repair.status === 'In Progress' ? 'orange' :
-                                         repair.status === 'Pending' ? 'blue' : 'gray',
-                                  borderColor: repair.status === 'Completed' ? 'green' :
-                                               repair.status === 'In Progress' ? 'orange' :
-                                               repair.status === 'Pending' ? 'blue' : 'gray',
-                                  backgroundColor: 'transparent'
-                                }}
-                              />
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                {(isRecent(repair.updated_at) || isRecent(repair.created_at)) && (
+                                  <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                )}
+                                <Chip
+                                  label={repair.status || 'Pending'}
+                                  size="small"
+                                  sx={{
+                                    color: repair.status === 'Completed' ? 'green' :
+                                           repair.status === 'In Progress' ? 'orange' :
+                                           repair.status === 'Pending' ? 'blue' : 'gray',
+                                    borderColor: repair.status === 'Completed' ? 'green' :
+                                                 repair.status === 'In Progress' ? 'orange' :
+                                                 repair.status === 'Pending' ? 'blue' : 'gray',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
+                              </Box>
                             </TableCell>
                             <TableCell align="center">
-                              <Chip
-                                label={repair.approval_status || 'Pending'}
-                                size="small"
-                                sx={{
-                                  color: repair.approval_status === 'Approved' ? 'green' :
-                                         repair.approval_status === 'Rejected' ? 'red' : 'orange',
-                                  borderColor: repair.approval_status === 'Approved' ? 'green' :
-                                               repair.approval_status === 'Rejected' ? 'red' : 'orange',
-                                  backgroundColor: 'transparent'
-                                }}
-                              />
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                {(isRecent(repair.updated_at) || isRecent(repair.created_at) || isRecent(repair.approval_date)) && (
+                                  <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                )}
+                                <Chip
+                                  label={repair.approval_status || 'Pending'}
+                                  size="small"
+                                  sx={{
+                                    color: repair.approval_status === 'Approved' ? 'green' :
+                                           repair.approval_status === 'Rejected' ? 'red' : 'orange',
+                                    borderColor: repair.approval_status === 'Approved' ? 'green' :
+                                                 repair.approval_status === 'Rejected' ? 'red' : 'orange',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                />
+                              </Box>
                             </TableCell>
                             <TableCell align="center">
                               {repair.approval_date ? (
@@ -1680,7 +1695,12 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                 />
                               </TableCell>
                               <TableCell align="center">
-                                {deployment.approval_date ? new Date(deployment.approval_date).toLocaleDateString() : '-'}
+                                {deployment.approval_date ? (
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <Typography variant="body2">{new Date(deployment.approval_date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</Typography>
+                                    <Typography variant="body2">{new Date(deployment.approval_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</Typography>
+                                  </Box>
+                                ) : '-'}
                               </TableCell>
                               <TableCell align="center">
                                 <Tooltip title="Edit">
@@ -1776,7 +1796,12 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                 />
                               </TableCell>
                               <TableCell align="center">
-                                {removal.approval_date ? new Date(removal.approval_date).toLocaleDateString() : '-'}
+                                {removal.approval_date ? (
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <Typography variant="body2">{new Date(removal.approval_date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</Typography>
+                                    <Typography variant="body2">{new Date(removal.approval_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</Typography>
+                                  </Box>
+                                ) : '-'}
                               </TableCell>
                               <TableCell align="center">
                                 <Tooltip title="Edit">
