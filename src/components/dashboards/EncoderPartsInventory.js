@@ -963,30 +963,32 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
     const removalToDelete = removals.find(removal => removal.id === id);
     const removalDate = removalToDelete?.date ? new Date(removalToDelete.date).toLocaleDateString() : 'N/A';
     setWarningMessage(`Are you sure you want to delete this removal record?\n\nRide: ${removalToDelete?.ride || 'N/A'}\nDate: ${removalDate}\nPlace: ${removalToDelete?.place || 'N/A'}\nStatus: ${removalToDelete?.status || 'N/A'}`);
-    setWarningAction(async () => {
-      try {
-        await partRemovalsAPI.delete(id);
-        // Reload removals from API
-        const removalsList = await partRemovalsAPI.getAll();
-        const mappedRemovals = removalsList.map(removal => ({
-          id: removal.id,
-          date: removal.date,
-          place: removal.place,
-          ride: removal.ride,
-          status: removal.status,
-          missingParts: removal.missing_parts || '',
-          encodedBy: removal.encoded_by,
-          created_at: removal.created_at,
-          updated_at: removal.updated_at,
-        }));
-        setRemovals(mappedRemovals);
-        setSnackbar({ open: true, message: 'Removal deleted successfully', severity: 'success' });
-      } catch (error) {
-        console.error('Error deleting removal:', error);
-        setSnackbar({ open: true, message: 'Failed to delete removal', severity: 'error' });
-      } finally {
-        setOpenWarningModal(false);
-      }
+    setWarningAction(() => {
+      return async () => {
+        try {
+          await partRemovalsAPI.delete(id);
+          // Reload removals from API
+          const removalsList = await partRemovalsAPI.getAll();
+          const mappedRemovals = removalsList.map(removal => ({
+            id: removal.id,
+            date: removal.date,
+            place: removal.place,
+            ride: removal.ride,
+            status: removal.status,
+            missingParts: removal.missing_parts || '',
+            encodedBy: removal.encoded_by,
+            created_at: removal.created_at,
+            updated_at: removal.updated_at,
+          }));
+          setRemovals(mappedRemovals);
+          setSnackbar({ open: true, message: 'Removal deleted successfully', severity: 'success' });
+        } catch (error) {
+          console.error('Error deleting removal:', error);
+          setSnackbar({ open: true, message: 'Failed to delete removal', severity: 'error' });
+        } finally {
+          setOpenWarningModal(false);
+        }
+      };
     });
     setOpenWarningModal(true);
   };
