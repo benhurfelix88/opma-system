@@ -658,8 +658,8 @@ const AdminPartsInventory = () => {
                           <TableCell align="center" sx={{ width: '8%' }}>Status</TableCell>
                           <TableCell align="center" sx={{ width: '8%' }}>Cost</TableCell>
                           <TableCell align="center" sx={{ width: '8%' }}>Approval Status</TableCell>
-                          <TableCell align="center" sx={{ width: '6%' }}>View</TableCell>
                           <TableCell align="center" sx={{ width: '8%' }}>Approval Date</TableCell>
+                          <TableCell align="center" sx={{ width: '6%' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -725,20 +725,20 @@ const AdminPartsInventory = () => {
                                 />
                               </TableCell>
                               <TableCell align="center">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleOpenRepairDetailsDialog(repair)}
-                                >
-                                  <ReportIcon />
-                                </IconButton>
-                              </TableCell>
-                              <TableCell align="center">
                                 {repair.approval_date ? (
                                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <Typography variant="body2">{new Date(repair.approval_date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</Typography>
                                     <Typography variant="body2">{new Date(repair.approval_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</Typography>
                                   </Box>
                                 ) : '-'}
+                              </TableCell>
+                              <TableCell align="center">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleOpenRepairDetailsDialog(repair)}
+                                >
+                                  <CircleIcon sx={{ fontSize: 18 }} />
+                                </IconButton>
                               </TableCell>
                             </TableRow>
                           ))

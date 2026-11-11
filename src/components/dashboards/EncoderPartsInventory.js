@@ -752,6 +752,8 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
           status: repair.status,
           notes: repair.notes || '',
           location: repair.location || '',
+          approval_status: repair.approval_status || 'Pending',
+          approval_date: repair.approval_date,
           created_at: repair.created_at,
           updated_at: repair.updated_at,
         }));
@@ -1454,6 +1456,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                 )}
                                 <Chip
                                   label={repair.status || 'Pending'}
+                                  variant="outlined"
                                   size="small"
                                   sx={{
                                     color: repair.status === 'Completed' ? 'green' :
@@ -1474,6 +1477,7 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                                 )}
                                 <Chip
                                   label={repair.approval_status || 'Pending'}
+                                  variant="outlined"
                                   size="small"
                                   sx={{
                                     color: repair.approval_status === 'Approved' ? 'green' :
@@ -1665,34 +1669,45 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               <TableCell align="center">{deployment.place}</TableCell>
                               <TableCell align="center">{deployment.ride}</TableCell>
                               <TableCell align="center">
-                                <Chip
-                                  label={deployment.status}
-                                  variant="outlined"
-                                  size="small"
-                                  sx={{
-                                    color: deployment.status === 'Complete' ? 'green' :
-                                           deployment.status === 'Defective' ? 'red' :
-                                           deployment.status === 'With missing parts' ? 'orange' : 'gray',
-                                    borderColor: deployment.status === 'Complete' ? 'green' :
-                                                 deployment.status === 'Defective' ? 'red' :
-                                                 deployment.status === 'With missing parts' ? 'orange' : 'gray',
-                                    backgroundColor: 'transparent'
-                                  }}
-                                />
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                  {(isRecent(deployment.updated_at) || isRecent(deployment.created_at)) && (
+                                    <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                  )}
+                                  <Chip
+                                    label={deployment.status}
+                                    variant="outlined"
+                                    size="small"
+                                    sx={{
+                                      color: deployment.status === 'Complete' ? 'green' :
+                                             deployment.status === 'Defective' ? 'red' :
+                                             deployment.status === 'With missing parts' ? 'orange' : 'gray',
+                                      borderColor: deployment.status === 'Complete' ? 'green' :
+                                                   deployment.status === 'Defective' ? 'red' :
+                                                   deployment.status === 'With missing parts' ? 'orange' : 'gray',
+                                      backgroundColor: 'transparent'
+                                    }}
+                                  />
+                                </Box>
                               </TableCell>
                               <TableCell align="center">{deployment.missingParts || '-'}</TableCell>
                               <TableCell align="center">
-                                <Chip
-                                  label={deployment.approval_status || 'Pending'}
-                                  size="small"
-                                  sx={{
-                                    color: deployment.approval_status === 'Approved' ? 'green' :
-                                           deployment.approval_status === 'Rejected' ? 'red' : 'orange',
-                                    borderColor: deployment.approval_status === 'Approved' ? 'green' :
-                                                 deployment.approval_status === 'Rejected' ? 'red' : 'orange',
-                                    backgroundColor: 'transparent'
-                                  }}
-                                />
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                  {(isRecent(deployment.updated_at) || isRecent(deployment.created_at) || isRecent(deployment.approval_date)) && (
+                                    <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                  )}
+                                  <Chip
+                                    label={deployment.approval_status || 'Pending'}
+                                    variant="outlined"
+                                    size="small"
+                                    sx={{
+                                      color: deployment.approval_status === 'Approved' ? 'green' :
+                                             deployment.approval_status === 'Rejected' ? 'red' : 'orange',
+                                      borderColor: deployment.approval_status === 'Approved' ? 'green' :
+                                                   deployment.approval_status === 'Rejected' ? 'red' : 'orange',
+                                      backgroundColor: 'transparent'
+                                    }}
+                                  />
+                                </Box>
                               </TableCell>
                               <TableCell align="center">
                                 {deployment.approval_date ? (
@@ -1766,34 +1781,45 @@ const EncoderPartsInventory = ({ repairsReadOnly = false }) => {
                               <TableCell align="center">{removal.place}</TableCell>
                               <TableCell align="center">{removal.ride}</TableCell>
                               <TableCell align="center">
-                                <Chip
-                                  label={removal.status}
-                                  variant="outlined"
-                                  size="small"
-                                  sx={{
-                                    color: removal.status === 'Complete' ? 'green' :
-                                           removal.status === 'Defective' ? 'red' :
-                                           removal.status === 'With missing parts' ? 'orange' : 'gray',
-                                    borderColor: removal.status === 'Complete' ? 'green' :
-                                                 removal.status === 'Defective' ? 'red' :
-                                                 removal.status === 'With missing parts' ? 'orange' : 'gray',
-                                    backgroundColor: 'transparent'
-                                  }}
-                                />
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                  {(isRecent(removal.updated_at) || isRecent(removal.created_at)) && (
+                                    <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                  )}
+                                  <Chip
+                                    label={removal.status}
+                                    variant="outlined"
+                                    size="small"
+                                    sx={{
+                                      color: removal.status === 'Complete' ? 'green' :
+                                             removal.status === 'Defective' ? 'red' :
+                                             removal.status === 'With missing parts' ? 'orange' : 'gray',
+                                      borderColor: removal.status === 'Complete' ? 'green' :
+                                                   removal.status === 'Defective' ? 'red' :
+                                                   removal.status === 'With missing parts' ? 'orange' : 'gray',
+                                      backgroundColor: 'transparent'
+                                    }}
+                                  />
+                                </Box>
                               </TableCell>
                               <TableCell align="center">{removal.missingParts || '-'}</TableCell>
                               <TableCell align="center">
-                                <Chip
-                                  label={removal.approval_status || 'Pending'}
-                                  size="small"
-                                  sx={{
-                                    color: removal.approval_status === 'Approved' ? 'green' :
-                                           removal.approval_status === 'Rejected' ? 'red' : 'orange',
-                                    borderColor: removal.approval_status === 'Approved' ? 'green' :
-                                                 removal.approval_status === 'Rejected' ? 'red' : 'orange',
-                                    backgroundColor: 'transparent'
-                                  }}
-                                />
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                  {(isRecent(removal.updated_at) || isRecent(removal.created_at) || isRecent(removal.approval_date)) && (
+                                    <CircleIcon sx={{ fontSize: 8, color: 'red' }} />
+                                  )}
+                                  <Chip
+                                    label={removal.approval_status || 'Pending'}
+                                    variant="outlined"
+                                    size="small"
+                                    sx={{
+                                      color: removal.approval_status === 'Approved' ? 'green' :
+                                             removal.approval_status === 'Rejected' ? 'red' : 'orange',
+                                      borderColor: removal.approval_status === 'Approved' ? 'green' :
+                                                   removal.approval_status === 'Rejected' ? 'red' : 'orange',
+                                      backgroundColor: 'transparent'
+                                    }}
+                                  />
+                                </Box>
                               </TableCell>
                               <TableCell align="center">
                                 {removal.approval_date ? (
